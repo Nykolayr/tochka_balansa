@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+// GlobalKey для доступа к контексту глобально
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() {
   runApp(const MyApp());
 }

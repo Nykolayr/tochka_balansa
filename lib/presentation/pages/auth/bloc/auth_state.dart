@@ -6,6 +6,7 @@ class AuthState extends Equatable {
   final String error;
   final bool isReg;
   final String code;
+  final String email;
 
   const AuthState({
     required this.user,
@@ -13,6 +14,7 @@ class AuthState extends Equatable {
     required this.error,
     required this.isReg,
     required this.code,
+    required this.email,
   });
 
   factory AuthState.initial() => AuthState(
@@ -21,6 +23,7 @@ class AuthState extends Equatable {
     error: '',
     isReg: false,
     code: '',
+    email: '',
   );
 
   AuthState copyWith({
@@ -30,6 +33,7 @@ class AuthState extends Equatable {
     String? phone,
     bool? isReg,
     String? code,
+    String? email,
   }) {
     return AuthState(
       user: user ?? this.user,
@@ -37,11 +41,12 @@ class AuthState extends Equatable {
       error: error ?? this.error,
       isReg: isReg ?? this.isReg,
       code: code ?? this.code,
+      email: email ?? this.email,
     );
   }
 
   @override
-  List<Object?> get props => [user, status, error, isReg, code];
+  List<Object?> get props => [user, status, error, isReg, code, email];
 }
 
 enum AuthStatus {
