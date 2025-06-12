@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="46.0711mm" height="46.0711mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 1134.89 1134.89"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str0 {stroke:yellow;stroke-width:9.3;stroke-miterlimit:22.9256}
+    .str1 {stroke:yellow;stroke-width:9.3;stroke-miterlimit:22.9256}
+    .fil5 {fill:none}
+    .fil2 {fill:#07D271}
+    .fil3 {fill:#07D271}
+    .fil4 {fill:#08BB81}
+    .fil0 {fill:#253E58}
+    .fil1 {fill:#CCFAFD}
+   ]]>
+  </style>
+ </defs>
+ <g id="Слой_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <rect class="fil0" x="-0" y="-0" width="1134.89" height="1134.89"/>
+  <g id="_2267822967424">
+   <rect class="fil1" x="122.93" y="562.79" width="889.02" height="9.3"/>
+   <rect class="fil1" transform="matrix(2.00015E-14 -0.755214 0.42271 1.11953E-14 562.791 1011.95)" width="1177.18" height="22"/>
+   <circle class="fil2" cx="566" cy="188.88" r="65.95"/>
+   <rect class="fil3" transform="matrix(2.00015E-14 -0.0515444 0.42271 7.64094E-16 955.298 597.782)" width="1177.18" height="22"/>
+   <rect class="fil3" transform="matrix(2.00015E-14 -0.0515444 0.42271 7.64094E-16 170.64 597.782)" width="1177.18" height="22"/>
+   <circle class="fil2" cx="566" cy="983.85" r="28.1"/>
+   <path class="fil4" d="M566.17 317.5c85.44,3.79 139.42,18.99 144.28,52.01 -2.73,49.55 -92.45,106.03 -117.98,170.18 83.54,59.75 53.31,277.18 12.59,344.3 -20.33,-99.89 -35.51,-200.06 -38.88,-300.87 -3.37,100.81 -18.56,200.98 -38.88,300.87 -40.72,-67.13 -70.95,-284.55 12.59,-344.3 -25.53,-64.15 -115.25,-120.63 -117.98,-170.18 4.86,-33.02 58.84,-48.22 144.28,-52.01z"/>
+   <g>
+    <path class="fil5 str0" d="M572.09 562.79c-231.96,-80.27 -357.84,-220.21 -436.68,-386.62"/>
+   </g>
+   <g>
+    <path class="fil5 str1" d="M572.09 562.79c231.97,80.27 357.84,220.21 436.68,386.62"/>
+   </g>
+   <circle class="fil3" cx="566" cy="562.79" r="34.15"/>
+  </g>
+ </g>
+</svg>
