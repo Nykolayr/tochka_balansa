@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:tochka_balansa/presentation/pages/auth/code_page.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
