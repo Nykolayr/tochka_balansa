@@ -5,7 +5,6 @@ import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
-import 'package:tochka_balansa/presentation/pages/auth/code_page.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';

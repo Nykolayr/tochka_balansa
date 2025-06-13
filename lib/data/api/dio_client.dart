@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/constants/api_constans.dart';
 import 'package:tochka_balansa/data/api/dio_exception.dart';

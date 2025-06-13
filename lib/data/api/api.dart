@@ -8,7 +8,7 @@ class Api {
   /// рефреш токена
   Future<ResponseApi> refreshToken() async {
     return await dio.post('/api/mobile/refresh');
-  }
+  } 
 
   /// авторизация по email
   Future<ResponseApi> authEmail(String email, String password) async {
