@@ -16,6 +16,13 @@ Future initMain() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     return packageInfo;
   });
+  try {
+    await Get.putAsync<DioClient>(() async => DioClient(Dio()));
+    await Get.putAsync<Api>(() async => Api());
+  } catch (e) {
+    Logger.e('DioClient error = $e');
+    return 'DioClient $e';
+  }
 
   try {
     await Get.putAsync(() async {
@@ -27,13 +34,7 @@ Future initMain() async {
     Logger.e('UserRepository error1 = $e');
     return 'user $e';
   }
-  try {
-    Get.put<DioClient>(DioClient(Dio()));
-    Get.put<Api>(Api());
-  } catch (e) {
-    Logger.e('DioClient error = $e');
-    return 'DioClient $e';
-  }
+
   try {
     Get.put<AuthBloc>(AuthBloc());
   } catch (e) {
@@ -64,7 +65,5 @@ Future initMain() async {
     Logger.e('MainBloc error = $e');
     return 'bloc $e';
   }
-
-  await Future.delayed(const Duration(seconds: 3));
   return '';
 }

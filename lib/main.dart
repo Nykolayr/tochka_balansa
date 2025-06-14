@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tochka_balansa/core/di/locator.dart';
 import 'package:tochka_balansa/presentation/router/routers.dart';
 
 // GlobalKey для доступа к контексту глобально
@@ -11,11 +12,11 @@ GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 // Глобальная переменная для мока
 bool isMock = true;
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
+  await initMain();
   runApp(const MyApp());
 }
 
@@ -24,15 +25,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Получаем локаль системы
+    final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    // Определяем поддерживаемые языки
+    final supportedLocales = const [Locale('ru', 'RU'), Locale('en', 'US')];
+    // Выбираем ближайший поддерживаемый язык
+    final locale = supportedLocales.firstWhere(
+      (locale) => locale.languageCode == systemLocale.languageCode,
+      orElse: () => const Locale('en', 'US'), // По умолчанию русский
+    );
+
     return MaterialApp.router(
       title: 'Tochka Balansa',
-      locale: const Locale('ru', 'RU'),
+      locale: locale,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('ru', 'RU'), Locale('en', 'US')],
+      supportedLocales: supportedLocales,
       theme: ThemeData(
         // fontFamily: 'ProximaNova',
         pageTransitionsTheme: const PageTransitionsTheme(
