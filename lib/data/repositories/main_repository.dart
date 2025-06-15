@@ -17,8 +17,10 @@ class MainRepository extends GetxController {
   /// Список слайдов для онбординга
   List<SlideModel> slides = [];
 
+
   /// Начальная загрузка
   Future init() async {
+
     await getSlides();
   }
 
@@ -37,4 +39,6 @@ class MainRepository extends GetxController {
       Logger.e('Ошибка getSlides $e');
     }
   }
+
+
 }

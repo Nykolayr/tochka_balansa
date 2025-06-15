@@ -1,9 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tochka_balansa/core/di/locator.dart';
 import 'package:tochka_balansa/data/repositories/main_repository.dart';
+import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/presentation/widgets/app_title.dart';
+import 'loading_widget.dart';
 import 'slide_widget.dart';
+import 'package:tochka_balansa/presentation/widgets/buttons.dart';
+import 'package:tochka_balansa/core/theme/theme.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -14,26 +21,77 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   final PageController _pageController = PageController();
-  final MainRepository repo = Get.find<MainRepository>();
-  int currentPage = 0;
+  late final MainRepository _repository;
+  late final UserRepository _userRepository;
+  int _currentPage = 0;
   bool _userInteracted = false;
-  Timer? autoSlideTimer;
+  Timer? _autoSlideTimer;
+  bool _isMainInitialized = false;
+  bool _isAuthorized = false;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!_userInteracted) {
-        _startAutoSlide();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      // Инициализация основного функционала
+      await initMain();
+
+      // Получаем репозитории после инициализации
+      _repository = Get.find<MainRepository>();
+      _userRepository = Get.find<UserRepository>();
+
+      if (mounted) {
+        setState(() {
+          _isMainInitialized = true;
+        });
+
+        // Проверяем авторизацию
+        _isAuthorized = _userRepository.isReg;
+
+        // Если пользователь не авторизован, загружаем слайды
+        if (!_isAuthorized) {
+          await _initializeSlides();
+        } else {
+          // Если авторизован, сразу переходим на главный экран
+          if (mounted) {
+            context.go('/main');
+          }
+        }
       }
-    });
+    } catch (e) {
+      Logger.e('Error initializing main: $e');
+    }
+  }
+
+  /// Инициализируем слайды
+  Future<void> _initializeSlides() async {
+    try {
+      await _repository.getSlides();
+      if (mounted) {
+        setState(() {
+          _currentPage = 0;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _pageController.jumpToPage(0);
+        });
+        if (!_userInteracted) {
+          _startAutoSlide();
+        }
+      }
+    } catch (e) {
+      Logger.e('Error initializing slides: $e');
+    }
   }
 
   void _startAutoSlide() {
-    autoSlideTimer?.cancel();
-    autoSlideTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _autoSlideTimer?.cancel();
+    _autoSlideTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!_userInteracted && mounted) {
-        final nextPage = (currentPage + 1) % repo.slides.length;
+        final nextPage = (_currentPage + 1) % _repository.slides.length;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -48,138 +106,155 @@ class _SplashPageState extends State<SplashPage> {
       setState(() {
         _userInteracted = true;
       });
-      autoSlideTimer?.cancel();
+      _autoSlideTimer?.cancel();
     }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    autoSlideTimer?.cancel();
+    _autoSlideTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (repo.slides.isEmpty) {
+    // Показываем экран загрузки, пока не инициализирован основной функционал
+    if (!_isMainInitialized) {
+      return const LoadingWidget();
+    }
+    // Если пользователь авторизован, показываем индикатор загрузки
+    // (будет автоматически перенаправлен на главный экран)
+    if (_isAuthorized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Точка Баланса: умный помощник для поддержания физического равновесия и веса',
-          style: TextStyle(fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
-        centerTitle: true,
-        toolbarHeight: 80,
-      ),
-      body: GestureDetector(
-        onPanUpdate: (details) {
-          _handleUserInteraction();
-          if (details.delta.dx > 0) {
-            // Свайп вправо - назад
-            if (currentPage > 0) {
-              _pageController.previousPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          } else if (details.delta.dx < 0) {
-            // Свайп влево - вперед
-            if (currentPage < repo.slides.length - 1) {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          }
-        },
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    currentPage = index;
-                  });
-                },
-                itemCount: repo.slides.length,
-                itemBuilder: (context, index) {
-                  return SlideWidget(
-                    slide: repo.slides[index],
-                    isActive: currentPage == index,
+      body: Stack(
+        children: [
+          // Основной контент
+          GestureDetector(
+            onPanUpdate: (details) {
+              _handleUserInteraction();
+              if (details.delta.dx > 0) {
+                // Свайп вправо - назад
+                if (_currentPage > 0) {
+                  _pageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
                   );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Кнопка "Назад"
-                  if (currentPage > 0)
-                    TextButton(
-                      onPressed: () {
-                        _handleUserInteraction();
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      child: const Text('Назад'),
-                    )
-                  else
-                    const SizedBox(width: 80),
-
-                  // Индикаторы слайдов
-                  Row(
+                }
+              } else if (details.delta.dx < 0) {
+                // Свайп влево - вперед
+                if (_currentPage < _repository.slides.length - 1) {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              }
+            },
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemCount: _repository.slides.length,
+                    itemBuilder: (context, index) {
+                      return SlideWidget(
+                        slide: _repository.slides[index],
+                        isActive: _currentPage == index,
+                      );
+                    },
+                  ),
+                ),
+                // Индикаторы слайдов
+                Padding(
+                  padding: const EdgeInsets.only(top: 24, bottom: 16),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      repo.slides.length,
+                      _repository.slides.length,
                       (index) => Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: currentPage == index
-                              ? Theme.of(context).primaryColor
+                          color: _currentPage == index
+                              ? AppColor.darkBlue
                               : Colors.grey[300],
                         ),
                       ),
                     ),
                   ),
-
-                  // Кнопка "Далее" или "Начать"
-                  SizedBox(
-                    width: 80,
-                    child: currentPage < repo.slides.length - 1
-                        ? TextButton(
-                            onPressed: () {
-                              _handleUserInteraction();
-                              _pageController.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                            child: const Text('Далее'),
-                          )
-                        : ElevatedButton(
-                            onPressed: () {
-                              context.go('/auth');
-                            },
-                            child: const Text('Начать'),
-                          ),
+                ),
+                // Кнопки управления
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 30,
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: RoundedWideButton(
+                          text: 'Назад',
+                          onPressed: _currentPage > 0
+                              ? () {
+                                  _handleUserInteraction();
+                                  _pageController.previousPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              : () {},
+                          enabled: _currentPage > 0,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: RoundedWideButton(
+                          text: _currentPage < _repository.slides.length - 1
+                              ? 'Далее'
+                              : 'Начать',
+                          onPressed:
+                              _currentPage < _repository.slides.length - 1
+                              ? () {
+                                  _handleUserInteraction();
+                                  _pageController.nextPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              : () {
+                                  context.go('/auth');
+                                },
+                          enabled: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Заголовок поверх контента
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 30,
+            left: 0,
+            right: 0,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: AppTitle(),
+            ),
+          ),
+        ],
       ),
     );
   }

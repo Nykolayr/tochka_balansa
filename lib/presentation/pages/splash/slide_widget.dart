@@ -22,12 +22,8 @@ class SlideWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              isEnglish ? slide.titleEn : slide.title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(20),
+            const Gap(100),
+
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Image.asset(
@@ -36,6 +32,12 @@ class SlideWidget extends StatelessWidget {
                 height: (MediaQuery.of(context).size.width - 40) * 0.8,
                 fit: BoxFit.cover,
               ),
+            ),
+            const Gap(20),
+            Text(
+              isEnglish ? slide.titleEn : slide.title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
             const Gap(20),
             Text(

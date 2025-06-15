@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:tochka_balansa/core/di/locator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tochka_balansa/presentation/router/routers.dart';
 
 // GlobalKey для доступа к контексту глобально
@@ -16,7 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
-  await initMain();
+
   runApp(const MyApp());
 }
 
@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp.router(
       title: 'Tochka Balansa',
+
       locale: locale,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: supportedLocales,
       theme: ThemeData(
-        // fontFamily: 'ProximaNova',
+        textTheme: GoogleFonts.robotoTextTheme(Theme.of(context).textTheme),
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder()},
         ),

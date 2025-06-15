@@ -65,5 +65,6 @@ Future initMain() async {
     Logger.e('MainBloc error = $e');
     return 'bloc $e';
   }
+  await Future.delayed(Duration(seconds: 5));
   return '';
 }

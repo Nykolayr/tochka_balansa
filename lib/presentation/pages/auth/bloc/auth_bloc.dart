@@ -47,7 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     final answer = await repo.regEmail(
       email: event.email,
-      password: event.password,
+      password: event.password, 
     );
     if (answer.isEmpty) {
       emit(state.copyWith(status: AuthStatus.successEnter, email: event.email));
