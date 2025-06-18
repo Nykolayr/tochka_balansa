@@ -43,7 +43,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final logoWidth = screenWidth * 0.5;
+    final logoWidth = screenWidth * 0.6;
 
     return Scaffold(
       body: Stack(
@@ -53,7 +53,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Gap(100),
+                const Gap(50),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: SvgPicture.asset(
@@ -63,7 +63,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
                     fit: BoxFit.cover,
                   ),
                 ),
-                const Gap(40),
+                const Gap(100),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(3, (index) {

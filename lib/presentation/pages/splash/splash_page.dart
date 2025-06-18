@@ -123,11 +123,6 @@ class _SplashPageState extends State<SplashPage> {
     if (!_isMainInitialized) {
       return const LoadingWidget();
     }
-    // Если пользователь авторизован, показываем индикатор загрузки
-    // (будет автоматически перенаправлен на главный экран)
-    if (_isAuthorized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
 
     return Scaffold(
       body: Stack(
