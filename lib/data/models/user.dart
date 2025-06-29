@@ -10,6 +10,7 @@ class User extends Equatable {
   final String email;
   final Gender gender;
   final double initialWeight;
+  final double height;
 
   bool get isReg => name.isNotEmpty;
 
@@ -21,6 +22,7 @@ class User extends Equatable {
     required this.email,
     required this.gender,
     required this.initialWeight,
+    required this.height,
   });
 
   factory User.initial() => User(
@@ -31,6 +33,7 @@ class User extends Equatable {
     email: '',
     gender: Gender.female,
     initialWeight: 0.0,
+    height: 0.0,
   );
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -45,6 +48,7 @@ class User extends Equatable {
         orElse: () => Gender.female,
       ),
       initialWeight: (json['initial_weight'] ?? 0).toDouble(),
+      height: (json['height'] ?? 0).toDouble(),
     );
   }
 
@@ -57,6 +61,7 @@ class User extends Equatable {
       'email': email,
       'gender': gender.name,
       'initial_weight': initialWeight,
+      'height': height,
     };
   }
 
@@ -68,6 +73,7 @@ class User extends Equatable {
     String? email,
     Gender? gender,
     double? initialWeight,
+    double? height,
   }) {
     return User(
       id: id ?? this.id,
@@ -77,6 +83,7 @@ class User extends Equatable {
       email: email ?? this.email,
       gender: gender ?? this.gender,
       initialWeight: initialWeight ?? this.initialWeight,
+      height: height ?? this.height,
     );
   }
 
@@ -89,5 +96,6 @@ class User extends Equatable {
     email,
     gender,
     initialWeight,
+    height,
   ];
 }

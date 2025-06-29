@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tochka_balansa/core/theme/theme.dart';
 
-enum TextFieldType { email, password, name }
+enum TextFieldType { email, password, name, weight, height }
 
 class AppTextFormField extends StatelessWidget {
   final TextFieldType type;
@@ -49,6 +48,28 @@ class AppTextFormField extends StatelessWidget {
     return null;
   }
 
+  String? _validateWeight(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Введите вес';
+    }
+    final weight = double.tryParse(value);
+    if (weight == null || weight <= 0 || weight > 300) {
+      return 'Введите корректный вес (1-300 кг)';
+    }
+    return null;
+  }
+
+  String? _validateHeight(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Введите рост';
+    }
+    final height = double.tryParse(value);
+    if (height == null || height <= 0 || height > 250) {
+      return 'Введите корректный рост (1-250 см)';
+    }
+    return null;
+  }
+
   String _getHint() {
     switch (type) {
       case TextFieldType.email:
@@ -57,6 +78,10 @@ class AppTextFormField extends StatelessWidget {
         return 'Пароль';
       case TextFieldType.name:
         return 'Имя';
+      case TextFieldType.weight:
+        return 'Вес (кг)';
+      case TextFieldType.height:
+        return 'Рост (см)';
     }
   }
 
@@ -68,6 +93,10 @@ class AppTextFormField extends StatelessWidget {
         return Icons.lock;
       case TextFieldType.name:
         return Icons.person;
+      case TextFieldType.weight:
+        return Icons.monitor_weight;
+      case TextFieldType.height:
+        return Icons.height;
     }
   }
 
@@ -79,6 +108,24 @@ class AppTextFormField extends StatelessWidget {
         return _validatePassword;
       case TextFieldType.name:
         return _validateName;
+      case TextFieldType.weight:
+        return _validateWeight;
+      case TextFieldType.height:
+        return _validateHeight;
+    }
+  }
+
+  TextInputType _getKeyboardType() {
+    switch (type) {
+      case TextFieldType.email:
+        return TextInputType.emailAddress;
+      case TextFieldType.password:
+        return TextInputType.visiblePassword;
+      case TextFieldType.name:
+        return TextInputType.name;
+      case TextFieldType.weight:
+      case TextFieldType.height:
+        return TextInputType.number;
     }
   }
 
@@ -87,6 +134,7 @@ class AppTextFormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       obscureText: type == TextFieldType.password && obscureText,
+      keyboardType: _getKeyboardType(),
       decoration: InputDecoration(
         labelText: _getHint(),
         prefixIcon: Icon(_getIcon()),

@@ -6,6 +6,7 @@ import 'package:tochka_balansa/presentation/pages/auth/code_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/main_page.dart';
 import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
+import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
 
 /// роутер приложения
 final GoRouter router = GoRouter(
@@ -21,6 +22,16 @@ final GoRouter router = GoRouter(
         context: context,
         state: state,
         child: const SplashPage(),
+      ),
+    ),
+    GoRoute(
+      name: 'данные пользователя',
+      path: '/user-data',
+      pageBuilder: (context, state) => buildPageWithDefaultTransition(
+        type: PageTransitionType.leftToRight,
+        context: context,
+        state: state,
+        child: const UserDataPage(),
       ),
     ),
     GoRoute(

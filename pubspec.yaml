@@ -47,6 +47,8 @@ dependencies:
   share_plus: ^11.0.0
   fluttertoast: ^8.2.12
   google_fonts: ^6.1.0 
+  # tape_slider: ^0.0.2 
+  # animated_weight_picker: ^1.0.3
 
 dev_dependencies:
   flutter_test:

@@ -27,7 +27,6 @@ class _SplashPageState extends State<SplashPage> {
   bool _userInteracted = false;
   Timer? _autoSlideTimer;
   bool _isMainInitialized = false;
-  bool _isAuthorized = false;
 
   @override
   void initState() {
@@ -49,14 +48,15 @@ class _SplashPageState extends State<SplashPage> {
           _isMainInitialized = true;
         });
 
-        // Проверяем авторизацию
-        _isAuthorized = _userRepository.isReg;
+        // Проверяем, заполнены ли данные пользователя
+        final user = _userRepository.user;
+        final hasUserData = user.name.isNotEmpty;
 
-        // Если пользователь не авторизован, загружаем слайды
-        if (!_isAuthorized) {
+        // Если данные не заполнены, загружаем слайды
+        if (!hasUserData) {
           await _initializeSlides();
         } else {
-          // Если авторизован, сразу переходим на главный экран
+          // Если данные заполнены, сразу переходим на главный экран
           if (mounted) {
             context.go('/main');
           }
@@ -228,7 +228,7 @@ class _SplashPageState extends State<SplashPage> {
                                   );
                                 }
                               : () {
-                                  context.go('/auth');
+                                  context.goNamed('данные пользователя');
                                 },
                           enabled: true,
                         ),
