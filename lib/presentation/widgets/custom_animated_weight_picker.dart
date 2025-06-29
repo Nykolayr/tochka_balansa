@@ -244,16 +244,13 @@ class _CustomAnimatedWeightPickerState
                   (index) {
                     bool isSelected = _selectedIndex == index;
                     bool isMajorInterval =
-                        !isSelected &&
                         _valueList[index].interval == INTERVAL_TYPE.MAJOR &&
                         (_selectedIndex != 0 || _valueList.length - 1 != index);
                     bool isSubInterval =
-                        !isSelected &&
                         !isMajorInterval &&
                         _valueList[index].interval == INTERVAL_TYPE.SUB &&
                         index != _valueList.length - 1;
                     bool isMinorInterval =
-                        !isSelected &&
                         !isMajorInterval &&
                         !isSubInterval &&
                         (_valueList[index].interval == INTERVAL_TYPE.MINOR ||
@@ -277,31 +274,64 @@ class _CustomAnimatedWeightPickerState
                                   : isMinorInterval
                                   ? widget.minorIntervalHeight
                                   : widget.minorIntervalHeight,
-                              child: VerticalDivider(
-                                thickness: isSelected
-                                    ? 1.0
-                                    : isMajorInterval
-                                    ? widget.majorIntervalThickness
-                                    : isSubInterval
-                                    ? widget.subIntervalThickness
-                                    : isMinorInterval
-                                    ? widget.minorIntervalThickness
-                                    : widget.minorIntervalThickness,
-                                color: isSelected
-                                    ? AppColor.red
-                                    : isMajorInterval
-                                    ? widget.majorIntervalColor
-                                    : isSubInterval
-                                    ? widget.subIntervalColor
-                                    : isMinorInterval
-                                    ? widget.minorIntervalColor
-                                    : widget.minorIntervalColor,
-                                endIndent: 0,
-                                indent: 0,
+                              child: Stack(
+                                children: [
+                                  VerticalDivider(
+                                    thickness: isSelected
+                                        ? 0
+                                        : isMajorInterval
+                                        ? widget.majorIntervalThickness
+                                        : isSubInterval
+                                        ? widget.subIntervalThickness
+                                        : isMinorInterval
+                                        ? widget.minorIntervalThickness
+                                        : widget.minorIntervalThickness,
+                                    color: isSelected
+                                        ? Colors.transparent
+                                        : isMajorInterval
+                                        ? widget.majorIntervalColor
+                                        : isSubInterval
+                                        ? widget.subIntervalColor
+                                        : isMinorInterval
+                                        ? widget.minorIntervalColor
+                                        : widget.minorIntervalColor,
+                                    endIndent: 0,
+                                    indent: 0,
+                                  ),
+                                  VerticalDivider(
+                                    thickness: isSelected ? 1.0 : 0,
+                                    color: isSelected
+                                        ? AppColor.red
+                                        : isMajorInterval
+                                        ? widget.majorIntervalColor
+                                        : isSubInterval
+                                        ? widget.subIntervalColor
+                                        : isMinorInterval
+                                        ? widget.minorIntervalColor
+                                        : widget.minorIntervalColor,
+                                    endIndent: 0,
+                                    indent: 0,
+                                  ),
+                                  if (isSelected && isMajorInterval)
+                                    Positioned(
+                                      top: 20,
+                                      child: Text(
+                                        _valueList[index].value,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.fade,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: widget.selectedValueColor,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
-                            if ((widget.showMajorIntervalText &&
-                                    isMajorInterval) ||
+
+                            if (!isSelected &&
+                                    (widget.showMajorIntervalText &&
+                                        isMajorInterval) ||
                                 (widget.showMinorIntervalText &&
                                     isMinorInterval) ||
                                 (widget.showSubIntervalText && isSubInterval))
@@ -310,18 +340,8 @@ class _CustomAnimatedWeightPickerState
                                 maxLines: 1,
                                 overflow: TextOverflow.fade,
                                 style: TextStyle(
-                                  fontSize: _valueList[index].value.length >= 4
-                                      ? 12
-                                      : isMajorInterval
-                                      ? widget.majorIntervalTextSize
-                                      : isSubInterval
-                                      ? widget.subIntervalTextSize
-                                      : widget.minorIntervalTextSize,
-                                  color: isMajorInterval
-                                      ? widget.majorIntervalTextColor
-                                      : isSubInterval
-                                      ? widget.subIntervalTextColor
-                                      : widget.minorIntervalTextColor,
+                                  fontSize: 12,
+                                  color: widget.majorIntervalTextColor,
                                 ),
                               ),
                           ],
