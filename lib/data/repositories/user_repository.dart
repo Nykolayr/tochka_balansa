@@ -19,6 +19,7 @@ class UserRepository {
 
   factory UserRepository() => _instance;
 
+  /// удаление пользователя
   Future<bool> deleteUser() async {
     return false;
   }
@@ -142,18 +143,8 @@ class UserRepository {
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.user);
       Logger.e('loadUserFromLocal $data');
-      if (data['error'] == null) {
-        user = User.fromJson(data);
-      } else {
-        await saveUserToLocal();
-      }
     } catch (e) {
       Logger.e('user error $e');
-      try {
-        await saveUserToLocal();
-      } catch (e) {
-        Logger.e('saveUserToLocal error $e');
-      }
     }
   }
 

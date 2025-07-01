@@ -53,7 +53,7 @@ class _SplashPageState extends State<SplashPage> {
         final hasUserData = user.name.isNotEmpty;
 
         // Если данные не заполнены, загружаем слайды
-        if (!hasUserData) {
+        if (hasUserData) {
           await _initializeSlides();
         } else {
           // Если данные заполнены, сразу переходим на главный экран

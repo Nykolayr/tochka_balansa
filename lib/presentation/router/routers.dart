@@ -7,6 +7,10 @@ import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/main_page.dart';
 import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
 import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
+import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/food_page.dart';
+import 'package:tochka_balansa/presentation/pages/training/training_page.dart';
+import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 
 /// роутер приложения
 final GoRouter router = GoRouter(
@@ -77,6 +81,48 @@ final GoRouter router = GoRouter(
         state: state,
         child: const MainPage(),
       ),
+      routes: <GoRoute>[
+        GoRoute(
+          name: 'Главная',
+          path: 'home',
+          pageBuilder: (context, state) => buildPageWithDefaultTransition(
+            type: PageTransitionType.leftToRight,
+            context: context,
+            state: state,
+            child: const HomePage(),
+          ),
+        ),
+        GoRoute(
+          name: 'Еда',
+          path: 'food',
+          pageBuilder: (context, state) => buildPageWithDefaultTransition(
+            type: PageTransitionType.leftToRight,
+            context: context,
+            state: state,
+            child: const FoodPage(),
+          ),
+        ),
+        GoRoute(
+          name: 'Тренировки',
+          path: 'training',
+          pageBuilder: (context, state) => buildPageWithDefaultTransition(
+            type: PageTransitionType.leftToRight,
+            context: context,
+            state: state,
+            child: const TrainingPage(),
+          ),
+        ),
+        GoRoute(
+          name: 'Профиль',
+          path: 'profile',
+          pageBuilder: (context, state) => buildPageWithDefaultTransition(
+            type: PageTransitionType.leftToRight,
+            context: context,
+            state: state,
+            child: const ProfilePage(),
+          ),
+        ),
+      ],
     ),
   ],
 );
