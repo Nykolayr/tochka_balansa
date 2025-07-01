@@ -46,8 +46,9 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   share_plus: ^11.0.0
   fluttertoast: ^8.2.12
-  google_fonts: ^6.1.0 
+  google_fonts: ^6.1.0
   hive: ^2.2.3 #https://pub.dev/packages/hive
+  hive_flutter: ^1.1.0 #https://pub.dev/packages/hive_flutter
   
 
 dev_dependencies:

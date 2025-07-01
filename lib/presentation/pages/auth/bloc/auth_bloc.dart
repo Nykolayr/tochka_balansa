@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
+import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
@@ -16,9 +17,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegEmailEvent>(_onRegEmailEvent);
     on<SendCodeEvent>(_onSendCodeEvent);
     on<ClearErrorEvent>(_onClearErrorEvent);
+    on<SaveUserDataEvent>(_onSaveUserDataEvent);
   }
 
   UserRepository repo = Get.find<UserRepository>();
+
+  /// сохранение данных пользователя
+  Future<void> _onSaveUserDataEvent(
+    SaveUserDataEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    await repo.saveUserData(
+      event.name,
+      event.weight,
+      event.height,
+      event.birthDate,
+      event.gender,
+    );
+  }
 
   /// авторизация по email
   Future<void> _onAuthEmailEvent(
@@ -47,7 +63,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     final answer = await repo.regEmail(
       email: event.email,
-      password: event.password, 
+      password: event.password,
     );
     if (answer.isEmpty) {
       emit(state.copyWith(status: AuthStatus.successEnter, email: event.email));

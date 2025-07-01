@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/presentation/pages/auth/bloc/auth_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 import 'package:tochka_balansa/presentation/widgets/buttons.dart';
 import 'package:tochka_balansa/presentation/widgets/text_form_field.dart';
@@ -47,31 +48,17 @@ class _UserDataPageState extends State<UserDataPage> {
     }
   }
 
-  int _calculateAge(DateTime birthDate) {
-    final now = DateTime.now();
-    int age = now.year - birthDate.year;
-    if (now.month < birthDate.month ||
-        (now.month == birthDate.month && now.day < birthDate.day)) {
-      age--;
-    }
-    return age;
-  }
-
   void _saveUserData() {
     if (formKey.currentState!.validate()) {
-      final age = _calculateAge(selectedDate);
-
-      final updatedUser = _userRepository.user.copyWith(
-        name: nameController.text.trim(),
-        birthDate: selectedDate,
-        age: age,
-        gender: selectedGender,
-        initialWeight: selectedWeight,
-        height: selectedHeight / 100, // конвертируем обратно в метры
+      Get.find<AuthBloc>().add(
+        SaveUserDataEvent(
+          name: nameController.text,
+          weight: selectedWeight,
+          height: selectedHeight,
+          birthDate: selectedDate,
+          gender: selectedGender,
+        ),
       );
-
-      _userRepository.user = updatedUser;
-      _userRepository.saveUserToLocal();
 
       // Переходим на главный экран
       context.go('/main');

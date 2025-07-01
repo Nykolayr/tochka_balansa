@@ -31,3 +31,19 @@ class SendCodeEvent extends AuthEvent {
 class ClearErrorEvent extends AuthEvent {
   const ClearErrorEvent();
 }
+
+// сохранение данных пользователя
+class SaveUserDataEvent extends AuthEvent {
+  final String name;
+  final double weight;
+  final double height;
+  final DateTime birthDate;
+  final Gender gender;
+  const SaveUserDataEvent({
+    required this.name,
+    required this.weight,
+    required this.height,
+    required this.birthDate,
+    required this.gender,
+  });
+}

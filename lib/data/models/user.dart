@@ -6,7 +6,6 @@ class User extends Equatable {
   final int id;
   final String name;
   final DateTime birthDate;
-  final int age;
   final String email;
   final Gender gender;
   final double initialWeight;
@@ -18,7 +17,6 @@ class User extends Equatable {
     required this.id,
     required this.name,
     required this.birthDate,
-    required this.age,
     required this.email,
     required this.gender,
     required this.initialWeight,
@@ -29,7 +27,6 @@ class User extends Equatable {
     id: 0,
     name: '',
     birthDate: DateTime.now(),
-    age: 0,
     email: '',
     gender: Gender.female,
     initialWeight: 0.0,
@@ -41,7 +38,6 @@ class User extends Equatable {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       birthDate: DateTime.tryParse(json['birth_date'] ?? '') ?? DateTime.now(),
-      age: json['age'] ?? 0,
       email: json['email'] ?? '',
       gender: Gender.values.firstWhere(
         (g) => g.toString() == 'Gender.${json['gender']}',
@@ -57,7 +53,6 @@ class User extends Equatable {
       'id': id,
       'name': name,
       'birth_date': birthDate.toIso8601String(),
-      'age': age,
       'email': email,
       'gender': gender.name,
       'initial_weight': initialWeight,
@@ -69,7 +64,6 @@ class User extends Equatable {
     int? id,
     String? name,
     DateTime? birthDate,
-    int? age,
     String? email,
     Gender? gender,
     double? initialWeight,
@@ -79,12 +73,25 @@ class User extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       birthDate: birthDate ?? this.birthDate,
-      age: age ?? this.age,
+
       email: email ?? this.email,
       gender: gender ?? this.gender,
       initialWeight: initialWeight ?? this.initialWeight,
       height: height ?? this.height,
     );
+  }
+
+  /// возраст пользователя, вычисляется из даты рождения
+  int get age {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+
+    return age < 0 ? 0 : age;
   }
 
   @override
