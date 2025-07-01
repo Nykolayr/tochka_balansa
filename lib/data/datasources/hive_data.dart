@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 ///сохранение и загрузка в Hive
@@ -38,39 +39,42 @@ class HiveData {
     return _box.get(key.name, defaultValue: '');
   }
 
+  /// Сохранение JSON напрямую (Hive автоматически сериализует Map)
   static Future<void> saveJson({
     required Map<String, dynamic> json,
     required HiveDataKey key,
   }) async {
-    await _box.put(key.name, jsonEncode(json));
+    await _box.put(key.name, json);
   }
 
+  /// Загрузка JSON напрямую (Hive автоматически десериализует в Map)
   static Future<Map<String, dynamic>> loadJson({
     required HiveDataKey key,
   }) async {
-    final String? data = _box.get(key.name);
+    final data = _box.get(key.name);
     if (data != null) {
-      return jsonDecode(data) as Map<String, dynamic>;
+      return data as Map<String, dynamic>;
     } else {
       Logger.e('нет данных для ${key.name}');
       return {'error': 'нет данных для ${key.name}'};
     }
   }
 
+  /// Сохранение списка JSON напрямую
   static Future<void> saveListJson({
     required List<Map<String, dynamic>> json,
     required HiveDataKey key,
   }) async {
-    final List<String> list = json.map((e) => jsonEncode(e)).toList();
-    await _box.put(key.name, list);
+    await _box.put(key.name, json);
   }
 
+  /// Загрузка списка JSON напрямую
   static Future<List<Map<String, dynamic>>> loadListJson({
     required HiveDataKey key,
   }) async {
-    final List<String>? list = _box.get(key.name);
+    final list = _box.get(key.name);
     if (list != null) {
-      return list.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
+      return (list as List).cast<Map<String, dynamic>>();
     } else {
       Logger.e('нет данных для ${key.name}');
       return [
@@ -87,9 +91,9 @@ class HiveData {
   }
 
   static Future<List<String>> loadList({required HiveDataKey key}) async {
-    final List<String>? list = _box.get(key.name);
+    final list = _box.get(key.name);
     if (list != null) {
-      return list;
+      return (list as List).cast<String>();
     } else {
       Logger.e('нет данных для ${key.name}');
       return [];
@@ -104,9 +108,9 @@ class HiveData {
   }
 
   static Future<List<int>> loadListInt({required HiveDataKey key}) async {
-    final List<int>? list = _box.get(key.name);
+    final list = _box.get(key.name);
     if (list != null) {
-      return list;
+      return (list as List).cast<int>();
     } else {
       Logger.e('нет данных для ${key.name}');
       return [];

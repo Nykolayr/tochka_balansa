@@ -91,12 +91,18 @@ class _SplashPageState extends State<SplashPage> {
     _autoSlideTimer?.cancel();
     _autoSlideTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!_userInteracted && mounted) {
-        final nextPage = (_currentPage + 1) % _repository.slides.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
+        // Проверяем, не достигли ли мы последнего слайда
+        if (_currentPage < _repository.slides.length - 1) {
+          final nextPage = _currentPage + 1;
+          _pageController.animateToPage(
+            nextPage,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          // Достигли последнего слайда - останавливаем таймер
+          timer.cancel();
+        }
       }
     });
   }
