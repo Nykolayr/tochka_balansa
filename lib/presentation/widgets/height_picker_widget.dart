@@ -52,7 +52,7 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
               maxValue: 250.0,
               itemExtent: 15.0,
               activeColor: AppColor.darkBlue,
-              inactiveColor: AppColor.grey.withOpacity(0.3),
+              inactiveColor: AppColor.grey.withValues(alpha: 0.3),
               indicatorColor: AppColor.red,
               indicatorThickness: 1.0,
               showLabels: true,

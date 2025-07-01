@@ -84,7 +84,7 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
               showSubIntervalText: false,
               minorIntervalHeight: 10.0,
               minorIntervalThickness: 1.0,
-              minorIntervalColor: AppColor.grey.withOpacity(0.5),
+              minorIntervalColor: AppColor.grey.withValues(alpha: 0.5),
               showMinorIntervalText: false,
               showSelectedValue: false,
               selectedValueColor: AppColor.darkBlue,

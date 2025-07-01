@@ -135,9 +135,6 @@ class _CustomAnimatedWeightPickerState
         int currentIndex = (_scrollController.offset / 30.0).round();
         if (currentIndex != _selectedIndex &&
             currentIndex < _valueList.length) {
-          print(
-            'ScrollController listener: $currentIndex, value: ${_valueList[currentIndex].value}',
-          );
           setState(() {
             _selectedIndex = currentIndex;
           });
@@ -176,14 +173,14 @@ class _CustomAnimatedWeightPickerState
         WheelModel(
           current.toPrecision(_valuePrecision).toString().trimTrallingZero(),
           currentIndex == 0
-              ? INTERVAL_TYPE.MINOR
+              ? IntervalType.minor
               : mjInterval == currentIndex
-              ? INTERVAL_TYPE.MAJOR
+              ? IntervalType.major
               : subInterval == currentIndex
-              ? INTERVAL_TYPE.SUB
+              ? IntervalType.sub
               : mnInterval == currentIndex
-              ? INTERVAL_TYPE.MINOR
-              : INTERVAL_TYPE.NONE,
+              ? IntervalType.minor
+              : IntervalType.none,
         ),
       );
       if (currentIndex == mjInterval) mjInterval += widget.majorIntervalAt;
@@ -202,16 +199,14 @@ class _CustomAnimatedWeightPickerState
     if (old.max == widget.max &&
         old.min == widget.min &&
         old.division.toPrecision(_divisionPrecision) ==
-            widget.division.toPrecision(_divisionPrecision))
+            widget.division.toPrecision(_divisionPrecision)) {
       return;
+    }
     createWeightList(onInit: false);
   }
 
   @override
   Widget build(BuildContext context) {
-    print(
-      'Build: _selectedIndex = $_selectedIndex, value = ${_valueList.isNotEmpty ? _valueList[_selectedIndex].value : "empty"}',
-    );
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
@@ -229,9 +224,6 @@ class _CustomAnimatedWeightPickerState
               overAndUnderCenterOpacity: 1,
               clipBehavior: Clip.none,
               onSelectedItemChanged: (index) {
-                print(
-                  'onSelectedItemChanged: $index, value: ${_valueList[index].value}',
-                );
                 setState(() => _selectedIndex = index);
                 if (widget.onChange == null) return;
                 widget.onChange!(_valueList[index].value);
@@ -244,16 +236,16 @@ class _CustomAnimatedWeightPickerState
                   (index) {
                     bool isSelected = _selectedIndex == index;
                     bool isMajorInterval =
-                        _valueList[index].interval == INTERVAL_TYPE.MAJOR &&
+                        _valueList[index].interval == IntervalType.major &&
                         (_selectedIndex != 0 || _valueList.length - 1 != index);
                     bool isSubInterval =
                         !isMajorInterval &&
-                        _valueList[index].interval == INTERVAL_TYPE.SUB &&
+                        _valueList[index].interval == IntervalType.sub &&
                         index != _valueList.length - 1;
                     bool isMinorInterval =
                         !isMajorInterval &&
                         !isSubInterval &&
-                        (_valueList[index].interval == INTERVAL_TYPE.MINOR ||
+                        (_valueList[index].interval == IntervalType.minor ||
                             index == _valueList.length - 1);
 
                     return RotatedBox(
@@ -385,12 +377,12 @@ class _CustomAnimatedWeightPickerState
 
 class WheelModel {
   final String value;
-  final INTERVAL_TYPE interval;
+  final IntervalType interval;
 
   WheelModel(this.value, this.interval);
 }
 
-enum INTERVAL_TYPE { MAJOR, SUB, MINOR, NONE }
+enum IntervalType { major, sub, minor, none }
 
 extension DoubleExtension on double {
   double toPrecision(int precision) {

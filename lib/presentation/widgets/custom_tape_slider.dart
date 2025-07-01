@@ -201,7 +201,9 @@ class _CustomTapeSliderState extends State<CustomTapeSlider> {
             height: isHorizontal ? 70 : widget.indicatorThickness,
             decoration: BoxDecoration(
               color: widget.indicatorColor,
-              border: Border.all(color: widget.indicatorColor.withOpacity(0.4)),
+              border: Border.all(
+                color: widget.indicatorColor.withValues(alpha: 0.4),
+              ),
             ),
           ),
         ],
