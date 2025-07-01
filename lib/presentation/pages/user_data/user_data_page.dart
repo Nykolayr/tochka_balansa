@@ -23,7 +23,7 @@ class UserDataPage extends StatefulWidget {
 class _UserDataPageState extends State<UserDataPage> {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
-  double selectedWeight = 70.0;
+  double selectedWeight = 90.0;
   double selectedHeight = 170.0; // в сантиметрах
   DateTime selectedDate = DateTime(2000, 1, 1);
   Gender selectedGender = Gender.male;
@@ -50,6 +50,8 @@ class _UserDataPageState extends State<UserDataPage> {
 
   void _saveUserData() {
     if (formKey.currentState!.validate()) {
+      // Убираем фокус с текстового поля
+      FocusScope.of(context).unfocus();
       Get.find<AuthBloc>().add(
         SaveUserDataEvent(
           name: nameController.text,

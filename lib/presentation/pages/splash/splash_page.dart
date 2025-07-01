@@ -102,7 +102,12 @@ class _SplashPageState extends State<SplashPage> {
         } else {
           // Достигли последнего слайда - останавливаем таймер
           timer.cancel();
+          _autoSlideTimer = null; // Очищаем ссылку на таймер
         }
+      } else {
+        // Пользователь взаимодействовал или виджет размонтирован - останавливаем таймер
+        timer.cancel();
+        _autoSlideTimer = null;
       }
     });
   }
@@ -164,6 +169,10 @@ class _SplashPageState extends State<SplashPage> {
                       setState(() {
                         _currentPage = index;
                       });
+                      // Останавливаем автопрокрутку если достигли последнего слайда
+                      if (index >= _repository.slides.length - 1) {
+                        _autoSlideTimer?.cancel();
+                      }
                     },
                     itemCount: _repository.slides.length,
                     itemBuilder: (context, index) {

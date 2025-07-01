@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 enum TextFieldType { email, password, name, weight, height }
 
@@ -129,12 +130,35 @@ class AppTextFormField extends StatelessWidget {
     }
   }
 
+  TextCapitalization _getTextCapitalization() {
+    switch (type) {
+      case TextFieldType.name:
+        return TextCapitalization.words;
+      default:
+        return TextCapitalization.none;
+    }
+  }
+
+  List<TextInputFormatter>? _getInputFormatters() {
+    switch (type) {
+      case TextFieldType.name:
+        return [FilteringTextInputFormatter.allow(RegExp(r'[а-яА-Яa-zA-Z\s]'))];
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
       obscureText: type == TextFieldType.password && obscureText,
       keyboardType: _getKeyboardType(),
+      textCapitalization: _getTextCapitalization(),
+      inputFormatters: _getInputFormatters(),
+      enableSuggestions: false,
+      autocorrect: false,
+      enableInteractiveSelection: false,
       decoration: InputDecoration(
         labelText: _getHint(),
         prefixIcon: Icon(_getIcon()),

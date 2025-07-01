@@ -53,7 +53,13 @@ class HiveData {
   }) async {
     final data = _box.get(key.name);
     if (data != null) {
-      return data as Map<String, dynamic>;
+      // Безопасное приведение типов для Hive
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      } else {
+        Logger.e('неверный тип данных для ${key.name}');
+        return {'error': 'неверный тип данных для ${key.name}'};
+      }
     } else {
       Logger.e('нет данных для ${key.name}');
       return {'error': 'нет данных для ${key.name}'};
@@ -73,8 +79,14 @@ class HiveData {
     required HiveDataKey key,
   }) async {
     final list = _box.get(key.name);
-    if (list != null) {
-      return (list as List).cast<Map<String, dynamic>>();
+    if (list != null && list is List) {
+      return list.map((item) {
+        if (item is Map) {
+          return Map<String, dynamic>.from(item);
+        } else {
+          return <String, dynamic>{};
+        }
+      }).toList();
     } else {
       Logger.e('нет данных для ${key.name}');
       return [
