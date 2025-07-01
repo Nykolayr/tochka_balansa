@@ -49,7 +49,7 @@ class AppDif {
       filled: true,
       hintStyle: const TextStyle(color: AppColor.grey),
       hintText: hint,
-      fillColor: AppColor.whitefon,
+      fillColor: AppColor.white,
       contentPadding: isTitle
           ? null
           : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -57,7 +57,7 @@ class AppDif {
   }
 
   static OutlineInputBorder getOutlineBorder({
-    Color color = AppColor.whitefon,
+    Color color = AppColor.white,
   }) {
     return OutlineInputBorder(
       borderRadius: AppDif.borderRadius16,

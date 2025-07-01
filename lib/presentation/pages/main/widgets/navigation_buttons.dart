@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
-import 'package:tochka_balansa/presentation/pages/main/enum_main_page.dart';
+import 'package:tochka_balansa/presentation/pages/main/enum/enum_main_page.dart';
 
 class NavigationButtons extends StatelessWidget {
   final int selectedIndex;
@@ -47,19 +46,21 @@ class NavigationButtons extends StatelessWidget {
                             MainPages.values[i].icon,
                             size: 24,
                             color: selectedIndex == i
-                                ? AppColor.secondary
-                                : AppColor.greyLight,
+                                ? AppColor.white
+                                : AppColor.noactive,
                           ),
 
                           const Gap(7),
                           Text(
                             MainPages.values[i].title,
                             style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
+                              fontSize: 14,
+                              fontWeight: selectedIndex == i
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                               color: selectedIndex == i
-                                  ? AppColor.secondary
-                                  : AppColor.greyLight,
+                                  ? AppColor.white
+                                  : AppColor.noactive,
                             ),
                           ),
                         ],

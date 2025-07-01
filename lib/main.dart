@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tochka_balansa/presentation/router/routers.dart';
+import 'package:tochka_balansa/core/theme/colors.dart';
 
 // GlobalKey для доступа к контексту глобально
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -46,6 +47,12 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: supportedLocales,
       theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: AppColor.white, // Используем AppColor
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColor.primary,
+          background: AppColor.white,
+        ),
         textTheme: GoogleFonts.robotoTextTheme(Theme.of(context).textTheme),
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {TargetPlatform.android: CupertinoPageTransitionsBuilder()},

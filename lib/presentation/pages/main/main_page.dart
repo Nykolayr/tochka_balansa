@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
-import 'package:tochka_balansa/presentation/pages/main/enum_main_page.dart';
+import 'package:tochka_balansa/presentation/pages/main/enum/enum_main_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/widgets/navigation_buttons.dart';
 import 'package:tochka_balansa/presentation/pages/main/widgets/oval_bottom_bar.dart';
 

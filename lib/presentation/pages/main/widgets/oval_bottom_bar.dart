@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tochka_balansa/core/theme/colors.dart';
 
 class OvalBottomBar extends StatelessWidget {
   const OvalBottomBar({super.key});
@@ -17,14 +18,14 @@ class OvalBottomBar extends StatelessWidget {
                 width: 898,
                 height: 182,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColor.darkBlue,
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.all(
                     Radius.elliptical(449, 91), // создает овал
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x00000000).withOpacity(0.04),
+                      color: Color(0x00000000).withValues(alpha: 0.04),
                       blurRadius: 12.8,
                       spreadRadius: 0,
                       offset: Offset(0, 0),
