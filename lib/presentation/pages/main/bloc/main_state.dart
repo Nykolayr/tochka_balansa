@@ -6,6 +6,7 @@ class MainState extends Equatable {
   final User user;
   final bool isListChange;
   final int selectedIndex;
+  final bool shouldRefresh;
 
   bool get isReg => user.name.isNotEmpty;
   const MainState({
@@ -14,6 +15,7 @@ class MainState extends Equatable {
     required this.user,
     required this.isListChange,
     required this.selectedIndex,
+    required this.shouldRefresh,
   });
 
   MainState copyWith({
@@ -21,6 +23,7 @@ class MainState extends Equatable {
     String? error,
     User? user,
     int? selectedIndex,
+    bool? shouldRefresh,
   }) {
     final shouldToggleList = user != null;
 
@@ -30,6 +33,7 @@ class MainState extends Equatable {
       user: user ?? this.user,
       isListChange: shouldToggleList ? !isListChange : isListChange,
       selectedIndex: selectedIndex ?? this.selectedIndex,
+      shouldRefresh: shouldRefresh ?? this.shouldRefresh,
     );
   }
 
@@ -39,6 +43,7 @@ class MainState extends Equatable {
     user: Get.find<UserRepository>().user,
     isListChange: false,
     selectedIndex: 0,
+    shouldRefresh: false,
   );
 
   @override
@@ -48,5 +53,6 @@ class MainState extends Equatable {
     user,
     isListChange,
     selectedIndex,
+    shouldRefresh,
   ];
 }

@@ -21,3 +21,9 @@ class GoToPageEvent extends MainEvent {
   final int pageIndex;
   const GoToPageEvent(this.pageIndex);
 }
+
+/// обновление языка
+class UpdateLanguageEvent extends MainEvent {
+  final String language;
+  const UpdateLanguageEvent(this.language);
+}

@@ -1,3 +1,5 @@
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
+
 enum GoalType {
   loseWeight,
   gainWeight,
@@ -5,10 +7,10 @@ enum GoalType {
   none;
 
   String get title => switch (this) {
-    loseWeight => 'Сбросить вес',
-    gainWeight => 'Набрать вес',
-    maintain => 'Поддерживать вес',
-    none => 'Без цели',
+    loseWeight => textLang('Сбросить вес'),
+    gainWeight => textLang('Набрать вес'),
+    maintain => textLang('Поддерживать вес'),
+    none => textLang('Без цели'),
   };
 }
 
@@ -17,7 +19,7 @@ enum DeadlineType {
   flexible;
 
   String get title => switch (this) {
-    fixed => 'Фиксированная',
-    flexible => 'Неограниченная',
+    fixed => textLang('Фиксированная'),
+    flexible => textLang('Неограниченная'),
   };
 }

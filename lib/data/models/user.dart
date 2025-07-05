@@ -10,6 +10,7 @@ class User extends Equatable {
   final Gender gender;
   final double initialWeight;
   final double height;
+  final String language; // 'en' или 'ru'
 
   bool get isReg => name.isNotEmpty;
 
@@ -21,30 +22,32 @@ class User extends Equatable {
     required this.gender,
     required this.initialWeight,
     required this.height,
+    this.language = 'ru', // По умолчанию русский
   });
 
   factory User.initial() => User(
     id: 0,
     name: '',
-    birthDate: DateTime.now(),
+    birthDate: DateTime(2000, 1, 1),
     email: '',
-    gender: Gender.female,
+    gender: Gender.male,
     initialWeight: 0.0,
     height: 0.0,
+    language: 'ru',
   );
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
-      birthDate: DateTime.tryParse(json['birth_date'] ?? '') ?? DateTime.now(),
+      birthDate: json['birthDate'] != null
+          ? DateTime.parse(json['birthDate'])
+          : DateTime(2000, 1, 1),
       email: json['email'] ?? '',
-      gender: Gender.values.firstWhere(
-        (g) => g.toString() == 'Gender.${json['gender']}',
-        orElse: () => Gender.female,
-      ),
-      initialWeight: (json['initial_weight'] ?? 0).toDouble(),
-      height: (json['height'] ?? 0).toDouble(),
+      gender: json['gender'] == 'female' ? Gender.female : Gender.male,
+      initialWeight: (json['initialWeight'] ?? 0.0).toDouble(),
+      height: (json['height'] ?? 0.0).toDouble(),
+      language: json['language'] ?? 'ru',
     );
   }
 
@@ -52,11 +55,12 @@ class User extends Equatable {
     return {
       'id': id,
       'name': name,
-      'birth_date': birthDate.toIso8601String(),
+      'birthDate': birthDate.toIso8601String(),
       'email': email,
       'gender': gender.name,
-      'initial_weight': initialWeight,
+      'initialWeight': initialWeight,
       'height': height,
+      'language': language,
     };
   }
 
@@ -68,16 +72,17 @@ class User extends Equatable {
     Gender? gender,
     double? initialWeight,
     double? height,
+    String? language,
   }) {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,
       birthDate: birthDate ?? this.birthDate,
-
       email: email ?? this.email,
       gender: gender ?? this.gender,
       initialWeight: initialWeight ?? this.initialWeight,
       height: height ?? this.height,
+      language: language ?? this.language,
     );
   }
 
@@ -104,5 +109,6 @@ class User extends Equatable {
     gender,
     initialWeight,
     height,
+    language,
   ];
 }

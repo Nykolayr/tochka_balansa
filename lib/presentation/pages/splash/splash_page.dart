@@ -4,6 +4,7 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/di/locator.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/data/repositories/main_repository.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/widgets/app_title.dart';
@@ -214,7 +215,7 @@ class _SplashPageState extends State<SplashPage> {
                     children: [
                       Expanded(
                         child: RoundedWideButton(
-                          text: 'Назад',
+                          text: textLang('Назад'),
                           onPressed: _currentPage > 0
                               ? () {
                                   _handleUserInteraction();
@@ -231,8 +232,8 @@ class _SplashPageState extends State<SplashPage> {
                       Expanded(
                         child: RoundedWideButton(
                           text: _currentPage < _repository.slides.length - 1
-                              ? 'Далее'
-                              : 'Начать',
+                              ? textLang('Далее')
+                              : textLang('Начать'),
                           onPressed:
                               _currentPage < _repository.slides.length - 1
                               ? () {

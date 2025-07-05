@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 enum TextFieldType { email, password, name, weight, height }
 
@@ -17,72 +18,72 @@ class AppTextFormField extends StatelessWidget {
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Введите email';
+      return textLang('Введите email');
     }
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
-      return 'Введите корректный email';
+      return textLang('Введите корректный email');
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Введите пароль';
+      return textLang('Введите пароль');
     }
     if (value.length < 6) {
-      return 'Пароль должен содержать минимум 6 символов';
+      return textLang('Пароль должен содержать минимум 6 символов');
     }
     return null;
   }
 
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Введите имя';
+      return textLang('Введите имя');
     }
     if (value.length < 4) {
-      return 'Имя должно содержать минимум 4 символа';
+      return textLang('Имя должно содержать минимум 4 символа');
     }
-    if (value[0] != value[0].toUpperCase()) {
-      return 'Первая буква должна быть заглавной';
+    if (!RegExp(r'^[А-Я]').hasMatch(value)) {
+      return textLang('Первая буква должна быть заглавной');
     }
     return null;
   }
 
   String? _validateWeight(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Введите вес';
+      return textLang('Введите вес');
     }
     final weight = double.tryParse(value);
-    if (weight == null || weight <= 0 || weight > 300) {
-      return 'Введите корректный вес (1-300 кг)';
+    if (weight == null || weight < 1 || weight > 300) {
+      return textLang('Введите корректный вес (1-300 кг)');
     }
     return null;
   }
 
   String? _validateHeight(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Введите рост';
+      return textLang('Введите рост');
     }
     final height = double.tryParse(value);
-    if (height == null || height <= 0 || height > 250) {
-      return 'Введите корректный рост (1-250 см)';
+    if (height == null || height < 1 || height > 250) {
+      return textLang('Введите корректный рост (1-250 см)');
     }
     return null;
   }
 
-  String _getHint() {
+  String _getLabel() {
     switch (type) {
       case TextFieldType.email:
-        return 'Email';
+        return textLang('Email');
       case TextFieldType.password:
-        return 'Пароль';
+        return textLang('Пароль');
       case TextFieldType.name:
-        return 'Имя';
+        return textLang('Имя');
       case TextFieldType.weight:
-        return 'Вес (кг)';
+        return textLang('Вес (кг)');
       case TextFieldType.height:
-        return 'Рост (см)';
+        return textLang('Рост (см)');
     }
   }
 
@@ -160,7 +161,7 @@ class AppTextFormField extends StatelessWidget {
       autocorrect: false,
       enableInteractiveSelection: false,
       decoration: InputDecoration(
-        labelText: _getHint(),
+        labelText: _getLabel(),
         prefixIcon: Icon(_getIcon()),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),

@@ -12,6 +12,7 @@ import 'package:tochka_balansa/presentation/widgets/app_dropdown_field.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/widgets/weight_picker_widget.dart';
 import 'package:tochka_balansa/presentation/widgets/height_picker_widget.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 class UserDataPage extends StatefulWidget {
   const UserDataPage({super.key});
@@ -70,7 +71,7 @@ class _UserDataPageState extends State<UserDataPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBarWidget(title: 'Ваши данные', isBack: false),
+      appBar: AppBarWidget(title: textLang('Ваши данные'), isBack: false),
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
@@ -89,7 +90,7 @@ class _UserDataPageState extends State<UserDataPage> {
 
                   // Дата рождения
                   AppDateField(
-                    label: 'Дата рождения',
+                    label: textLang('Дата рождения'),
                     selectedDate: selectedDate,
                     onDateSelected: (date) {
                       setState(() {
@@ -101,11 +102,11 @@ class _UserDataPageState extends State<UserDataPage> {
 
                   // Пол
                   AppDropdownField<Gender>(
-                    label: 'Пол',
+                    label: textLang('Пол'),
                     value: selectedGender,
                     items: Gender.values,
                     itemText: (gender) =>
-                        gender == Gender.male ? 'Мужской' : 'Женский',
+                        gender == Gender.male ? textLang('Мужской') : textLang('Женский'),
                     onChanged: (gender) {
                       if (gender != null) {
                         setState(() {
@@ -124,7 +125,7 @@ class _UserDataPageState extends State<UserDataPage> {
                         selectedWeight = weight;
                       });
                     },
-                    label: 'Вес',
+                    label: textLang('Вес'),
                   ),
                   const Gap(20),
 
@@ -136,7 +137,7 @@ class _UserDataPageState extends State<UserDataPage> {
                         selectedHeight = height;
                       });
                     },
-                    label: 'Рост',
+                    label: textLang('Рост'),
                   ),
                   const SizedBox(height: 120), // Отступ для кнопок
                 ],
@@ -150,7 +151,7 @@ class _UserDataPageState extends State<UserDataPage> {
             right: 20,
             bottom: 20,
             child: RoundedWideButton(
-              text: 'Сохранить',
+              text: textLang('Сохранить'),
               onPressed: _saveUserData,
             ),
           ),

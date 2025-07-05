@@ -1,3 +1,5 @@
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
+
 /// Цель пользователя
 class UserGoal {
   final GoalType goalType; // Тип цели
@@ -54,19 +56,19 @@ enum GoalType {
   our;
 
   String get title => switch (this) {
-    GoalType.loseWeight => 'Сбросить вес',
-    GoalType.gainWeight => 'Набрать вес',
-    GoalType.maintain => 'Поддерживать вес',
-    GoalType.none => 'Не выбрано',
-    GoalType.our => 'Своя цель',
+    GoalType.loseWeight => textLang('Сбросить вес'),
+    GoalType.gainWeight => textLang('Набрать вес'),
+    GoalType.maintain => textLang('Поддерживать вес'),
+    GoalType.none => textLang('Не выбрано'),
+    GoalType.our => textLang('Своя цель'),
   };
 
   String get description => switch (this) {
-    GoalType.loseWeight => 'Сбросить вес',
-    GoalType.gainWeight => 'Набрать вес',
-    GoalType.maintain => 'Поддерживать вес',
-    GoalType.none => 'Не выбрано',
-    GoalType.our => 'Своя цель',
+    GoalType.loseWeight => textLang('Сбросить вес'),
+    GoalType.gainWeight => textLang('Набрать вес'),
+    GoalType.maintain => textLang('Поддерживать вес'),
+    GoalType.none => textLang('Не выбрано'),
+    GoalType.our => textLang('Своя цель'),
   };
 }
 
@@ -76,7 +78,12 @@ enum DeadlineType {
   flexible;
 
   String get title => switch (this) {
-    DeadlineType.fixed => 'Фиксированная',
-    DeadlineType.flexible => 'Не ограниченная',
+    DeadlineType.fixed => textLang('Фиксированная'),
+    DeadlineType.flexible => textLang('Не ограниченная'),
+  };
+
+  String get deadlineTitle => switch (this) {
+    DeadlineType.fixed => textLang('Фиксированная'),
+    DeadlineType.flexible => textLang('Не ограниченная'),
   };
 }

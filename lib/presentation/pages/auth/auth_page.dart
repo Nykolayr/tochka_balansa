@@ -5,6 +5,7 @@ import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 import 'package:tochka_balansa/presentation/widgets/buttons.dart';
 import 'package:tochka_balansa/presentation/widgets/text_form_field.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -59,23 +60,68 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBarWidget(title: 'Вход', isBack: false),
+      appBar: AppBarWidget(title: textLang('Вход'), isBack: false),
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AppTextFormField(
-              type: TextFieldType.email,
-              controller: emailController,
+            const Gap(40),
+
+            // Заголовок
+            Text(
+              textLang('Добро пожаловать'),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColor.darkBlue,
+              ),
+              textAlign: TextAlign.center,
             ),
+
+            const Gap(40),
+
+            // Форма входа
+            Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  AppTextFormField(
+                    type: TextFieldType.email,
+                    controller: emailController,
+                  ),
+                  const Gap(20),
+                  AppTextFormField(
+                    type: TextFieldType.password,
+                    controller: passwordController,
+                    obscureText: true,
+                  ),
+                ],
+              ),
+            ),
+
+            const Gap(30),
+
+            // Кнопка входа
+            RoundedWideButton(text: textLang('Войти'), onPressed: () {}),
+
             const Gap(20),
-            AppTextFormField(
-              type: TextFieldType.password,
-              controller: passwordController,
-              obscureText: true,
+
+            // Ссылка на регистрацию
+            TextButton(
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                context.pushNamed('регистрация пользователя');
+              },
+              child: Text(
+                textLang('Нет аккаунта? Зарегистрируйтесь'),
+                style: const TextStyle(
+                  color: AppColor.darkBlue,
+                  fontSize: 16,
+                ),
+              ),
             ),
-            const SizedBox(height: 60),
           ],
         ),
       ),
@@ -86,7 +132,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RoundedWideButton(text: 'Войти', onPressed: () {}),
+            RoundedWideButton(text: textLang('Войти'), onPressed: () {}),
             const Gap(20),
             TextButton(
               onPressed: () {
@@ -94,7 +140,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
                 context.pushNamed('регистрация пользователя');
               },
               child: Text(
-                'Нет аккаунта? Зарегистрируйтесь',
+                textLang('Нет аккаунта? Зарегистрируйтесь'),
                 style: AppText.text16rb.copyWith(color: AppColor.primary),
               ),
             ),

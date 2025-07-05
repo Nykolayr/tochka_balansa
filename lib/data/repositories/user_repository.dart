@@ -42,6 +42,12 @@ class UserRepository {
     await saveUserToLocal();
   }
 
+  /// сохранение языка пользователя
+  Future<void> saveUserLanguage(String language) async {
+    user = user.copyWith(language: language);
+    await saveUserToLocal();
+  }
+
   /// Начальная загрузка пользователя из локального хранилища
   Future init() async {
     await HiveData.init();
@@ -143,6 +149,7 @@ class UserRepository {
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.user);
       Logger.e('loadUserFromLocal $data');
+      user = User.fromJson(data);
     } catch (e) {
       Logger.e('user error $e');
     }

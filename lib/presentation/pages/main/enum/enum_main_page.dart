@@ -7,6 +7,7 @@ import 'package:tochka_balansa/presentation/pages/home/home_app_bar.dart';
 import 'package:tochka_balansa/presentation/pages/food/food_app_bar.dart';
 import 'package:tochka_balansa/presentation/pages/training/training_app_bar.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_app_bar.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 enum MainPages {
   home,
@@ -15,10 +16,10 @@ enum MainPages {
   profile;
 
   String get title => switch (this) {
-    home => 'Главная',
-    food => 'Еда',
-    training => 'Тренировки',
-    profile => 'Профиль',
+    home => textLang('Главная'),
+    food => textLang('Еда'),
+    training => textLang('Тренировки'),
+    profile => textLang('Профиль'),
   };
 
   Widget get page => switch (this) {

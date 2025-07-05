@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:tochka_balansa/data/models/slide_model.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 /// Виджет слайда
 class SlideWidget extends StatelessWidget {
@@ -11,9 +12,6 @@ class SlideWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    final isEnglish = locale.languageCode == 'en';
-
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 300),
       opacity: isActive ? 1.0 : 0.5,
@@ -35,13 +33,13 @@ class SlideWidget extends StatelessWidget {
             ),
             const Gap(20),
             Text(
-              isEnglish ? slide.titleEn : slide.title,
+              textLang(slide.title),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const Gap(20),
             Text(
-              isEnglish ? slide.descriptionEn : slide.description,
+              textLang(slide.description),
               style: const TextStyle(fontSize: 16, color: Colors.grey),
               textAlign: TextAlign.center,
             ),

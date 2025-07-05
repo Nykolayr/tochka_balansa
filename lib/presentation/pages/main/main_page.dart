@@ -55,56 +55,59 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          return;
-        }
-      },
+    return BlocProvider(
+      create: (context) => bloc,
       child: BlocBuilder<MainBloc, MainState>(
         bloc: bloc,
         builder: (context, state) {
-          return Scaffold(
-            extendBodyBehindAppBar: true,
-            backgroundColor: AppColor.white,
-            resizeToAvoidBottomInset: true,
-            appBar: PreferredSize(
-              preferredSize: Size.fromHeight(56),
-              child: MainPages.values[selectedIndex].appBar,
-            ),
-            bottomNavigationBar: Stack(
-              children: [
-                // Овальный фон
-                const OvalBottomBar(),
-                // Кнопки навигации поверх
-                NavigationButtons(
-                  selectedIndex: selectedIndex,
-                  onItemTapped: onItemTapped,
-                ),
-              ],
-            ),
-            body: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 90),
-                  child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: pageController,
-                    onPageChanged: (index) {
-                      setState(() {
-                        selectedIndex = index;
-                      });
-                    },
-                    children: MainPages.values.map((e) => e.page).toList(),
-                  ),
-                ),
-                if (state.isLoading) ...[
-                  const Center(
-                    child: CircularProgressIndicator(color: AppColor.white),
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) {
+                return;
+              }
+            },
+            child: Scaffold(
+              extendBodyBehindAppBar: true,
+              backgroundColor: AppColor.white,
+              resizeToAvoidBottomInset: true,
+              appBar: PreferredSize(
+                preferredSize: Size.fromHeight(56),
+                child: MainPages.values[selectedIndex].appBar,
+              ),
+              bottomNavigationBar: Stack(
+                children: [
+                  // Овальный фон
+                  const OvalBottomBar(),
+                  // Кнопки навигации поверх
+                  NavigationButtons(
+                    selectedIndex: selectedIndex,
+                    onItemTapped: onItemTapped,
                   ),
                 ],
-              ],
+              ),
+              body: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 90),
+                    child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                      },
+                      children: MainPages.values.map((e) => e.page).toList(),
+                    ),
+                  ),
+                  if (state.isLoading) ...[
+                    const Center(
+                      child: CircularProgressIndicator(color: AppColor.white),
+                    ),
+                  ],
+                ],
+              ),
             ),
           );
         },

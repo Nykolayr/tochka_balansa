@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/widgets/custom_tape_slider.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 class HeightPickerWidget extends StatefulWidget {
   final double value;
@@ -33,8 +34,12 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
           Row(
             children: [
               Text(
-                'Рост',
-                style: AppText.text16rb.copyWith(color: AppColor.grey),
+                textLang('Рост'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.darkBlue,
+                ),
               ),
               Expanded(child: Container()),
               Text(
