@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 part 'main_event.dart';
 part 'main_state.dart';
@@ -13,7 +12,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     on<SetErrorEvent>(_onSetErrorEvent);
     on<GetUserEvent>(_onGetUserEvent);
     on<GoToPageEvent>(_onGoToPageEvent);
-    on<UpdateLanguageEvent>(_onUpdateLanguageEvent);
   }
 
   /// переход на страницу
@@ -35,17 +33,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     } else {
       emit(state.copyWith(error: answer));
     }
-  }
-
-  /// обновление языка
-  void _onUpdateLanguageEvent(
-    UpdateLanguageEvent event,
-    Emitter<MainState> emit,
-  ) {
-    // Устанавливаем язык
-    setLanguage(event.language);
-    // Обновляем состояние для перезагрузки страниц
-    emit(state.copyWith(shouldRefresh: true));
   }
 
   /// установка ошибки

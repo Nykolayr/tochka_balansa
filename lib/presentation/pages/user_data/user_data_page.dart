@@ -105,8 +105,9 @@ class _UserDataPageState extends State<UserDataPage> {
                     label: textLang('Пол'),
                     value: selectedGender,
                     items: Gender.values,
-                    itemText: (gender) =>
-                        gender == Gender.male ? textLang('Мужской') : textLang('Женский'),
+                    itemText: (gender) => gender == Gender.male
+                        ? textLang('Мужской')
+                        : textLang('Женский'),
                     onChanged: (gender) {
                       if (gender != null) {
                         setState(() {

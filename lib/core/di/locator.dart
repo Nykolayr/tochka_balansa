@@ -31,7 +31,7 @@ Future initMain() async {
       return userRepository;
     });
   } catch (e) {
-    Logger.e('UserRepository error1 = $e');
+    Logger.e('UserRepository error = $e');
     return 'user $e';
   }
 

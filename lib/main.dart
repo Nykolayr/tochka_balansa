@@ -1,29 +1,27 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tochka_balansa/presentation/router/routers.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/providers/language_bloc.dart';
+import 'package:tochka_balansa/data/datasources/hive_data.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
-// GlobalKey для доступа к контексту глобально
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-// Глобальная переменная для мока
 bool isMock = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await HiveData.init();
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
 
-  // Инициализируем MainBloc
-  Get.put(MainBloc());
-
+  Get.put(LanguageBloc()..add(LoadLanguageEvent()));
   runApp(const MyApp());
 }
 
@@ -32,33 +30,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MainBloc, MainState>(
-      buildWhen: (previous, current) =>
-          current.shouldRefresh != previous.shouldRefresh,
-      builder: (context, state) {
-        // Получаем локаль системы
-        final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
-        // Определяем поддерживаемые языки
-        final supportedLocales = const [Locale('ru', 'RU'), Locale('en', 'US')];
-        // Выбираем ближайший поддерживаемый язык
-        final locale = supportedLocales.firstWhere(
-          (locale) => locale.languageCode == systemLocale.languageCode,
-          orElse: () => const Locale('en', 'US'), // По умолчанию русский
-        );
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      bloc: Get.find<LanguageBloc>(),
+      builder: (context, languageState) {
+        // Определяем локаль на основе состояния LanguageBloc
+        Locale currentLocale;
+        if (languageState is LanguageLoaded) {
+          currentLocale = languageState.language == Language.english
+              ? const Locale('en', 'US')
+              : const Locale('ru', 'RU');
+        } else {
+          // Если состояние не загружено, используем системную локаль
+          final systemLocale =
+              WidgetsBinding.instance.platformDispatcher.locale;
+          currentLocale = systemLocale.languageCode == 'en'
+              ? const Locale('en', 'US')
+              : const Locale('ru', 'RU');
+        }
 
         return MaterialApp.router(
+          key: ValueKey(languageState), // Уникальный ключ для пересоздания
           title: 'Tochka Balansa',
-
-          locale: locale,
+          locale: currentLocale,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: supportedLocales,
+          supportedLocales: const [Locale('ru', 'RU'), Locale('en', 'US')],
           theme: ThemeData(
             useMaterial3: true,
-            scaffoldBackgroundColor: AppColor.white, // Используем AppColor
+            scaffoldBackgroundColor: AppColor.white,
             colorScheme: ColorScheme.fromSeed(
               seedColor: AppColor.primary,
               surface: AppColor.white,
@@ -85,10 +87,10 @@ class MyApp extends StatelessWidget {
               MediaQuery(
                 data: mq.copyWith(textScaler: fontScale),
                 child: SafeArea(
-                  top: false, // Контент может заходить под статус-бар
-                  bottom: true, // Защита от навигационной панели снизу
-                  left: false, // Контент может заходить к краям экрана
-                  right: false, // Контент может заходить к краям экрана
+                  top: false,
+                  bottom: true,
+                  left: false,
+                  right: false,
                   child: child!,
                 ),
               ),
@@ -111,18 +113,6 @@ class MyHttpOverrides extends HttpOverrides {
 class AppLifecycleObserver extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.resumed:
-        break;
-      case AppLifecycleState.inactive:
-        break;
-      case AppLifecycleState.paused:
-        break;
-      case AppLifecycleState.detached:
-        break;
-      case AppLifecycleState.hidden:
-        break;
-    }
+    Logger.i('AppLifecycleState: $state');
   }
 }

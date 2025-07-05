@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
+import 'package:tochka_balansa/presentation/widgets/app_toast.dart';
+import 'package:get/get.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,6 +14,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final LanguageBloc languageBloc = Get.find<LanguageBloc>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,7 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isRussian ? textLang('Русский') : 'English',
+                        languageBloc.currentLanguage.titleRu,
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColor.grey,
@@ -131,11 +134,12 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _LanguageBottomSheet(
-        currentLanguage: isRussian ? Language.russian : Language.english,
+        currentLanguage: Get.find<LanguageBloc>().currentLanguage,
         onLanguageSelected: (language) {
-          final newLanguage = language == Language.english ? 'en' : 'ru';
-          // Отправляем событие в MainBloc для обновления языка
-          Get.find<MainBloc>().add(UpdateLanguageEvent(newLanguage));
+          // Отправляем событие в LanguageBloc для обновления языка
+          Get.find<LanguageBloc>().add(ChangeLanguageEvent(language));
+          // Закрываем модал и показываем SnackBar
+          Navigator.pop(context);
           _showLanguageChangedSnackBar(context, language);
         },
       ),
@@ -143,41 +147,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showLanguageChangedSnackBar(BuildContext context, Language language) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            // Флаг языка
-            Text(language.flag, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 12),
-            // Текст уведомления
-            Expanded(
-              child: Text(
-                language == Language.english
-                    ? textLang('Ваш язык изменен на Английский')
-                    : textLang('Ваш язык изменен на Русский'),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColor.darkBlue,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: AppColor.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-      ),
-    );
+    AppToast.show('${language.flag} Ваш язык изменен на ${language.titleRu}');
   }
 }
 
@@ -249,7 +219,6 @@ class _LanguageBottomSheet extends StatelessWidget {
       child: InkWell(
         onTap: () {
           onLanguageSelected(language);
-          Navigator.pop(context);
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

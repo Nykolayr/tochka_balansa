@@ -64,6 +64,15 @@ class HiveData {
     }
   }
 
+  /// Синхронная загрузка JSON (для textLang)
+  static Map<String, dynamic>? loadJsonSync({required HiveDataKey key}) {
+    final data = _box.get(key.name);
+    if (data != null && data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+    return null;
+  }
+
   /// Сохранение списка JSON напрямую
   static Future<void> saveListJson({
     required List<Map<String, dynamic>> json,
@@ -128,4 +137,4 @@ class HiveData {
   }
 }
 
-enum HiveDataKey { user }
+enum HiveDataKey { user, language }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/food_page.dart';
 import 'package:tochka_balansa/presentation/pages/training/training_page.dart';
@@ -8,6 +10,7 @@ import 'package:tochka_balansa/presentation/pages/food/food_app_bar.dart';
 import 'package:tochka_balansa/presentation/pages/training/training_app_bar.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_app_bar.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'package:tochka_balansa/providers/language_bloc.dart';
 
 enum MainPages {
   home,
@@ -36,10 +39,17 @@ enum MainPages {
     profile => Icons.person,
   };
 
-  PreferredSizeWidget get appBar => switch (this) {
-    home => const HomeAppBar(),
-    food => const FoodAppBar(),
-    training => const TrainingAppBar(),
-    profile => const ProfileAppBar(),
-  };
+  Widget get appBar {
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      bloc: Get.find<LanguageBloc>(),
+      builder: (context, languageState) {
+        return switch (this) {
+          home => HomeAppBar(),
+          food => FoodAppBar(),
+          training => TrainingAppBar(),
+          profile => ProfileAppBar(),
+        };
+      },
+    );
+  }
 }
