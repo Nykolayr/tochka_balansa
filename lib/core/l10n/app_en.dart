@@ -87,6 +87,37 @@ final Map<String, String> enLang = {
   'МЕ': 'IU',
   'см': 'cm',
   'кг': 'kg',
+  'Давайте поставим первую цель!': 'Let\'s set your first goal!',
+  'Это поможет вам отслеживать прогресс':
+      'This will help you track your progress',
+  'Настройка цели': 'Goal Setup',
+  'Выберите тип цели': 'Select goal type',
+  'Целевой вес (кг)': 'Target weight (kg)',
+  'Дата достижения цели': 'Goal achievement date',
+  'Создать цель': 'Create Goal',
+  'Добавить дополнительную цель': 'Add additional goal',
+  'У вас нет целей': 'You have no goals',
+  'Создайте свою первую цель для отслеживания прогресса':
+      'Create your first goal to track progress',
+  'Добавить': 'Add',
+  'Главная цель': 'Main Goal',
+  'Дополнительные цели': 'Additional Goals',
+  'У вас нет дополнительных целей': 'You have no additional goals',
+  'Цель создана': 'Goal created',
+
+  // Описания целей
+  'Постепенно снижать вес до целевого значения':
+      'Gradually reduce weight to target value',
+  'Набирать мышечную массу и вес': 'Gain muscle mass and weight',
+  'Сохранять текущий вес в стабильном состоянии':
+      'Maintain current weight in stable condition',
+  'Установить свою персональную цель': 'Set your personal goal',
+  'Не устанавливать цель по весу': 'Do not set weight goal',
+
+  // Описания сроков
+  'Установить конкретную дату достижения цели':
+      'Set specific goal achievement date',
+  'Достигать цель в удобном для вас темпе': 'Achieve goal at your own pace',
 
   // Слайды
   'Баланс — это просто': 'Balance is simple',
@@ -102,4 +133,18 @@ final Map<String, String> enLang = {
   // Ошибки
   'Ошибка сервера': 'Server Error',
   'ошибка 404, страница не найдена': 'error 404, page not found',
+
+  // Добавки/лекарства
+  'ежедневно': 'daily',
+  '2 раза в день': '2 times a day',
+  '3 раза в день': '3 times a day',
+  'дозировка': 'dosage',
+  'время приема': 'time to take',
+  'количество в упаковке': 'quantity in package',
+  'частота приема': 'frequency',
+  'инструкции по применению': 'instructions',
+  'добавить добавку': 'add supplement',
+  'название добавки': 'supplement name',
+  'например: 1000 МЕ, 500 мг': 'e.g.: 1000 IU, 500 mg',
+  'шт.': 'pcs.',
 };

@@ -1,11 +1,14 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/data/models/goal/sleep_goal.dart';
+import 'package:tochka_balansa/data/models/goal/supplement.dart';
 import 'package:tochka_balansa/data/models/goal/supplement_goal.dart';
 import 'package:tochka_balansa/data/models/goal/workout_goal.dart';
 
-import 'package:tochka_balansa/data/models/user_goal.dart';
+import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 
 /// Модель пользователя
 class User extends Equatable {
@@ -61,7 +64,34 @@ class User extends Equatable {
         case 'sleep':
           return SleepGoal.fromJson(goalMap);
         default:
-          return WorkoutGoal.init();
+          // Для обратной совместимости с старыми данными
+          if (goalMap.containsKey('supplementName')) {
+            // Старый формат SupplementGoal
+            return SupplementGoal(
+              supplements: [
+                Supplement(
+                  name: goalMap['supplementName'] ?? 'Витамин D',
+                  dosage: goalMap['dosage'] ?? '1000 МЕ',
+                  timeToTake: const TimeOfDay(hour: 9, minute: 0),
+                  quantityInPackage: 30,
+                  frequency: 'ежедневно',
+                ),
+              ],
+              reminders: const [],
+              deadlineType: DeadlineType.fixed,
+            );
+          } else if (goalMap.containsKey('bedtime')) {
+            // Старый формат SleepGoal
+            return SleepGoal(
+              bedtime: const TimeOfDay(hour: 22, minute: 0),
+              wakeupTime: const TimeOfDay(hour: 7, minute: 0),
+              reminders: const [],
+              deadlineType: DeadlineType.flexible,
+            );
+          } else {
+            // По умолчанию создаем WorkoutGoal
+            return WorkoutGoal.init();
+          }
       }
     }).toList();
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 
 /// Дополнительная цель
 abstract class AdditionalGoal extends Equatable {
@@ -8,6 +9,8 @@ abstract class AdditionalGoal extends Equatable {
   final String description;
   final bool isActive;
   final List<Reminder> reminders;
+  final DeadlineType deadlineType;
+  final DateTime? targetDate;
 
   const AdditionalGoal({
     required this.id,
@@ -15,6 +18,8 @@ abstract class AdditionalGoal extends Equatable {
     required this.description,
     this.isActive = true,
     required this.reminders,
+    required this.deadlineType,
+    this.targetDate,
   });
 
   Map<String, dynamic> toJson();
@@ -25,10 +30,27 @@ abstract class AdditionalGoal extends Equatable {
     String? description,
     bool? isActive,
     List<Reminder>? reminders,
+    DeadlineType? deadlineType,
+    DateTime? targetDate,
   });
 
+  // Количество дней до цели
+  int get daysUntilTarget {
+    if (targetDate == null) return 0;
+    final now = DateTime.now();
+    final difference = targetDate!.difference(now);
+    return difference.inDays;
+  }
+
+  // Процент прогресса (базовая реализация, переопределяется в наследниках)
+  double get progressPercentage {
+    if (deadlineType == DeadlineType.flexible) return 0.0;
+    // TODO: Реализовать в наследниках
+    return 0.0;
+  }
+
   @override
-  List<Object?> get props => [id, title, description, isActive, reminders];
+  List<Object?> get props => [id, title, description, isActive, reminders, deadlineType, targetDate];
 }
 
 class Reminder extends Equatable {

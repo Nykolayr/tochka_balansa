@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 
 class SleepGoal extends AdditionalGoal {
   final TimeOfDay bedtime;
@@ -8,11 +9,13 @@ class SleepGoal extends AdditionalGoal {
   SleepGoal({
     required this.bedtime,
     required this.wakeupTime,
+    required super.reminders,
+    required super.deadlineType,
+    super.targetDate,
     String? id,
     String? title,
     String? description,
     bool? isActive,
-    List<Reminder>? reminders,
   }) : super(
          id: id ?? 'sleep_goal',
          title: title ?? 'Режим сна',
@@ -20,17 +23,14 @@ class SleepGoal extends AdditionalGoal {
              description ??
              'С ${bedtime.hour.toString().padLeft(2, '0')}:${bedtime.minute.toString().padLeft(2, '0')} до ${wakeupTime.hour.toString().padLeft(2, '0')}:${wakeupTime.minute.toString().padLeft(2, '0')}',
          isActive: isActive ?? true,
-         reminders:
-             reminders ??
-             [
-               Reminder(time: bedtime, repeatDays: [1, 2, 3, 4, 5, 6, 7]),
-             ],
        );
 
   factory SleepGoal.init() {
     return SleepGoal(
       bedtime: const TimeOfDay(hour: 22, minute: 0),
       wakeupTime: const TimeOfDay(hour: 7, minute: 0),
+      reminders: const [],
+      deadlineType: DeadlineType.flexible,
     );
   }
 
@@ -67,6 +67,13 @@ class SleepGoal extends AdditionalGoal {
       bedtime: bedtime,
       wakeupTime: wakeupTime,
       reminders: reminders,
+      deadlineType: DeadlineType.values.firstWhere(
+        (e) => e.name == json['deadlineType'],
+        orElse: () => DeadlineType.flexible,
+      ),
+      targetDate: json['targetDate'] != null
+          ? DateTime.parse(json['targetDate'])
+          : null,
     );
   }
 
@@ -82,6 +89,8 @@ class SleepGoal extends AdditionalGoal {
     'wakeupTime':
         '${wakeupTime.hour.toString().padLeft(2, '0')}:${wakeupTime.minute.toString().padLeft(2, '0')}',
     'reminders': reminders.map((r) => r.toJson()).toList(),
+    'deadlineType': deadlineType.name,
+    'targetDate': targetDate?.toIso8601String(),
   };
 
   @override
@@ -93,6 +102,8 @@ class SleepGoal extends AdditionalGoal {
     List<Reminder>? reminders,
     TimeOfDay? bedtime,
     TimeOfDay? wakeupTime,
+    DeadlineType? deadlineType,
+    DateTime? targetDate,
   }) {
     return SleepGoal(
       id: id,
@@ -102,7 +113,18 @@ class SleepGoal extends AdditionalGoal {
       reminders: reminders ?? this.reminders,
       bedtime: bedtime ?? this.bedtime,
       wakeupTime: wakeupTime ?? this.wakeupTime,
+      deadlineType: deadlineType ?? this.deadlineType,
+      targetDate: targetDate ?? this.targetDate,
     );
+  }
+
+  @override
+  double get progressPercentage {
+    if (deadlineType == DeadlineType.flexible) return 0.0;
+
+    // TODO: Реализовать логику подсчета дней с правильным режимом сна
+    // Пока возвращаем заглушку
+    return 0.0;
   }
 
   @override

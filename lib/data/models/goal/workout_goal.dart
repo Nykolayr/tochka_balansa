@@ -1,4 +1,5 @@
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 
 /// Цель по тренировкам
 class WorkoutGoal extends AdditionalGoal {
@@ -9,6 +10,8 @@ class WorkoutGoal extends AdditionalGoal {
     required this.activityType,
     required this.targetSessionsPerWeek,
     required super.reminders,
+    required super.deadlineType,
+    super.targetDate,
     String? id,
     String? title,
     String? description,
@@ -25,6 +28,7 @@ class WorkoutGoal extends AdditionalGoal {
       activityType: 'Кардио',
       targetSessionsPerWeek: 3,
       reminders: const [],
+      deadlineType: DeadlineType.fixed,
     );
   }
 
@@ -43,6 +47,13 @@ class WorkoutGoal extends AdditionalGoal {
       activityType: json['activityType'] ?? 'Кардио',
       targetSessionsPerWeek: json['targetSessionsPerWeek'] ?? 3,
       reminders: reminders,
+      deadlineType: DeadlineType.values.firstWhere(
+        (e) => e.name == json['deadlineType'],
+        orElse: () => DeadlineType.fixed,
+      ),
+      targetDate: json['targetDate'] != null
+          ? DateTime.parse(json['targetDate'])
+          : null,
     );
   }
 
@@ -56,6 +67,8 @@ class WorkoutGoal extends AdditionalGoal {
     'activityType': activityType,
     'targetSessionsPerWeek': targetSessionsPerWeek,
     'reminders': reminders.map((r) => r.toJson()).toList(),
+    'deadlineType': deadlineType.name,
+    'targetDate': targetDate?.toIso8601String(),
   };
 
   @override
@@ -67,6 +80,8 @@ class WorkoutGoal extends AdditionalGoal {
     List<Reminder>? reminders,
     String? activityType,
     int? targetSessionsPerWeek,
+    DeadlineType? deadlineType,
+    DateTime? targetDate,
   }) {
     return WorkoutGoal(
       id: id,
@@ -77,7 +92,18 @@ class WorkoutGoal extends AdditionalGoal {
       activityType: activityType ?? this.activityType,
       targetSessionsPerWeek:
           targetSessionsPerWeek ?? this.targetSessionsPerWeek,
+      deadlineType: deadlineType ?? this.deadlineType,
+      targetDate: targetDate ?? this.targetDate,
     );
+  }
+
+  @override
+  double get progressPercentage {
+    if (deadlineType == DeadlineType.flexible) return 0.0;
+
+    // TODO: Реализовать логику подсчета выполненных тренировок
+    // Пока возвращаем заглушку
+    return 0.0;
   }
 
   @override

@@ -1,30 +1,32 @@
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
+import 'package:tochka_balansa/data/models/goal/supplement.dart';
 
-/// Цель по приёму мед. препаратов
+/// Цель по приему добавок/лекарств
 class SupplementGoal extends AdditionalGoal {
-  final String supplementName;
-  final String dosage;
+  final List<Supplement> supplements;
 
-  SupplementGoal({
-    required this.supplementName,
-    required this.dosage,
+  const SupplementGoal({
+    required this.supplements,
     required super.reminders,
+    required super.deadlineType,
+    super.targetDate,
     String? id,
     String? title,
     String? description,
     bool? isActive,
   }) : super(
-         id: id ?? 'supplement_${supplementName.toLowerCase()}',
-         title: title ?? 'Приём $supplementName',
-         description: description ?? 'Дозировка: $dosage',
+         id: id ?? 'supplement_goal',
+         title: title ?? 'Приём добавок',
+         description: description ?? '${supplements.length} добавок',
          isActive: isActive ?? true,
        );
 
   factory SupplementGoal.init() {
     return SupplementGoal(
-      supplementName: 'Витамин D',
-      dosage: '1000 МЕ',
+      supplements: const [],
       reminders: const [],
+      deadlineType: DeadlineType.fixed,
     );
   }
 
@@ -35,14 +37,25 @@ class SupplementGoal extends AdditionalGoal {
             .toList() ??
         [];
 
+    final supplementsJson = json['supplements'] as List<dynamic>? ?? [];
+    final supplements = supplementsJson
+        .map((e) => Supplement.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return SupplementGoal(
       id: json['id'],
       title: json['title'],
       description: json['description'],
       isActive: json['isActive'] ?? true,
-      supplementName: json['name'] ?? 'Витамин D',
-      dosage: json['dosage'] ?? '1000 МЕ',
+      supplements: supplements,
       reminders: reminders,
+      deadlineType: DeadlineType.values.firstWhere(
+        (e) => e.name == json['deadlineType'],
+        orElse: () => DeadlineType.fixed,
+      ),
+      targetDate: json['targetDate'] != null
+          ? DateTime.parse(json['targetDate'])
+          : null,
     );
   }
 
@@ -53,9 +66,10 @@ class SupplementGoal extends AdditionalGoal {
     'title': title,
     'description': description,
     'isActive': isActive,
-    'name': supplementName,
-    'dosage': dosage,
+    'supplements': supplements.map((s) => s.toJson()).toList(),
     'reminders': reminders.map((r) => r.toJson()).toList(),
+    'deadlineType': deadlineType.name,
+    'targetDate': targetDate?.toIso8601String(),
   };
 
   @override
@@ -65,8 +79,9 @@ class SupplementGoal extends AdditionalGoal {
     String? description,
     bool? isActive,
     List<Reminder>? reminders,
-    String? supplementName,
-    String? dosage,
+    List<Supplement>? supplements,
+    DeadlineType? deadlineType,
+    DateTime? targetDate,
   }) {
     return SupplementGoal(
       id: id,
@@ -74,11 +89,21 @@ class SupplementGoal extends AdditionalGoal {
       description: description,
       isActive: isActive,
       reminders: reminders ?? this.reminders,
-      supplementName: supplementName ?? this.supplementName,
-      dosage: dosage ?? this.dosage,
+      supplements: supplements ?? this.supplements,
+      deadlineType: deadlineType ?? this.deadlineType,
+      targetDate: targetDate ?? this.targetDate,
     );
   }
 
   @override
-  List<Object?> get props => [...super.props, supplementName, dosage];
+  double get progressPercentage {
+    if (deadlineType == DeadlineType.flexible) return 0.0;
+
+    // TODO: Реализовать логику подсчета принятых добавок
+    // Пока возвращаем заглушку
+    return 0.0;
+  }
+
+  @override
+  List<Object?> get props => [...super.props, supplements];
 }
