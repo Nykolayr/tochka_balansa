@@ -150,6 +150,14 @@ class UserRepository {
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.user);
       Logger.e('loadUserFromLocal $data');
+
+      // Проверяем, есть ли поле error
+      if (data.containsKey('error')) {
+        Logger.e('User data contains error: ${data['error']}');
+        // Если есть ошибка, оставляем user как есть (User.initial())
+        return;
+      }
+
       user = User.fromJson(data);
     } catch (e) {
       Logger.e('user error $e');

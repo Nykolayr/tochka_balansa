@@ -65,6 +65,14 @@ class User extends Equatable {
       }
     }).toList();
 
+    // Обрабатываем mainGoal
+    UserGoal mainGoal;
+    if (json['mainGoal'] != null && json['mainGoal'] is Map<String, dynamic>) {
+      mainGoal = UserGoal.fromJson(json['mainGoal'] as Map<String, dynamic>);
+    } else {
+      mainGoal = UserGoal.init();
+    }
+
     return User(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
@@ -77,7 +85,7 @@ class User extends Equatable {
       height: (json['height'] ?? 0.0).toDouble(),
       language: json['language'] ?? 'ru',
       additionalGoals: additionalGoals,
-      mainGoal: UserGoal.fromJson(json['mainGoal'] ?? UserGoal.init()),
+      mainGoal: mainGoal,
     );
   }
 

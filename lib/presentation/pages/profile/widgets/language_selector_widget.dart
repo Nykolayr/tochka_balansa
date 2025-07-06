@@ -78,7 +78,13 @@ class LanguageSelectorWidget extends StatelessWidget {
   }
 
   void _showLanguageChangedToast(LanguageEnum language) {
-    AppToast.show('${language.flag} Ваш язык изменен на ${language.titleRu}');
+    // Добавляем задержку в 500мс для обновления языка
+    Future.delayed(const Duration(milliseconds: 500), () {
+      String messageKey = language == LanguageEnum.russian
+          ? 'Ваш язык изменен на Русский'
+          : 'Ваш язык изменен на Английский';
+      AppToast.show('${language.flag} ${textLang(messageKey)}');
+    });
   }
 }
 
