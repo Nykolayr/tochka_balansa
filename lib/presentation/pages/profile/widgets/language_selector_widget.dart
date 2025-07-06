@@ -46,7 +46,8 @@ class LanguageSelectorWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  Get.find<LanguageBloc>().currentLanguage == Language.english
+                  Get.find<LanguageBloc>().currentLanguage ==
+                          LanguageEnum.english
                       ? 'English'
                       : textLang('Русский'),
                   style: const TextStyle(fontSize: 14, color: AppColor.grey),
@@ -76,14 +77,14 @@ class LanguageSelectorWidget extends StatelessWidget {
     );
   }
 
-  void _showLanguageChangedToast(Language language) {
+  void _showLanguageChangedToast(LanguageEnum language) {
     AppToast.show('${language.flag} Ваш язык изменен на ${language.titleRu}');
   }
 }
 
 class _LanguageBottomSheet extends StatelessWidget {
-  final Language currentLanguage;
-  final Function(Language) onLanguageSelected;
+  final LanguageEnum currentLanguage;
+  final Function(LanguageEnum) onLanguageSelected;
 
   const _LanguageBottomSheet({
     required this.currentLanguage,
@@ -125,7 +126,7 @@ class _LanguageBottomSheet extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Список языков
-          ...Language.values.map(
+          ...LanguageEnum.values.map(
             (language) => _buildLanguageTile(
               context,
               language,
@@ -141,7 +142,7 @@ class _LanguageBottomSheet extends StatelessWidget {
 
   Widget _buildLanguageTile(
     BuildContext context,
-    Language language,
+    LanguageEnum language,
     bool isSelected,
   ) {
     return Material(

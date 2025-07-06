@@ -15,7 +15,7 @@ class LanguageLoading extends LanguageState {}
 
 /// Язык загружен
 class LanguageLoaded extends LanguageState {
-  final Language language;
+  final LanguageEnum language;
 
   const LanguageLoaded(this.language);
 

@@ -32,33 +32,8 @@ String textLang(String text) {
   }
 }
 
-void toggleLanguage() {
-  try {
-    final userRepository = Get.find<UserRepository>();
-    final currentLanguage = userRepository.user.language;
-    final newLanguage = currentLanguage == 'ru' ? 'en' : 'ru';
-    userRepository.saveUserLanguage(newLanguage);
-    // Также сохраняем в Hive
-    _saveLanguageToHive(newLanguage);
-  } catch (e) {
-    Logger.e('Error toggling language: $e');
-  }
-}
-
-/// Установка языка (для использования в MainBloc)
-void setLanguage(String language) {
-  try {
-    final userRepository = Get.find<UserRepository>();
-    userRepository.saveUserLanguage(language);
-    // Также сохраняем в Hive
-    _saveLanguageToHive(language);
-  } catch (e) {
-    Logger.e('Error setting language: $e');
-  }
-}
-
 /// Сохранение языка в Hive
-Future<void> _saveLanguageToHive(String language) async {
+Future<void> saveLanguageToHive(String language) async {
   try {
     await HiveData.saveJson(
       json: {'language': language},
@@ -89,26 +64,14 @@ bool get isEnglish {
   }
 }
 
-/// Получение кода языка из enum
-String getLanguageCode(Language language) {
-  return switch (language) {
-    Language.english => 'en',
-    Language.russian => 'ru',
-  };
-}
-
-/// Получение enum из кода языка
-Language getLanguageFromCode(String code) {
-  return switch (code) {
-    'en' => Language.english,
-    'ru' => Language.russian,
-    _ => Language.russian, // По умолчанию русский
-  };
-}
-
-enum Language {
+enum LanguageEnum {
   english,
   russian;
+
+  String get code => switch (this) {
+    english => 'en',
+    russian => 'ru',
+  };
 
   String get titleEn => switch (this) {
     english => 'English',

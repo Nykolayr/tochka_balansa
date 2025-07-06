@@ -1,4 +1,5 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/data/api/api.dart';
 import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/data/datasources/secure_storage_servis.dart';
@@ -43,8 +44,8 @@ class UserRepository {
   }
 
   /// сохранение языка пользователя
-  Future<void> saveUserLanguage(String language) async {
-    user = user.copyWith(language: language);
+  Future<void> saveUserLanguage(LanguageEnum language) async {
+    user = user.copyWith(language: language.code);
     await saveUserToLocal();
   }
 

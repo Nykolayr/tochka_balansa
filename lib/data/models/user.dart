@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/sleep_goal.dart';
+import 'package:tochka_balansa/data/models/goal/supplement_goal.dart';
+import 'package:tochka_balansa/data/models/goal/workout_goal.dart';
 
 import 'package:tochka_balansa/data/models/user_goal.dart';
 
@@ -14,7 +16,7 @@ class User extends Equatable {
   final Gender gender;
   final double initialWeight;
   final double height;
-  final Language language;
+  final String language;
   final List<AdditionalGoal> additionalGoals;
   final UserGoal mainGoal;
 
@@ -41,7 +43,7 @@ class User extends Equatable {
     gender: Gender.male,
     initialWeight: 0.0,
     height: 0.0,
-    language: Language.russian,
+    language: 'ru',
     additionalGoals: const [],
     mainGoal: UserGoal.init(),
   );
@@ -51,6 +53,16 @@ class User extends Equatable {
     final additionalGoals = additionalGoalsJson.map((goalJson) {
       final goalMap = goalJson as Map<String, dynamic>;
       final type = goalMap['type'] as String?;
+      switch (type) {
+        case 'workout':
+          return WorkoutGoal.fromJson(goalMap);
+        case 'supplement':
+          return SupplementGoal.fromJson(goalMap);
+        case 'sleep':
+          return SleepGoal.fromJson(goalMap);
+        default:
+          return WorkoutGoal.init();
+      }
     }).toList();
 
     return User(
@@ -94,6 +106,7 @@ class User extends Equatable {
     double? height,
     String? language,
     List<AdditionalGoal>? additionalGoals,
+    UserGoal? mainGoal,
   }) {
     return User(
       id: id ?? this.id,
@@ -105,6 +118,7 @@ class User extends Equatable {
       height: height ?? this.height,
       language: language ?? this.language,
       additionalGoals: additionalGoals ?? this.additionalGoals,
+      mainGoal: mainGoal ?? this.mainGoal,
     );
   }
 

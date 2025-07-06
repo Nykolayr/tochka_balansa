@@ -42,8 +42,8 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
       }
     } catch (e) {
       // В случае ошибки используем русский по умолчанию
-      _updateUserRepositoryLanguage(Language.russian);
-      emit(LanguageLoaded(Language.russian));
+      _updateUserRepositoryLanguage(LanguageEnum.russian);
+      emit(LanguageLoaded(LanguageEnum.russian));
     }
   }
 
@@ -77,39 +77,22 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     }
   }
 
+  final userRepository = Get.find<UserRepository>();
+
   /// Обновление языка в UserRepository
-  void _updateUserRepositoryLanguage(Language language) {
+  void _updateUserRepositoryLanguage(LanguageEnum language) {
     try {
       // Проверяем, существует ли UserRepository в Get
       if (Get.isRegistered<UserRepository>()) {
-        final userRepository = Get.find<UserRepository>();
-        final languageCode = _getLanguageCode(language);
-        userRepository.saveUserLanguage(languageCode);
+        userRepository.saveUserLanguage(language);
       }
     } catch (e) {
       Logger.e('Error updating UserRepository language: $e');
     }
   }
 
-  /// Получение кода языка из enum
-  String _getLanguageCode(Language language) {
-    return switch (language) {
-      Language.english => 'en',
-      Language.russian => 'ru',
-    };
-  }
-
-  /// Получение enum из кода языка
-  Language _getLanguageFromCode(String code) {
-    return switch (code) {
-      'en' => Language.english,
-      'ru' => Language.russian,
-      _ => Language.russian, // По умолчанию русский
-    };
-  }
-
   /// Загрузка языка из Hive
-  Future<Language?> _loadLanguageFromHive() async {
+  Future<LanguageEnum?> _loadLanguageFromHive() async {
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.language);
       final languageCode = data['language'] as String?;
@@ -123,26 +106,34 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
   }
 
   /// Сохранение языка в Hive
-  Future<void> _saveLanguageToHive(Language language) async {
-    final languageCode = _getLanguageCode(language);
+  Future<void> _saveLanguageToHive(LanguageEnum language) async {
     await HiveData.saveJson(
-      json: {'language': languageCode},
+      json: {'language': language.code},
       key: HiveDataKey.language,
     );
   }
 
+  /// Получение enum из кода языка
+  LanguageEnum _getLanguageFromCode(String code) {
+    return switch (code) {
+      'en' => LanguageEnum.english,
+      'ru' => LanguageEnum.russian,
+      _ => LanguageEnum.russian, // По умолчанию русский
+    };
+  }
+
   /// Получение языка из системной локали
-  Language _getSystemLanguage() {
+  LanguageEnum _getSystemLanguage() {
     final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
     return systemLocale.languageCode == 'en'
-        ? Language.english
-        : Language.russian;
+        ? LanguageEnum.english
+        : LanguageEnum.russian;
   }
 
   /// Геттер для проверки, является ли текущий язык русским
   bool get isRussian {
     if (state is LanguageLoaded) {
-      return (state as LanguageLoaded).language == Language.russian;
+      return (state as LanguageLoaded).language == LanguageEnum.russian;
     }
     return true; // По умолчанию русский
   }
@@ -150,16 +141,16 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
   /// Геттер для проверки, является ли текущий язык английским
   bool get isEnglish {
     if (state is LanguageLoaded) {
-      return (state as LanguageLoaded).language == Language.english;
+      return (state as LanguageLoaded).language == LanguageEnum.english;
     }
     return false;
   }
 
   /// Геттер для получения текущего языка
-  Language get currentLanguage {
+  LanguageEnum get currentLanguage {
     if (state is LanguageLoaded) {
       return (state as LanguageLoaded).language;
     }
-    return Language.russian; // По умолчанию русский
+    return LanguageEnum.russian; // По умолчанию русский
   }
 }

@@ -12,7 +12,7 @@ class LoadLanguageEvent extends LanguageEvent {}
 
 /// Изменение языка пользователем
 class ChangeLanguageEvent extends LanguageEvent {
-  final Language language;
+  final LanguageEnum language;
   const ChangeLanguageEvent(this.language);
 
   @override
@@ -21,7 +21,7 @@ class ChangeLanguageEvent extends LanguageEvent {
 
 /// Обновление языка из User (после загрузки пользователя)
 class UpdateLanguageFromUserEvent extends LanguageEvent {
-  final Language language;
+  final LanguageEnum language;
   const UpdateLanguageFromUserEvent(this.language);
 
   @override

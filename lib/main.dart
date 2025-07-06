@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         // Определяем локаль на основе состояния LanguageBloc
         Locale currentLocale;
         if (languageState is LanguageLoaded) {
-          currentLocale = languageState.language == Language.english
+          currentLocale = languageState.language == LanguageEnum.english
               ? const Locale('en', 'US')
               : const Locale('ru', 'RU');
         } else {
