@@ -51,7 +51,7 @@ class _SplashPageState extends State<SplashPage> {
 
         // Проверяем, заполнены ли данные пользователя
         final user = _userRepository.user;
-        final hasUserData = user.name.isNotEmpty;
+        final hasUserData = user.name.isEmpty;
 
         // Если данные не заполнены, загружаем слайды
         if (hasUserData) {

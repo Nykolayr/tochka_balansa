@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tochka_balansa/core/theme/theme.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/presentation/pages/profile/widgets/language_selector_widget.dart';
 
 class ProfilePage extends StatefulWidget {
