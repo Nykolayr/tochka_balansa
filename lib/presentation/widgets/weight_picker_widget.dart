@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/widgets/custom_animated_weight_picker.dart';
 
@@ -54,7 +55,7 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
               ),
               Expanded(child: Container()),
               Text(
-                '${widget.value.toStringAsFixed(1)} кг',
+                '${widget.value.toStringAsFixed(1)} ${textLang('кг')}',
                 style: AppText.text18mb.copyWith(color: AppColor.darkBlue),
               ),
             ],

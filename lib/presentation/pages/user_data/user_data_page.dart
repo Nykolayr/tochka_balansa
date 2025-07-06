@@ -25,7 +25,7 @@ class _UserDataPageState extends State<UserDataPage> {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   double selectedWeight = 90.0;
-  double selectedHeight = 170.0; // в сантиметрах
+  double selectedHeight = 165.0; // в сантиметрах, по умолчанию 165 см
   DateTime selectedDate = DateTime(2000, 1, 1);
   Gender selectedGender = Gender.male;
   final UserRepository _userRepository = Get.find<UserRepository>();
@@ -41,9 +41,7 @@ class _UserDataPageState extends State<UserDataPage> {
     if (user.name.isNotEmpty) {
       nameController.text = user.name;
       selectedWeight = user.initialWeight > 0 ? user.initialWeight : 70.0;
-      selectedHeight = user.height > 0
-          ? user.height * 100
-          : 170.0; // конвертируем в см
+      selectedHeight = user.height > 0 ? user.height * 100 : 165.0;
       selectedDate = user.birthDate;
       selectedGender = user.gender;
     }
@@ -140,7 +138,7 @@ class _UserDataPageState extends State<UserDataPage> {
                     },
                     label: textLang('Рост'),
                   ),
-                  const SizedBox(height: 120), // Отступ для кнопок
+                  const Gap(120),
                 ],
               ),
             ),
