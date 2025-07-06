@@ -21,21 +21,30 @@ class UserGoal extends Equatable {
     this.completedAt,
   });
 
-  factory UserGoal.create({
-    required String title,
-    required String description,
-    required double targetWeight,
-    required DateTime targetDate,
-  }) {
+  factory UserGoal.fromJson(Map<String, dynamic> json) {
     return UserGoal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: title,
-      description: description,
-      targetWeight: targetWeight,
-      targetDate: targetDate,
-      createdAt: DateTime.now(),
-      isCompleted: false,
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      targetWeight: json['targetWeight'],
+      targetDate: json['targetDate'],
+      createdAt: json['createdAt'],
+      isCompleted: json['isCompleted'],
+      completedAt: json['completedAt'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'targetWeight': targetWeight,
+      'targetDate': targetDate,
+      'createdAt': createdAt,
+      'isCompleted': isCompleted,
+      'completedAt': completedAt,
+    };
   }
 
   UserGoal copyWith({
@@ -59,6 +68,15 @@ class UserGoal extends Equatable {
       completedAt: completedAt ?? this.completedAt,
     );
   }
+
+  factory UserGoal.init() => UserGoal(
+    id: '',
+    title: '',
+    description: '',
+    targetWeight: 0,
+    targetDate: DateTime.now(),
+    createdAt: DateTime.now(),
+  );
 
   // Методы для удобства
   UserGoal markAsCompleted() {
