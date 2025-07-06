@@ -77,13 +77,12 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     }
   }
 
-  final userRepository = Get.find<UserRepository>();
-
   /// Обновление языка в UserRepository
   void _updateUserRepositoryLanguage(LanguageEnum language) {
     try {
       // Проверяем, существует ли UserRepository в Get
       if (Get.isRegistered<UserRepository>()) {
+        final userRepository = Get.find<UserRepository>();
         userRepository.saveUserLanguage(language);
       }
     } catch (e) {

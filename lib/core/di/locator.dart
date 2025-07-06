@@ -8,6 +8,8 @@ import 'package:tochka_balansa/data/api/dio_client.dart';
 import 'package:tochka_balansa/data/repositories/main_repository.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/auth/bloc/auth_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 /// внедряем зависимости
@@ -65,6 +67,19 @@ Future initMain() async {
     Logger.e('MainBloc error = $e');
     return 'bloc $e';
   }
-  await Future.delayed(Duration(seconds: 5));
+  try {
+    Get.put<GoalBloc>(GoalBloc());
+  } catch (e) {
+    Logger.e('GoalBloc error = $e');
+    return 'bloc $e';
+  }
+  try {
+    Get.put<FoodBloc>(FoodBloc());
+  } catch (e) {
+    Logger.e('FoodBloc error = $e');
+    return 'bloc $e';
+  }
+
+  await Future.delayed(Duration(seconds: 2));
   return '';
 }
