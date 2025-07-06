@@ -45,22 +45,22 @@ class _SplashPageState extends State<SplashPage> {
       _userRepository = Get.find<UserRepository>();
 
       if (mounted) {
-        setState(() {
-          _isMainInitialized = true;
-        });
-
         // Проверяем, заполнены ли данные пользователя
         final user = _userRepository.user;
-        final hasUserData = user.name.isEmpty;
+        final hasUserData = user.name.isNotEmpty;
 
-        // Если данные не заполнены, загружаем слайды
         if (hasUserData) {
-          await _initializeSlides();
-        } else {
-          // Если данные заполнены, сразу переходим на главный экран
+          // Если пользователь уже существует, сразу переходим на главную
           if (mounted) {
             context.go('/main');
+            return; // Важно: выходим из метода, не показывая слайды
           }
+        } else {
+          // Только если пользователя нет, инициализируем слайды
+          setState(() {
+            _isMainInitialized = true;
+          });
+          await _initializeSlides();
         }
       }
     } catch (e) {
