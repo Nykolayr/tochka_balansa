@@ -10,7 +10,7 @@ import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
 import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
 import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/food_page.dart';
-import 'package:tochka_balansa/presentation/pages/training/training_page.dart';
+import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
@@ -136,7 +136,7 @@ final GoRouter router = GoRouter(
               type: PageTransitionType.leftToRight,
               context: context,
               state: state,
-              child: TrainingPage(key: ValueKey(languageState)),
+              child: GoalPage(key: ValueKey(languageState)),
             );
           },
         ),

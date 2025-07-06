@@ -23,7 +23,6 @@ final Map<String, String> enLang = {
   // Навигация
   'Главная': 'Home',
   'Еда': 'Food',
-  'Тренировки': 'Training',
   'Профиль': 'Profile',
 
   // Данные пользователя
@@ -35,8 +34,6 @@ final Map<String, String> enLang = {
   'Женский': 'Female',
   'Вес': 'Weight',
   'Рост': 'Height',
-  'кг': 'kg',
-  'см': 'cm',
 
   // Валидация
   'Введите email': 'Enter email',
@@ -79,6 +76,17 @@ final Map<String, String> enLang = {
   'Фиксированная': 'Fixed',
   'Неограниченная': 'Unlimited',
   'Не ограниченная': 'Unlimited',
+  'Цели': 'Goals',
+  'Тренировки': 'Workouts',
+  'Приём': 'Intake',
+  'Режим сна': 'Sleep Schedule',
+  'Дозировка': 'Dosage',
+  'раз в неделю': 'times per week',
+  'Кардио': 'Cardio',
+  'Витамин D': 'Vitamin D',
+  'МЕ': 'IU',
+  'см': 'cm',
+  'кг': 'kg',
 
   // Слайды
   'Баланс — это просто': 'Balance is simple',

@@ -1,14 +1,14 @@
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
-/// Цель пользователя
-class UserGoal {
+/// Цель пользователя по весу
+class WeightGoal {
   final GoalType goalType; // Тип цели
   final DeadlineType deadlineType; // Тип срока
   final DateTime? deadline; // Срок
   final double targetWeight; // Цель по весу
   final String ourGoal; // Своя цель
 
-  UserGoal({
+  WeightGoal({
     required this.goalType,
     required this.deadlineType,
     required this.deadline,
@@ -16,8 +16,8 @@ class UserGoal {
     required this.ourGoal,
   });
 
-  factory UserGoal.fromJson(Map<String, dynamic> json) {
-    return UserGoal(
+  factory WeightGoal.fromJson(Map<String, dynamic> json) {
+    return WeightGoal(
       goalType: json['goalType'],
       deadlineType: json['deadlineType'],
       deadline: json['deadline'],
@@ -36,8 +36,8 @@ class UserGoal {
     };
   }
 
-  factory UserGoal.init() {
-    return UserGoal(
+  factory WeightGoal.init() {
+    return WeightGoal(
       goalType: GoalType.none,
       deadlineType: DeadlineType.fixed,
       deadline: null,
@@ -52,15 +52,13 @@ enum GoalType {
   loseWeight,
   gainWeight,
   maintain,
-  none,
-  our;
+  none;
 
   String get title => switch (this) {
     GoalType.loseWeight => textLang('Сбросить вес'),
     GoalType.gainWeight => textLang('Набрать вес'),
     GoalType.maintain => textLang('Поддерживать вес'),
     GoalType.none => textLang('Не выбрано'),
-    GoalType.our => textLang('Своя цель'),
   };
 
   String get description => switch (this) {
@@ -68,7 +66,6 @@ enum GoalType {
     GoalType.gainWeight => textLang('Набрать вес'),
     GoalType.maintain => textLang('Поддерживать вес'),
     GoalType.none => textLang('Не выбрано'),
-    GoalType.our => textLang('Своя цель'),
   };
 }
 

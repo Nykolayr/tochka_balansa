@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
+import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/workout_goal.dart';
+import 'package:tochka_balansa/data/models/goal/supplement_goal.dart';
+import 'package:tochka_balansa/data/models/goal/sleep_goal.dart';
 
 /// Модель пользователя
 class User extends Equatable {
@@ -11,6 +15,7 @@ class User extends Equatable {
   final double initialWeight;
   final double height;
   final String language; // 'en' или 'ru'
+  final List<AdditionalGoal> additionalGoals;
 
   bool get isReg => name.isNotEmpty;
 
@@ -23,6 +28,7 @@ class User extends Equatable {
     required this.initialWeight,
     required this.height,
     this.language = 'ru', // По умолчанию русский
+    this.additionalGoals = const [],
   });
 
   factory User.initial() => User(
@@ -34,9 +40,27 @@ class User extends Equatable {
     initialWeight: 0.0,
     height: 0.0,
     language: 'ru',
+    additionalGoals: const [],
   );
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final additionalGoalsJson = json['additionalGoals'] as List<dynamic>? ?? [];
+    final additionalGoals = additionalGoalsJson.map((goalJson) {
+      final goalMap = goalJson as Map<String, dynamic>;
+      final type = goalMap['type'] as String?;
+
+      switch (type) {
+        case 'workout':
+          return WorkoutGoal.fromJson(goalMap);
+        case 'supplement':
+          return SupplementGoal.fromJson(goalMap);
+        case 'sleep':
+          return SleepGoal.fromJson(goalMap);
+        default:
+          return WorkoutGoal.init(); // fallback
+      }
+    }).toList();
+
     return User(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
@@ -48,6 +72,7 @@ class User extends Equatable {
       initialWeight: (json['initialWeight'] ?? 0.0).toDouble(),
       height: (json['height'] ?? 0.0).toDouble(),
       language: json['language'] ?? 'ru',
+      additionalGoals: additionalGoals,
     );
   }
 
@@ -61,6 +86,7 @@ class User extends Equatable {
       'initialWeight': initialWeight,
       'height': height,
       'language': language,
+      'additionalGoals': additionalGoals.map((goal) => goal.toJson()).toList(),
     };
   }
 
@@ -73,6 +99,7 @@ class User extends Equatable {
     double? initialWeight,
     double? height,
     String? language,
+    List<AdditionalGoal>? additionalGoals,
   }) {
     return User(
       id: id ?? this.id,
@@ -83,6 +110,7 @@ class User extends Equatable {
       initialWeight: initialWeight ?? this.initialWeight,
       height: height ?? this.height,
       language: language ?? this.language,
+      additionalGoals: additionalGoals ?? this.additionalGoals,
     );
   }
 
@@ -110,5 +138,6 @@ class User extends Equatable {
     initialWeight,
     height,
     language,
+    additionalGoals,
   ];
 }
