@@ -257,6 +257,7 @@ class _CustomAnimatedWeightPickerState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             SizedBox(
+                              width: 60,
                               height: isSelected
                                   ? widget.dialHeight
                                   : isMajorInterval
@@ -310,7 +311,6 @@ class _CustomAnimatedWeightPickerState
                                       child: Text(
                                         _valueList[index].value,
                                         maxLines: 1,
-                                        overflow: TextOverflow.fade,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: widget.selectedValueColor,
@@ -330,7 +330,6 @@ class _CustomAnimatedWeightPickerState
                               Text(
                                 _valueList[index].value,
                                 maxLines: 1,
-                                overflow: TextOverflow.fade,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: widget.majorIntervalTextColor,
@@ -350,16 +349,22 @@ class _CustomAnimatedWeightPickerState
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _valueList[_selectedIndex].value,
-                style:
-                    widget.selectedValueStyle ??
-                    TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 30,
-                      height: 1,
-                      color: widget.selectedValueColor,
-                    ),
+              Container(
+                alignment: Alignment.center,
+                width: 120,
+                child: Text(
+                  _valueList[_selectedIndex].value,
+                  textAlign: TextAlign.center,
+                  style:
+                      widget.selectedValueStyle ??
+                      TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 30,
+                        height: 1,
+                        color: widget.selectedValueColor,
+                      ),
+                  maxLines: 1,
+                ),
               ),
               if (widget.showSuffix && widget.suffix == null)
                 Text(
