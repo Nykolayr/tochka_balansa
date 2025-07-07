@@ -147,4 +147,7 @@ final Map<String, String> enLang = {
   'название добавки': 'supplement name',
   'например: 1000 МЕ, 500 мг': 'e.g.: 1000 IU, 500 mg',
   'шт.': 'pcs.',
+  'Колесо': 'Wheel',
+  'Ручной ввод': 'Manual input',
+  'Введите значение': 'Enter value',
 };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/widgets/custom_animated_weight_picker.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
@@ -21,11 +22,17 @@ class HeightPickerWidget extends StatefulWidget {
 
 class _HeightPickerWidgetState extends State<HeightPickerWidget> {
   late String selectedValue;
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+  final double _minHeight = 100.0;
+  final double _maxHeight = 250.0;
 
   @override
   void initState() {
     super.initState();
     selectedValue = widget.value.toInt().toString();
+    _controller = TextEditingController(text: selectedValue);
+    _focusNode = FocusNode();
   }
 
   @override
@@ -33,6 +40,38 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       selectedValue = widget.value.toInt().toString();
+      _controller.text = selectedValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleManualInput(String value) {
+    if (value.isEmpty) return;
+
+    // Проверяем, что введено только число
+    if (!RegExp(r'^\d*$').hasMatch(value)) return;
+
+    int? height = int.tryParse(value);
+    if (height != null) {
+      // Проверяем границы
+      if (height < _minHeight.toInt()) {
+        height = _minHeight.toInt();
+        _controller.text = height.toString();
+      } else if (height > _maxHeight.toInt()) {
+        height = _maxHeight.toInt();
+        _controller.text = height.toString();
+      }
+
+      setState(() {
+        selectedValue = height.toString();
+      });
+      widget.onChanged(height.toDouble());
     }
   }
 
@@ -54,18 +93,50 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
                 style: AppText.text16rb.copyWith(color: AppColor.grey),
               ),
               Expanded(child: Container()),
-              Text(
-                '${widget.value.toInt()} ${textLang('см')}',
-                style: AppText.text18mb.copyWith(color: AppColor.darkBlue),
+              Container(
+                width: 100,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _focusNode.hasFocus
+                        ? AppColor.darkBlue
+                        : AppColor.grey,
+                    width: _focusNode.hasFocus ? 2.0 : 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(6),
+                  color: _focusNode.hasFocus
+                      ? AppColor.darkBlue.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                ),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    suffixText: textLang('см'),
+                    suffixStyle: AppText.text16rb.copyWith(
+                      color: AppColor.darkBlue,
+                    ),
+                    hintText: '${_minHeight.toInt()}-${_maxHeight.toInt()}',
+                    hintStyle: AppText.text12rb.copyWith(color: AppColor.grey),
+                  ),
+                  style: AppText.text16rb.copyWith(color: AppColor.darkBlue),
+                  onChanged: _handleManualInput,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
           SizedBox(
             height: 70,
             child: CustomAnimatedWeightPicker(
-              min: 100.0,
-              max: 250.0,
+              min: _minHeight,
+              max: _maxHeight,
               division: 1.0, // шаг 1 см (только целые числа)
               squeeze: 1.0,
               dialHeight: 60.0,
@@ -97,6 +168,7 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
                 setState(() {
                   selectedValue = newValue;
                 });
+                _controller.text = newValue;
                 widget.onChanged(double.parse(newValue));
               },
               initialValue: widget.value, // Передаем начальное значение

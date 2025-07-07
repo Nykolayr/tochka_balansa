@@ -116,10 +116,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
               },
               child: Text(
                 textLang('Нет аккаунта? Зарегистрируйтесь'),
-                style: const TextStyle(
-                  color: AppColor.darkBlue,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: AppColor.darkBlue, fontSize: 16),
               ),
             ),
           ],

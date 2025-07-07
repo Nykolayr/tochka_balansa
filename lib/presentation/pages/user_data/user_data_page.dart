@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/widgets/weight_picker_widget.dart';
 import 'package:tochka_balansa/presentation/widgets/height_picker_widget.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'dart:async';
 
 class UserDataPage extends StatefulWidget {
   const UserDataPage({super.key});
@@ -21,19 +22,58 @@ class UserDataPage extends StatefulWidget {
   State<UserDataPage> createState() => _UserDataPageState();
 }
 
-class _UserDataPageState extends State<UserDataPage> {
+class _UserDataPageState extends State<UserDataPage>
+    with WidgetsBindingObserver {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
+  final GlobalKey _weightKey = GlobalKey();
+  final GlobalKey _heightKey = GlobalKey();
+  final _scrollController = ScrollController(); // <-- Добавлено
+
   double selectedWeight = 90.0;
-  double selectedHeight = 165.0; // в сантиметрах, по умолчанию 165 см
+  double selectedHeight = 165.0;
   DateTime selectedDate = DateTime(2000, 1, 1);
   Gender selectedGender = Gender.male;
   final UserRepository _userRepository = Get.find<UserRepository>();
+  late StreamSubscription<bool> keyboardSubscription;
+  double keyboardHeight = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadUserData();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding
+        .instance
+        .platformDispatcher
+        .views
+        .first
+        .viewInsets
+        .bottom;
+    setState(() {
+      keyboardHeight =
+          bottomInset /
+          WidgetsBinding
+              .instance
+              .platformDispatcher
+              .views
+              .first
+              .devicePixelRatio;
+    });
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    keyboardSubscription.cancel();
+    _scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadUserData() {
@@ -49,7 +89,6 @@ class _UserDataPageState extends State<UserDataPage> {
 
   void _saveUserData() {
     if (formKey.currentState!.validate()) {
-      // Убираем фокус с текстового поля
       FocusScope.of(context).unfocus();
       Get.find<AuthBloc>().add(
         SaveUserDataEvent(
@@ -60,8 +99,6 @@ class _UserDataPageState extends State<UserDataPage> {
           gender: selectedGender,
         ),
       );
-
-      // Переходим на главный экран
       context.go('/main');
     }
   }
@@ -70,91 +107,70 @@ class _UserDataPageState extends State<UserDataPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarWidget(title: textLang('Ваши данные'), isBack: false),
-      resizeToAvoidBottomInset: true,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTextFormField(
-                    type: TextFieldType.name,
-                    controller: nameController,
-                  ),
-                  const Gap(20),
-
-                  // Дата рождения
-                  AppDateField(
-                    label: textLang('Дата рождения'),
-                    selectedDate: selectedDate,
-                    onDateSelected: (date) {
-                      setState(() {
-                        selectedDate = date;
-                      });
-                    },
-                  ),
-                  const Gap(20),
-
-                  // Пол
-                  AppDropdownField<Gender>(
-                    label: textLang('Пол'),
-                    value: selectedGender,
-                    items: Gender.values,
-                    itemText: (gender) => gender == Gender.male
-                        ? textLang('Мужской')
-                        : textLang('Женский'),
-                    onChanged: (gender) {
-                      if (gender != null) {
-                        setState(() {
-                          selectedGender = gender;
-                        });
-                      }
-                    },
-                  ),
-                  const Gap(20),
-
-                  // Вес
-                  WeightPickerWidget(
-                    value: selectedWeight,
-                    onChanged: (weight) {
-                      setState(() {
-                        selectedWeight = weight;
-                      });
-                    },
-                    label: textLang('Вес'),
-                  ),
-                  const Gap(20),
-
-                  // Рост
-                  HeightPickerWidget(
-                    value: selectedHeight,
-                    onChanged: (height) {
-                      setState(() {
-                        selectedHeight = height;
-                      });
-                    },
-                    label: textLang('Рост'),
-                  ),
-                  const Gap(120),
-                ],
+      body: SingleChildScrollView(
+        controller: _scrollController, // <-- Добавлено
+        padding: const EdgeInsets.all(20),
+        physics: const ClampingScrollPhysics(), // <-- Добавлено
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppTextFormField(
+                type: TextFieldType.name,
+                controller: nameController,
               ),
-            ),
-          ),
+              const Gap(20),
 
-          // Кнопка сохранения
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: RoundedWideButton(
-              text: textLang('Сохранить'),
-              onPressed: _saveUserData,
-            ),
+              AppDateField(
+                label: textLang('Дата рождения'),
+                selectedDate: selectedDate,
+                onDateSelected: (date) => setState(() => selectedDate = date),
+              ),
+              const Gap(20),
+
+              AppDropdownField<Gender>(
+                label: textLang('Пол'),
+                value: selectedGender,
+                items: Gender.values,
+                itemText: (gender) => gender == Gender.male
+                    ? textLang('Мужской')
+                    : textLang('Женский'),
+                onChanged: (gender) {
+                  if (gender != null) {
+                    setState(() => selectedGender = gender);
+                  }
+                },
+              ),
+              const Gap(20),
+
+              WeightPickerWidget(
+                key: _weightKey,
+                value: selectedWeight,
+                onChanged: (weight) => setState(() => selectedWeight = weight),
+                label: textLang('Вес'),
+              ),
+              const Gap(20),
+              HeightPickerWidget(
+                key: _heightKey,
+                value: selectedHeight,
+                onChanged: (height) => setState(() => selectedHeight = height),
+                label: textLang('Рост'),
+              ),
+
+              const Gap(40),
+            ],
           ),
-        ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(20),
+        margin: EdgeInsets.only(bottom: keyboardHeight),
+        child: RoundedWideButton(
+          text: textLang('Сохранить'),
+          onPressed: _saveUserData,
+        ),
       ),
     );
   }

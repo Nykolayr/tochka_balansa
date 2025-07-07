@@ -69,9 +69,9 @@ class _MainPageState extends State<MainPage> {
                 }
               },
               child: Scaffold(
+                resizeToAvoidBottomInset: false,
                 extendBodyBehindAppBar: true,
                 backgroundColor: AppColor.white,
-                resizeToAvoidBottomInset: true,
                 appBar: PreferredSize(
                   preferredSize: Size.fromHeight(56),
                   child: MainPages.values[selectedIndex].appBar,

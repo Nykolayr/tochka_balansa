@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/widgets/custom_animated_weight_picker.dart';
@@ -21,11 +22,17 @@ class WeightPickerWidget extends StatefulWidget {
 
 class _WeightPickerWidgetState extends State<WeightPickerWidget> {
   late String selectedValue;
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+  final double _minWeight = 30.0;
+  final double _maxWeight = 200.0;
 
   @override
   void initState() {
     super.initState();
     selectedValue = widget.value.toStringAsFixed(1);
+    _controller = TextEditingController(text: selectedValue);
+    _focusNode = FocusNode();
   }
 
   @override
@@ -33,6 +40,41 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       selectedValue = widget.value.toStringAsFixed(1);
+      _controller.text = selectedValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleManualInput(String value) {
+    if (value.isEmpty) return;
+
+    // Заменяем запятую на точку
+    value = value.replaceAll(',', '.');
+
+    // Проверяем, что введено только число с точкой
+    if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) return;
+
+    double? weight = double.tryParse(value);
+    if (weight != null) {
+      // Проверяем границы
+      if (weight < _minWeight) {
+        weight = _minWeight;
+        _controller.text = weight.toStringAsFixed(1);
+      } else if (weight > _maxWeight) {
+        weight = _maxWeight;
+        _controller.text = weight.toStringAsFixed(1);
+      }
+
+      setState(() {
+        selectedValue = weight!.toStringAsFixed(1);
+      });
+      widget.onChanged(weight);
     }
   }
 
@@ -54,9 +96,47 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
                 style: AppText.text16rb.copyWith(color: AppColor.grey),
               ),
               Expanded(child: Container()),
-              Text(
-                '${widget.value.toStringAsFixed(1)} ${textLang('кг')}',
-                style: AppText.text18mb.copyWith(color: AppColor.darkBlue),
+              Container(
+                width: 100,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _focusNode.hasFocus
+                        ? AppColor.darkBlue
+                        : AppColor.grey,
+                    width: _focusNode.hasFocus ? 2.0 : 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(6),
+                  color: _focusNode.hasFocus
+                      ? AppColor.darkBlue.withValues(alpha: 0.1)
+                      : Colors.transparent,
+                ),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d,\.]')),
+                  ],
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    suffixText: textLang('кг'),
+                    suffixStyle: AppText.text16rb.copyWith(
+                      color: AppColor.darkBlue,
+                    ),
+                    hintText:
+                        '${_minWeight.toStringAsFixed(1)}-${_maxWeight.toStringAsFixed(1)}',
+                    hintStyle: AppText.text12rb.copyWith(color: AppColor.grey),
+                  ),
+                  style: AppText.text16rb.copyWith(color: AppColor.darkBlue),
+                  onChanged: _handleManualInput,
+                ),
               ),
             ],
           ),
@@ -64,8 +144,8 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
           SizedBox(
             height: 70,
             child: CustomAnimatedWeightPicker(
-              min: 30.0,
-              max: 200.0,
+              min: _minWeight,
+              max: _maxWeight,
               division: 0.1, // шаг 0.1 кг
               squeeze: 1.0,
               dialHeight: 60.0,
@@ -97,6 +177,7 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
                 setState(() {
                   selectedValue = newValue;
                 });
+                _controller.text = newValue;
                 widget.onChanged(double.parse(newValue));
               },
               initialValue: widget.value, // Передаем начальное значение
