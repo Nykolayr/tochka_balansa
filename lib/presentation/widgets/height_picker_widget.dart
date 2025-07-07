@@ -8,12 +8,14 @@ class HeightPickerWidget extends StatefulWidget {
   final double value;
   final ValueChanged<double> onChanged;
   final String label;
+  final VoidCallback? onFocus;
 
   const HeightPickerWidget({
     super.key,
     required this.value,
     required this.onChanged,
     required this.label,
+    this.onFocus,
   });
 
   @override
@@ -111,6 +113,7 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
                   controller: _controller,
                   focusNode: _focusNode,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
@@ -127,7 +130,28 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
                     hintStyle: AppText.text12rb.copyWith(color: AppColor.grey),
                   ),
                   style: AppText.text16rb.copyWith(color: AppColor.darkBlue),
-                  onChanged: _handleManualInput,
+                  onChanged: (value) {
+                    // Разрешаем ввод любого значения, не валидируем на лету
+                  },
+                  onEditingComplete: () {
+                    final text = _controller.text;
+                    final int? height = int.tryParse(text);
+                    if (height == null ||
+                        height < _minHeight.toInt() ||
+                        height > _maxHeight.toInt()) {
+                      // Если невалидно — возвращаем старое значение
+                      _controller.text = selectedValue;
+                    } else {
+                      setState(() {
+                        selectedValue = height.toString();
+                      });
+                      widget.onChanged(height.toDouble());
+                    }
+                    _focusNode.unfocus();
+                  },
+                  onTap: () {
+                    widget.onFocus?.call();
+                  },
                 ),
               ),
             ],
@@ -135,6 +159,7 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
           SizedBox(
             height: 70,
             child: CustomAnimatedWeightPicker(
+              key: ValueKey(widget.value),
               min: _minHeight,
               max: _maxHeight,
               division: 1.0, // шаг 1 см (только целые числа)

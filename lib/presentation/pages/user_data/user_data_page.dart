@@ -158,7 +158,7 @@ class _UserDataPageState extends State<UserDataPage>
                 label: textLang('Рост'),
               ),
 
-              const Gap(40),
+              const Gap(20),
             ],
           ),
         ),

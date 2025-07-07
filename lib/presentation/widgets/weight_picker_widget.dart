@@ -8,12 +8,14 @@ class WeightPickerWidget extends StatefulWidget {
   final double value;
   final ValueChanged<double> onChanged;
   final String label;
+  final VoidCallback? onFocus;
 
   const WeightPickerWidget({
     super.key,
     required this.value,
     required this.onChanged,
     required this.label,
+    this.onFocus,
   });
 
   @override
@@ -51,7 +53,7 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
     super.dispose();
   }
 
-  void _handleManualInput(String value) {
+  void handleManualInput(String value) {
     if (value.isEmpty) return;
 
     // Заменяем запятую на точку
@@ -116,6 +118,7 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  textInputAction: TextInputAction.done,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[\d,\.]')),
                   ],
@@ -135,7 +138,28 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
                     hintStyle: AppText.text12rb.copyWith(color: AppColor.grey),
                   ),
                   style: AppText.text16rb.copyWith(color: AppColor.darkBlue),
-                  onChanged: _handleManualInput,
+                  onChanged: (value) {
+                    // Разрешаем ввод любого значения, не валидируем на лету
+                  },
+                  onEditingComplete: () {
+                    final text = _controller.text.replaceAll(',', '.');
+                    final double? weight = double.tryParse(text);
+                    if (weight == null ||
+                        weight < _minWeight ||
+                        weight > _maxWeight) {
+                      // Если невалидно — возвращаем старое значение
+                      _controller.text = selectedValue;
+                    } else {
+                      setState(() {
+                        selectedValue = weight.toStringAsFixed(1);
+                      });
+                      widget.onChanged(weight);
+                    }
+                    _focusNode.unfocus();
+                  },
+                  onTap: () {
+                    widget.onFocus?.call();
+                  },
                 ),
               ),
             ],
@@ -144,6 +168,7 @@ class _WeightPickerWidgetState extends State<WeightPickerWidget> {
           SizedBox(
             height: 70,
             child: CustomAnimatedWeightPicker(
+              key: ValueKey(widget.value),
               min: _minWeight,
               max: _maxWeight,
               division: 0.1, // шаг 0.1 кг
