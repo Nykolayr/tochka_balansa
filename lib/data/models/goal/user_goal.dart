@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
@@ -23,20 +24,67 @@ class UserGoal extends Equatable {
   );
 
   factory UserGoal.fromJson(Map<String, dynamic> json) {
-    return UserGoal(
-      goalType: GoalType.values.firstWhere(
-        (e) => e.name == json['goalType'],
-        orElse: () => GoalType.none,
-      ),
-      deadlineType: DeadlineType.values.firstWhere(
-        (e) => e.name == json['deadlineType'],
-        orElse: () => DeadlineType.fixed,
-      ),
-      targetWeight: (json['targetWeight'] ?? 0.0).toDouble(),
-      targetDate: json['targetDate'] != null
-          ? DateTime.parse(json['targetDate'])
-          : null,
-    );
+    try {
+      // Отладочный вывод
+      Logger.i('UserGoal.fromJson: $json');
+
+      // Проверяем тип goalType
+      String? goalTypeStr = json['goalType'] as String?;
+      Logger.i('Строка goalType: $goalTypeStr');
+
+      if (goalTypeStr == null) {
+        Logger.e('goalType в JSON равен null');
+        return UserGoal.init();
+      }
+
+      // Находим соответствующий GoalType
+      GoalType goalType = GoalType.none;
+      for (var type in GoalType.values) {
+        if (type.name == goalTypeStr) {
+          goalType = type;
+          break;
+        }
+      }
+      Logger.i('Найден GoalType: ${goalType.name}');
+
+      // Находим deadlineType
+      String? deadlineTypeStr = json['deadlineType'] as String?;
+      DeadlineType deadlineType = DeadlineType.fixed;
+      if (deadlineTypeStr != null) {
+        for (var type in DeadlineType.values) {
+          if (type.name == deadlineTypeStr) {
+            deadlineType = type;
+            break;
+          }
+        }
+      }
+
+      // Получаем targetWeight
+      double targetWeight = 0.0;
+      if (json['targetWeight'] != null) {
+        targetWeight = (json['targetWeight'] as num).toDouble();
+      }
+
+      // Получаем targetDate
+      DateTime? targetDate;
+      if (json['targetDate'] != null) {
+        try {
+          targetDate = DateTime.parse(json['targetDate'] as String);
+        } catch (e) {
+          Logger.e('Ошибка при парсинге targetDate: $e');
+        }
+      }
+
+      return UserGoal(
+        goalType: goalType,
+        deadlineType: deadlineType,
+        targetWeight: targetWeight,
+        targetDate: targetDate,
+      );
+    } catch (e) {
+      Logger.e('Ошибка в UserGoal.fromJson: $e');
+      return UserGoal.init();
+    }
   }
 
   Map<String, dynamic> toJson() {

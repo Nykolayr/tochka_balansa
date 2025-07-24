@@ -6,6 +6,7 @@ import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/main/enum/enum_main_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/widgets/navigation_buttons.dart';
 import 'package:tochka_balansa/presentation/pages/main/widgets/oval_bottom_bar.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -45,6 +46,12 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+
+    // Загружаем цели при инициализации страницы
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final goalBloc = Get.find<GoalBloc>();
+      goalBloc.add(const LoadGoalsEvent());
+    });
   }
 
   @override
@@ -61,6 +68,26 @@ class _MainPageState extends State<MainPage> {
         child: BlocBuilder<MainBloc, MainState>(
           bloc: bloc,
           builder: (context, state) {
+            // Обновляем selectedIndex, если он изменился в state
+            if (state.selectedIndex != selectedIndex) {
+              // Используем Future.microtask, чтобы избежать setState во время build
+              Future.microtask(() {
+                setState(() {
+                  selectedIndex = state.selectedIndex;
+                });
+                // Переключаем страницу
+                if ((state.selectedIndex - selectedIndex).abs() == 1) {
+                  pageController.animateToPage(
+                    state.selectedIndex,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                } else {
+                  pageController.jumpToPage(state.selectedIndex);
+                }
+              });
+            }
+
             return PopScope(
               canPop: false,
               onPopInvokedWithResult: (didPop, result) {

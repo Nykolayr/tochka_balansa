@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_toast.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 class GoalSetupPage extends StatefulWidget {
+  static const String route = '/main/training/setup';
+
   const GoalSetupPage({super.key});
 
   @override
@@ -247,8 +251,21 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
       targetDate: deadlineType == DeadlineType.fixed ? targetDate : null,
     );
 
-    Get.find<GoalBloc>().add(SetMainGoalEvent(goal));
-    AppToast.show('${textLang('Цель создана')}: ${goal.goalType.title}');
-    Get.back();
+    final goalBloc = Get.find<GoalBloc>();
+    goalBloc.add(SetMainGoalEvent(goal));
+
+    // Явно вызываем загрузку целей после сохранения
+    Future.delayed(const Duration(milliseconds: 300), () {
+      goalBloc.add(const LoadGoalsEvent());
+
+      // Переходим на главную страницу и переключаемся на таб "Цели" (индекс 2)
+      final mainBloc = Get.find<MainBloc>();
+      mainBloc.add(GoToPageEvent(2)); // 2 - индекс таба "Цели" (training)
+
+      // Используем GoRouter для навигации
+      context.go('/main');
+
+      AppToast.show('${textLang('Цель создана')}: ${goal.goalType.title}');
+    });
   }
 }

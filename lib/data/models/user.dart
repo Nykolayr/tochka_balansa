@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
@@ -97,9 +98,28 @@ class User extends Equatable {
 
     // Обрабатываем mainGoal
     UserGoal mainGoal;
-    if (json['mainGoal'] != null && json['mainGoal'] is Map<String, dynamic>) {
-      mainGoal = UserGoal.fromJson(json['mainGoal'] as Map<String, dynamic>);
-    } else {
+    try {
+      if (json['mainGoal'] != null &&
+          json['mainGoal'] is Map<String, dynamic>) {
+        Logger.i(
+          'User.fromJson: Загружаем mainGoal из JSON: ${json['mainGoal']}',
+        );
+
+        // Проверяем, есть ли поле goalType
+        final mainGoalMap = json['mainGoal'] as Map<String, dynamic>;
+        if (mainGoalMap.containsKey('goalType')) {
+          mainGoal = UserGoal.fromJson(mainGoalMap);
+          Logger.i('User.fromJson: Созданная mainGoal: $mainGoal');
+        } else {
+          Logger.e('User.fromJson: В mainGoal отсутствует поле goalType');
+          mainGoal = UserGoal.init();
+        }
+      } else {
+        Logger.e('User.fromJson: mainGoal отсутствует или не является Map');
+        mainGoal = UserGoal.init();
+      }
+    } catch (e) {
+      Logger.e('User.fromJson: Ошибка при создании mainGoal: $e');
       mainGoal = UserGoal.init();
     }
 
@@ -185,5 +205,6 @@ class User extends Equatable {
     height,
     language,
     additionalGoals,
+    mainGoal,
   ];
 }

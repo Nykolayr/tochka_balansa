@@ -50,10 +50,18 @@ class UserRepository {
   }
 
   /// Начальная загрузка пользователя из локального хранилища
-  Future init() async {
-    await HiveData.init();
-    token = await SecureStorageService().getToken() ?? '';
-    await loadUserFromLocal();
+  Future<void> init() async {
+    try {
+      Logger.i('Инициализация UserRepository');
+      await HiveData.init();
+      token = await SecureStorageService().getToken() ?? '';
+      Logger.i(
+        'Токен загружен: ${token.isNotEmpty ? "присутствует" : "отсутствует"}',
+      );
+      await loadUserFromLocal();
+    } catch (e) {
+      Logger.e('Ошибка при инициализации UserRepository: $e');
+    }
   }
 
   Future<void> logout() async {
@@ -159,6 +167,9 @@ class UserRepository {
       }
 
       user = User.fromJson(data);
+      Logger.i(
+        'Пользователь загружен из Hive: ${user.name}, mainGoal: ${user.mainGoal}',
+      );
     } catch (e) {
       Logger.e('user error $e');
     }
@@ -166,6 +177,19 @@ class UserRepository {
 
   /// Сохранение пользователя в локальное хранилище
   Future<void> saveUserToLocal() async {
-    await HiveData.saveJson(json: user.toJson(), key: HiveDataKey.user);
+    final json = user.toJson();
+    Logger.i(
+      'Сохранение пользователя в Hive: ${user.name}, mainGoal: ${user.mainGoal}',
+    );
+
+    // Проверяем, что mainGoal корректно сериализуется
+    if (json.containsKey('mainGoal')) {
+      Logger.i('mainGoal в JSON: ${json['mainGoal']}');
+    } else {
+      Logger.e('mainGoal отсутствует в JSON при сохранении');
+    }
+
+    await HiveData.saveJson(json: json, key: HiveDataKey.user);
+    Logger.i('Пользователь сохранен в Hive');
   }
 }

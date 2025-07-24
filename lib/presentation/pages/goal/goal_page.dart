@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
@@ -20,7 +21,11 @@ class _GoalPageState extends State<GoalPage> {
   void initState() {
     super.initState();
     // Загружаем цели при инициализации страницы
-    Get.find<GoalBloc>().add(const LoadGoalsEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final goalBloc = Get.find<GoalBloc>();
+      goalBloc.add(const LoadGoalsEvent());
+      Logger.i('GoalPage: Загружаем цели при инициализации страницы');
+    });
   }
 
   @override

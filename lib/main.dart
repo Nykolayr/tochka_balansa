@@ -11,6 +11,9 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool isMock = true;
@@ -21,7 +24,20 @@ void main() async {
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
 
+  // Инициализируем UserRepository и загружаем данные
+  final userRepository = UserRepository();
+  await userRepository.init();
+  Get.put(userRepository);
+
+  // Инициализируем блоки
   Get.put(LanguageBloc()..add(LoadLanguageEvent()));
+  Get.put(MainBloc());
+
+  // Инициализируем GoalBloc и загружаем цели
+  final goalBloc = GoalBloc();
+  Get.put(goalBloc);
+  goalBloc.add(const LoadGoalsEvent());
+
   runApp(const MyApp());
 }
 

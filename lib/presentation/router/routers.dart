@@ -14,6 +14,7 @@ import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -139,6 +140,21 @@ final GoRouter router = GoRouter(
               child: GoalPage(key: ValueKey(languageState)),
             );
           },
+          routes: <GoRoute>[
+            GoRoute(
+              name: 'Настройка цели',
+              path: 'setup',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: GoalSetupPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+          ],
         ),
         GoRoute(
           name: 'Профиль',

@@ -1,7 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
@@ -17,6 +19,10 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     on<AddAdditionalGoalEvent>(_onAddAdditionalGoal);
     on<RemoveAdditionalGoalEvent>(_onRemoveAdditionalGoal);
     on<UpdateAdditionalGoalEvent>(_onUpdateAdditionalGoal);
+
+    // Загружаем цели при инициализации блока
+    Logger.i('GoalBloc: Инициализация блока');
+    add(const LoadGoalsEvent());
   }
 
   Future<void> _onLoadGoals(
@@ -26,7 +32,13 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     emit(state.copyWith(isLoading: true));
 
     try {
+      Logger.i('Загрузка целей из UserRepository');
       final user = _userRepository.user;
+      Logger.i('Загружена главная цель: ${user.mainGoal}');
+      Logger.i(
+        'Загружено дополнительных целей: ${user.additionalGoals.length}',
+      );
+
       emit(
         state.copyWith(
           isLoading: false,
@@ -35,6 +47,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         ),
       );
     } catch (e) {
+      Logger.e('Ошибка загрузки целей: $e');
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
@@ -46,12 +59,43 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     emit(state.copyWith(isLoading: true));
 
     try {
-      final updatedUser = _userRepository.user.copyWith(mainGoal: event.goal);
-      _userRepository.user = updatedUser;
-      await _userRepository.saveUserToLocal();
+      Logger.i('Сохранение главной цели: ${event.goal}');
 
+      // Проверяем, что цель имеет правильный тип
+      if (event.goal.goalType == GoalType.none) {
+        Logger.e('Попытка сохранить цель с типом GoalType.none');
+        emit(
+          state.copyWith(
+            isLoading: false,
+            error: 'Невозможно сохранить цель без типа',
+          ),
+        );
+        return;
+      }
+
+      final updatedUser = _userRepository.user.copyWith(mainGoal: event.goal);
+      Logger.i('Обновленный пользователь: ${updatedUser.mainGoal}');
+      _userRepository.user = updatedUser;
+
+      // Сохраняем в Hive
+      await _userRepository.saveUserToLocal();
+      Logger.i('Главная цель сохранена в Hive');
+
+      // Проверяем, что цель правильно сохранилась
+      await _userRepository.loadUserFromLocal();
+      Logger.i(
+        'Проверка после сохранения: mainGoal = ${_userRepository.user.mainGoal}',
+      );
+
+      // Обновляем состояние блока
       emit(state.copyWith(isLoading: false, mainGoal: event.goal));
+
+      // Явно вызываем загрузку целей после небольшой задержки
+      Future.delayed(const Duration(milliseconds: 300), () {
+        add(const LoadGoalsEvent());
+      });
     } catch (e) {
+      Logger.e('Ошибка сохранения главной цели: $e');
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }

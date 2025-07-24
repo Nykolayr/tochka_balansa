@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/core/theme/colors.dart';
+import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
 
 class SetFirstGoalWidget extends StatelessWidget {
@@ -56,7 +56,7 @@ class SetFirstGoalWidget extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 // Переходим на страницу настройки цели
-                Get.to(() => const GoalSetupPage());
+                context.push(GoalSetupPage.route);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.darkBlue,
