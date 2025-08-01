@@ -130,9 +130,31 @@ class UserRepository {
   /// получить изера
   Future<String> getUser() async {
     Logger.i('getUser token >>>>> $token');
+
+    // Сохраняем текущие локальные цели перед получением данных с сервера
+    final localMainGoal = user.mainGoal;
+    final localAdditionalGoals = user.additionalGoals;
+    Logger.i('Сохранены локальные цели: mainGoal = $localMainGoal');
+
     final response = await Api().getUser();
     if (response is ResSuccess) {
-      user = User.fromJson(response.data);
+      // Создаем пользователя из данных сервера
+      final serverUser = User.fromJson(response.data);
+      Logger.i(
+        'Получен пользователь с сервера: mainGoal = ${serverUser.mainGoal}',
+      );
+
+      // Объединяем данные: берем основные данные с сервера, но сохраняем локальные цели
+      user = serverUser.copyWith(
+        mainGoal: localMainGoal.hasMainGoal
+            ? localMainGoal
+            : serverUser.mainGoal,
+        additionalGoals: localAdditionalGoals.isNotEmpty
+            ? localAdditionalGoals
+            : serverUser.additionalGoals,
+      );
+
+      Logger.i('Объединенный пользователь: mainGoal = ${user.mainGoal}');
       saveUserToLocal();
       return '';
     } else if (response is ResError) {
@@ -166,9 +188,43 @@ class UserRepository {
         return;
       }
 
-      user = User.fromJson(data);
+      // Дополнительная диагностика mainGoal
+      if (data.containsKey('mainGoal')) {
+        final mainGoalData = data['mainGoal'];
+        Logger.i('Найдена mainGoal в данных: $mainGoalData');
+        Logger.i('Тип mainGoal: ${mainGoalData.runtimeType}');
+        if (mainGoalData is Map) {
+          Logger.i(
+            'mainGoal является Map с ключами: ${mainGoalData.keys.toList()}',
+          );
+          if (mainGoalData.containsKey('goalType')) {
+            Logger.i('goalType в mainGoal: ${mainGoalData['goalType']}');
+          }
+        }
+      } else {
+        Logger.e('mainGoal отсутствует в данных пользователя');
+      }
+
+      // Сохраняем текущие цели перед загрузкой
+      final currentMainGoal = user.mainGoal;
+      final currentAdditionalGoals = user.additionalGoals;
+
+      // Загружаем пользователя из Hive
+      final loadedUser = User.fromJson(data);
       Logger.i(
-        'Пользователь загружен из Hive: ${user.name}, mainGoal: ${user.mainGoal}',
+        'Загружен пользователь из Hive: ${loadedUser.name}, mainGoal: ${loadedUser.mainGoal}',
+      );
+
+      // Если у загруженного пользователя нет цели, но у текущего есть - сохраняем текущую
+      if (!loadedUser.mainGoal.hasMainGoal && currentMainGoal.hasMainGoal) {
+        Logger.i('Сохраняем текущую цель, так как загруженная цель пустая');
+        user = loadedUser.copyWith(mainGoal: currentMainGoal);
+      } else {
+        user = loadedUser;
+      }
+
+      Logger.i(
+        'Итоговый пользователь: ${user.name}, mainGoal: ${user.mainGoal}',
       );
     } catch (e) {
       Logger.e('user error $e');

@@ -36,7 +36,20 @@ void main() async {
   // Инициализируем GoalBloc и загружаем цели
   final goalBloc = GoalBloc();
   Get.put(goalBloc);
+
+  // Загружаем цели и проверяем их
   goalBloc.add(const LoadGoalsEvent());
+
+  // Дополнительная проверка через небольшую задержку
+  Future.delayed(const Duration(milliseconds: 500), () {
+    final userRepo = Get.find<UserRepository>();
+    Logger.i(
+      'Проверка после инициализации: mainGoal = ${userRepo.user.mainGoal}',
+    );
+    if (!userRepo.user.mainGoal.hasMainGoal) {
+      Logger.w('mainGoal не загружена после инициализации');
+    }
+  });
 
   runApp(const MyApp());
 }

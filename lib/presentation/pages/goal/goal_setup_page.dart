@@ -21,8 +21,54 @@ class GoalSetupPage extends StatefulWidget {
 class _GoalSetupPageState extends State<GoalSetupPage> {
   GoalType selectedGoalType = GoalType.loseWeight;
   double targetWeight = 70.0;
-  DateTime targetDate = DateTime.now().add(const Duration(days: 30));
+  DateTime targetDate = DateTime.now().add(
+    const Duration(days: 90),
+  ); // 3 месяца для сброса веса
   DeadlineType deadlineType = DeadlineType.fixed;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTargetDateForGoalType(selectedGoalType);
+  }
+
+  void _updateTargetDateForGoalType(GoalType goalType) {
+    setState(() {
+      switch (goalType) {
+        case GoalType.loseWeight:
+          targetDate = DateTime.now().add(const Duration(days: 90)); // 3 месяца
+          deadlineType = DeadlineType.fixed;
+          break;
+        case GoalType.gainWeight:
+          targetDate = DateTime.now().add(const Duration(days: 90)); // 3 месяца
+          deadlineType = DeadlineType.fixed;
+          break;
+        case GoalType.maintain:
+          targetDate = DateTime.now().add(
+            const Duration(days: 30),
+          ); // не важно для бессрочного
+          deadlineType = DeadlineType.flexible; // бессрочный
+          break;
+        case GoalType.none:
+          targetDate = DateTime.now().add(const Duration(days: 30));
+          deadlineType = DeadlineType.fixed;
+          break;
+      }
+    });
+  }
+
+  String _getRecommendedDurationText(GoalType goalType) {
+    switch (goalType) {
+      case GoalType.loseWeight:
+        return textLang('Рекомендуемый срок: 3 месяца');
+      case GoalType.gainWeight:
+        return textLang('Рекомендуемый срок: 3 месяца');
+      case GoalType.maintain:
+        return textLang('Рекомендуемый срок: бессрочно');
+      case GoalType.none:
+        return textLang('Рекомендуемый срок: 1 месяц');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +130,7 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
                     if (value != null) {
                       setState(() {
                         selectedGoalType = value;
+                        _updateTargetDateForGoalType(value);
                       });
                     }
                   },
@@ -183,6 +230,16 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
                   color: AppColor.darkBlue,
                 ),
               ),
+              const SizedBox(height: 8),
+              // Подсказка о рекомендуемом сроке
+              Text(
+                _getRecommendedDurationText(selectedGoalType),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColor.grey,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
               const SizedBox(height: 12),
               InkWell(
                 onTap: () async {
@@ -234,6 +291,21 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Подсказка о возможности изменения цели
+            Center(
+              child: Text(
+                textLang('Цель всегда можно будет изменить в разделе "Цели"'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColor.grey,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ),

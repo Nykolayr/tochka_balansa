@@ -99,23 +99,53 @@ class User extends Equatable {
     // Обрабатываем mainGoal
     UserGoal mainGoal;
     try {
-      if (json['mainGoal'] != null &&
-          json['mainGoal'] is Map<String, dynamic>) {
+      Logger.i('User.fromJson: Проверяем mainGoal в JSON: ${json['mainGoal']}');
+      Logger.i('User.fromJson: Тип mainGoal: ${json['mainGoal'].runtimeType}');
+
+      if (json['mainGoal'] != null) {
+        final mainGoalData = json['mainGoal'];
         Logger.i(
-          'User.fromJson: Загружаем mainGoal из JSON: ${json['mainGoal']}',
+          'User.fromJson: mainGoal не null, тип: ${mainGoalData.runtimeType}',
         );
 
-        // Проверяем, есть ли поле goalType
-        final mainGoalMap = json['mainGoal'] as Map<String, dynamic>;
-        if (mainGoalMap.containsKey('goalType')) {
-          mainGoal = UserGoal.fromJson(mainGoalMap);
-          Logger.i('User.fromJson: Созданная mainGoal: $mainGoal');
+        if (mainGoalData is Map<String, dynamic>) {
+          Logger.i('User.fromJson: mainGoal является Map<String, dynamic>');
+
+          // Проверяем, есть ли поле goalType
+          if (mainGoalData.containsKey('goalType')) {
+            Logger.i(
+              'User.fromJson: Загружаем mainGoal из JSON: $mainGoalData',
+            );
+            mainGoal = UserGoal.fromJson(mainGoalData);
+            Logger.i('User.fromJson: Созданная mainGoal: $mainGoal');
+          } else {
+            Logger.e('User.fromJson: В mainGoal отсутствует поле goalType');
+            mainGoal = UserGoal.init();
+          }
+        } else if (mainGoalData is Map) {
+          Logger.i(
+            'User.fromJson: mainGoal является Map, но не Map<String, dynamic>',
+          );
+          // Пробуем привести к Map<String, dynamic>
+          try {
+            final convertedMap = Map<String, dynamic>.from(mainGoalData);
+            Logger.i('User.fromJson: Конвертированный mainGoal: $convertedMap');
+            mainGoal = UserGoal.fromJson(convertedMap);
+            Logger.i(
+              'User.fromJson: Созданная mainGoal после конвертации: $mainGoal',
+            );
+          } catch (e) {
+            Logger.e('User.fromJson: Ошибка конвертации mainGoal: $e');
+            mainGoal = UserGoal.init();
+          }
         } else {
-          Logger.e('User.fromJson: В mainGoal отсутствует поле goalType');
+          Logger.e(
+            'User.fromJson: mainGoal не является Map, тип: ${mainGoalData.runtimeType}',
+          );
           mainGoal = UserGoal.init();
         }
       } else {
-        Logger.e('User.fromJson: mainGoal отсутствует или не является Map');
+        Logger.e('User.fromJson: mainGoal равен null');
         mainGoal = UserGoal.init();
       }
     } catch (e) {

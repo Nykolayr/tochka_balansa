@@ -8,6 +8,7 @@ import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
+import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
 
 class GoalPage extends StatefulWidget {
   const GoalPage({super.key});
@@ -87,6 +88,16 @@ class _GoalPageState extends State<GoalPage> {
               progress: state.mainGoal.progressPercentage,
               daysLeft: state.mainGoal.daysUntilTarget,
               isMainGoal: true,
+              onTap: () {
+                // Открываем модальное окно для редактирования главной цели
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) =>
+                      GoalEditModal(currentGoal: state.mainGoal),
+                );
+              },
             ),
             const SizedBox(height: 24),
           ],

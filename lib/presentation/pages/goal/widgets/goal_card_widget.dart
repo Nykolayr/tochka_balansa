@@ -7,6 +7,7 @@ class GoalCardWidget extends StatelessWidget {
   final double progress;
   final int daysLeft;
   final bool isMainGoal;
+  final VoidCallback? onTap;
 
   const GoalCardWidget({
     super.key,
@@ -15,96 +16,105 @@ class GoalCardWidget extends StatelessWidget {
     required this.progress,
     required this.daysLeft,
     required this.isMainGoal,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isMainGoal
-              ? AppColor.darkBlue
-              : AppColor.grey.withValues(alpha: 0.3),
-          width: isMainGoal ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isMainGoal
+                ? AppColor.darkBlue
+                : AppColor.grey.withValues(alpha: 0.3),
+            width: isMainGoal ? 2 : 1,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Заголовок и иконка
-          Row(
-            children: [
-              Icon(
-                isMainGoal ? Icons.flag : Icons.star,
-                color: isMainGoal ? AppColor.darkBlue : AppColor.grey,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isMainGoal ? AppColor.darkBlue : Colors.black87,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Описание
-          Text(
-            description,
-            style: const TextStyle(fontSize: 14, color: AppColor.grey),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Прогресс бар
-          if (progress > 0) ...[
-            LinearProgressIndicator(
-              value: progress / 100,
-              backgroundColor: AppColor.grey.withValues(alpha: 0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isMainGoal ? AppColor.darkBlue : AppColor.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${progress.toStringAsFixed(1)}% выполнено',
-              style: const TextStyle(fontSize: 12, color: AppColor.grey),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
-
-          // Дни до цели
-          if (daysLeft > 0) ...[
-            const SizedBox(height: 8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Заголовок и иконка
             Row(
               children: [
-                Icon(Icons.schedule, size: 16, color: AppColor.grey),
-                const SizedBox(width: 4),
-                Text(
-                  '$daysLeft дней до цели',
-                  style: const TextStyle(fontSize: 12, color: AppColor.grey),
+                Icon(
+                  isMainGoal ? Icons.flag : Icons.star,
+                  color: isMainGoal ? AppColor.darkBlue : AppColor.grey,
+                  size: 20,
                 ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isMainGoal ? AppColor.darkBlue : Colors.black87,
+                    ),
+                  ),
+                ),
+                // Иконка редактирования для главной цели
+                if (isMainGoal && onTap != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(Icons.edit, color: AppColor.grey, size: 16),
+                ],
               ],
             ),
+
+            const SizedBox(height: 8),
+
+            // Описание
+            Text(
+              description,
+              style: const TextStyle(fontSize: 14, color: AppColor.grey),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Прогресс бар
+            if (progress > 0) ...[
+              LinearProgressIndicator(
+                value: progress / 100,
+                backgroundColor: AppColor.grey.withValues(alpha: 0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isMainGoal ? AppColor.darkBlue : AppColor.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${progress.toStringAsFixed(1)}% выполнено',
+                style: const TextStyle(fontSize: 12, color: AppColor.grey),
+              ),
+            ],
+
+            // Дни до цели
+            if (daysLeft > 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 16, color: AppColor.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$daysLeft дней до цели',
+                    style: const TextStyle(fontSize: 12, color: AppColor.grey),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

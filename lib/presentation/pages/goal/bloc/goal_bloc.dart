@@ -39,6 +39,22 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         'Загружено дополнительных целей: ${user.additionalGoals.length}',
       );
 
+      // Проверяем, не загружаем ли мы пустую цель, когда у нас уже есть цель
+      if (!user.mainGoal.hasMainGoal && state.mainGoal.hasMainGoal) {
+        Logger.w(
+          'Попытка загрузить пустую цель, когда уже есть цель. Сохраняем текущую.',
+        );
+        // Сохраняем текущую цель обратно в UserRepository
+        final updatedUser = _userRepository.user.copyWith(
+          mainGoal: state.mainGoal,
+        );
+        _userRepository.user = updatedUser;
+        await _userRepository.saveUserToLocal();
+
+        emit(state.copyWith(isLoading: false));
+        return;
+      }
+
       emit(
         state.copyWith(
           isLoading: false,
