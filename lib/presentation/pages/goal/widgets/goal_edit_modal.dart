@@ -19,8 +19,9 @@ class GoalEditModal extends StatefulWidget {
 class _GoalEditModalState extends State<GoalEditModal> {
   late GoalType selectedGoalType;
   late double targetWeight;
-  late DateTime targetDate;
+  late TimeInterval selectedTimeInterval;
   late DeadlineType deadlineType;
+  DateTime? customTargetDate; // Для ручной установки даты
 
   @override
   void initState() {
@@ -28,31 +29,58 @@ class _GoalEditModalState extends State<GoalEditModal> {
     // Инициализируем поля текущими значениями цели
     selectedGoalType = widget.currentGoal.goalType;
     targetWeight = widget.currentGoal.targetWeight;
-    targetDate =
-        widget.currentGoal.targetDate ??
-        DateTime.now().add(const Duration(days: 90));
+
+    // Определяем TimeInterval на основе targetDate
+    if (widget.currentGoal.targetDate != null) {
+      final days = widget.currentGoal.targetDate!
+          .difference(DateTime.now())
+          .inDays;
+      selectedTimeInterval = _getTimeIntervalFromDays(days);
+      customTargetDate =
+          widget.currentGoal.targetDate; // Сохраняем оригинальную дату
+    } else {
+      selectedTimeInterval = TimeInterval.threeMonths;
+      customTargetDate = null;
+    }
+
     deadlineType = widget.currentGoal.deadlineType;
   }
 
-  void _updateTargetDateForGoalType(GoalType goalType) {
+  TimeInterval _getTimeIntervalFromDays(int days) {
+    // Находим ближайший TimeInterval к количеству дней
+    final intervals = TimeInterval.values;
+    TimeInterval closest = TimeInterval.threeMonths;
+    int minDifference = (days - TimeInterval.threeMonths.days).abs();
+
+    for (final interval in intervals) {
+      final difference = (days - interval.days).abs();
+      if (difference < minDifference) {
+        minDifference = difference;
+        closest = interval;
+      }
+    }
+
+    return closest;
+  }
+
+  void _updateTimeIntervalForGoalType(GoalType goalType) {
     setState(() {
       switch (goalType) {
         case GoalType.loseWeight:
-          targetDate = DateTime.now().add(const Duration(days: 90)); // 3 месяца
+          selectedTimeInterval = TimeInterval.threeMonths; // 3 месяца
           deadlineType = DeadlineType.fixed;
           break;
         case GoalType.gainWeight:
-          targetDate = DateTime.now().add(const Duration(days: 90)); // 3 месяца
+          selectedTimeInterval = TimeInterval.threeMonths; // 3 месяца
           deadlineType = DeadlineType.fixed;
           break;
         case GoalType.maintain:
-          targetDate = DateTime.now().add(
-            const Duration(days: 30),
-          ); // не важно для бессрочного
+          selectedTimeInterval =
+              TimeInterval.oneMonth; // не важно для бессрочного
           deadlineType = DeadlineType.flexible; // бессрочный
           break;
         case GoalType.none:
-          targetDate = DateTime.now().add(const Duration(days: 30));
+          selectedTimeInterval = TimeInterval.oneMonth;
           deadlineType = DeadlineType.fixed;
           break;
       }
@@ -168,7 +196,7 @@ class _GoalEditModalState extends State<GoalEditModal> {
                           if (value != null) {
                             setState(() {
                               selectedGoalType = value;
-                              _updateTargetDateForGoalType(value);
+                              _updateTimeIntervalForGoalType(value);
                             });
                           }
                         },
@@ -264,7 +292,7 @@ class _GoalEditModalState extends State<GoalEditModal> {
                   // Дата достижения цели (только для фиксированного срока)
                   if (deadlineType == DeadlineType.fixed) ...[
                     Text(
-                      textLang('Дата достижения цели'),
+                      textLang('Промежуток времени'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -282,32 +310,94 @@ class _GoalEditModalState extends State<GoalEditModal> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    InkWell(
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: targetDate,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 365),
-                          ),
-                        );
-                        if (date != null) {
-                          setState(() {
-                            targetDate = date;
-                          });
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColor.grey),
-                          borderRadius: BorderRadius.circular(8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColor.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<TimeInterval>(
+                          value: selectedTimeInterval,
+                          isExpanded: true,
+                          items: TimeInterval.values.map((interval) {
+                            return DropdownMenuItem(
+                              value: interval,
+                              child: Text(interval.title),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                selectedTimeInterval = value;
+                                customTargetDate =
+                                    null; // Сбрасываем ручную дату
+                              });
+                            }
+                          },
                         ),
-                        child: Text(
-                          '${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}.${targetDate.year}',
-                          style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Показываем дату достижения цели
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColor.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: AppColor.grey,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${textLang('Дата достижения')}: ${(customTargetDate ?? DateTime.now().add(selectedTimeInterval.duration)).day.toString().padLeft(2, '0')}.${(customTargetDate ?? DateTime.now().add(selectedTimeInterval.duration)).month.toString().padLeft(2, '0')}.${(customTargetDate ?? DateTime.now().add(selectedTimeInterval.duration)).year}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColor.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Кнопка для ручной установки даты
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate:
+                                customTargetDate ??
+                                DateTime.now().add(
+                                  selectedTimeInterval.duration,
+                                ),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 2),
+                            ), // 2 года
+                          );
+                          if (date != null) {
+                            setState(() {
+                              customTargetDate = date;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.edit_calendar, size: 16),
+                        label: Text(textLang('Установить дату вручную')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColor.darkBlue,
+                          side: const BorderSide(color: AppColor.darkBlue),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                     ),
@@ -371,7 +461,10 @@ class _GoalEditModalState extends State<GoalEditModal> {
       goalType: selectedGoalType,
       deadlineType: deadlineType,
       targetWeight: targetWeight,
-      targetDate: deadlineType == DeadlineType.fixed ? targetDate : null,
+      targetDate: deadlineType == DeadlineType.fixed
+          ? customTargetDate ??
+                DateTime.now().add(selectedTimeInterval.duration)
+          : null,
     );
 
     final goalBloc = Get.find<GoalBloc>();

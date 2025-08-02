@@ -4,7 +4,7 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
-import 'package:tochka_balansa/data/models/goal/sleep_goal.dart';
+import 'package:tochka_balansa/data/models/goal/sleep_goal.dart' as old_sleep;
 import 'package:tochka_balansa/data/models/goal/supplement.dart';
 import 'package:tochka_balansa/data/models/goal/supplement_goal.dart';
 import 'package:tochka_balansa/data/models/goal/workout_goal.dart';
@@ -63,7 +63,15 @@ class User extends Equatable {
         case 'supplement':
           return SupplementGoal.fromJson(goalMap);
         case 'sleep':
-          return SleepGoal.fromJson(goalMap);
+          return old_sleep.SleepGoal.fromJson(goalMap);
+        case 'medication':
+          return MedicationGoal.fromJson(goalMap);
+        case 'reading':
+          return ReadingGoal.fromJson(goalMap);
+        case 'exercise':
+          return ExerciseGoal.fromJson(goalMap);
+        case 'water':
+          return WaterGoal.fromJson(goalMap);
         default:
           // Для обратной совместимости с старыми данными
           if (goalMap.containsKey('supplementName')) {
@@ -83,7 +91,7 @@ class User extends Equatable {
             );
           } else if (goalMap.containsKey('bedtime')) {
             // Старый формат SleepGoal
-            return SleepGoal(
+            return old_sleep.SleepGoal(
               bedtime: const TimeOfDay(hour: 22, minute: 0),
               wakeupTime: const TimeOfDay(hour: 7, minute: 0),
               reminders: const [],
