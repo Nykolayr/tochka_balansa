@@ -104,17 +104,12 @@ class AddAdditionalGoalModal extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: _GoalSetupModal(
-          goalType: goalType,
-          onGoalCreated: (createdGoal) {
-            onGoalAdded(createdGoal);
-            Navigator.pop(context);
-          },
-        ),
+      builder: (cr) => _GoalSetupModal(
+        goalType: goalType,
+        onGoalCreated: (createdGoal) {
+          onGoalAdded(createdGoal);
+          Navigator.pop(context);
+        },
       ),
     );
   }
@@ -141,7 +136,7 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
   String _reminderText = '';
 
   // Поля для подцелей (лекарства)
-  List<SubGoal> _subGoals = [];
+  List<SubGoal> subGoals = [];
 
   @override
   void initState() {
@@ -304,7 +299,7 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
                     // Поля для лекарств
                     if (widget.goalType == AdditionalGoalType.medication) ...[
                       // Список подцелей (лекарств)
-                      if (_subGoals.isNotEmpty) ...[
+                      if (subGoals.isNotEmpty) ...[
                         Text(
                           textLang('Добавленные лекарства:'),
                           style: const TextStyle(
@@ -314,13 +309,13 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        ..._subGoals.map(
+                        ...subGoals.map(
                           (subGoal) => Card(
                             margin: const EdgeInsets.only(bottom: 8),
                             child: ListTile(
                               title: Text(subGoal.title),
                               subtitle: Text(
-                                '${subGoal.targetCount} ${_unit} - ${subGoal.timeOfDayText}',
+                                '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
                               ),
                               trailing: IconButton(
                                 icon: const Icon(
@@ -410,26 +405,21 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: _SubGoalModal(
-          goalTo: widget.goalType.defaultGoalTo,
-          unit: _unit,
-          onSubGoalAdded: (subGoal) {
-            setState(() {
-              _subGoals.add(subGoal);
-            });
-          },
-        ),
+      builder: (context) => _SubGoalModal(
+        goalTo: widget.goalType.defaultGoalTo,
+        unit: _unit,
+        onSubGoalAdded: (subGoal) {
+          setState(() {
+            subGoals.add(subGoal);
+          });
+        },
       ),
     );
   }
 
   void _removeSubGoal(String id) {
     setState(() {
-      _subGoals.removeWhere((goal) => goal.id == id);
+      subGoals.removeWhere((goal) => goal.id == id);
     });
   }
 
@@ -451,17 +441,10 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
       unit: _unit,
       goalTo: widget.goalType.defaultGoalTo,
       reminderText: _reminderText,
-      subGoals: _subGoals,
+      subGoals: subGoals,
     );
 
     widget.onGoalCreated(goal);
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
   }
 }
 

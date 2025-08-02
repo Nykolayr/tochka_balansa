@@ -50,6 +50,7 @@ dependencies:
   hive: ^2.2.3 #https://pub.dev/packages/hive
   hive_flutter: ^1.1.0 #https://pub.dev/packages/hive_flutter
   
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

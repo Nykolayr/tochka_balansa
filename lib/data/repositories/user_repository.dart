@@ -207,7 +207,6 @@ class UserRepository {
 
       // Сохраняем текущие цели перед загрузкой
       final currentMainGoal = user.mainGoal;
-      final currentAdditionalGoals = user.additionalGoals;
 
       // Загружаем пользователя из Hive
       final loadedUser = User.fromJson(data);

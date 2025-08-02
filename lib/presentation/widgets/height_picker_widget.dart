@@ -53,7 +53,7 @@ class _HeightPickerWidgetState extends State<HeightPickerWidget> {
     super.dispose();
   }
 
-  void _handleManualInput(String value) {
+  void handleManualInput(String value) {
     if (value.isEmpty) return;
 
     // Проверяем, что введено только число
