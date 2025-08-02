@@ -11,6 +11,7 @@ import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart'
 import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/food_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
+import 'package:tochka_balansa/presentation/pages/goal/add_additional_goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
@@ -151,6 +152,19 @@ final GoRouter router = GoRouter(
                   context: context,
                   state: state,
                   child: GoalSetupPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'Добавить дополнительную цель',
+              path: 'add-additional',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: AddAdditionalGoalPage(key: ValueKey(languageState)),
                 );
               },
             ),

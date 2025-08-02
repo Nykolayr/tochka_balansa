@@ -1,58 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
-class AddAdditionalGoalPage extends StatelessWidget {
-  final Function(AdditionalGoal goal) onGoalAdded;
-
-  const AddAdditionalGoalPage({super.key, required this.onGoalAdded});
+class AddAdditionalGoalPage extends StatefulWidget {
+  const AddAdditionalGoalPage({super.key});
 
   @override
+  State<AddAdditionalGoalPage> createState() => _AddAdditionalGoalPageState();
+}
+
+class _AddAdditionalGoalPageState extends State<AddAdditionalGoalPage> {
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    return Scaffold(
+      appBar: AppBarWidget(title: textLang('Добавить цель'), isBack: true),
+      body: _GoalTypeSelectionWidget(),
+    );
+  }
+}
+
+class _GoalTypeSelectionWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Заголовок
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
+          Text(
+            textLang('Выберите тип цели'),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
               color: AppColor.darkBlue,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.add_task, color: Colors.white, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  textLang('Добавить цель'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white),
-                ),
-              ],
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            textLang(
+              'Выберите категорию, которая лучше всего описывает вашу цель',
+            ),
+            style: const TextStyle(fontSize: 16, color: AppColor.grey),
+          ),
+          const SizedBox(height: 24),
 
-          // Список типов целей
-          Flexible(
+          Expanded(
             child: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(16),
               itemCount: AdditionalGoalType.values.length,
               itemBuilder: (context, index) {
                 final goalType = AdditionalGoalType.values[index];
@@ -85,8 +83,13 @@ class AddAdditionalGoalPage extends StatelessWidget {
                       size: 16,
                     ),
                     onTap: () {
-                      Navigator.pop(context);
-                      _createGoal(context, goalType);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              _GoalSetupPage(goalType: goalType),
+                        ),
+                      );
                     },
                   ),
                 );
@@ -97,35 +100,18 @@ class AddAdditionalGoalPage extends StatelessWidget {
       ),
     );
   }
-
-  void _createGoal(BuildContext context, AdditionalGoalType goalType) {
-    // Показываем модальное окно для настройки цели
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (cr) => _GoalSetupModal(
-        goalType: goalType,
-        onGoalCreated: (createdGoal) {
-          onGoalAdded(createdGoal);
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
 }
 
-class _GoalSetupModal extends StatefulWidget {
+class _GoalSetupPage extends StatefulWidget {
   final AdditionalGoalType goalType;
-  final Function(AdditionalGoal goal) onGoalCreated;
 
-  const _GoalSetupModal({required this.goalType, required this.onGoalCreated});
+  const _GoalSetupPage({required this.goalType});
 
   @override
-  State<_GoalSetupModal> createState() => _GoalSetupModalState();
+  State<_GoalSetupPage> createState() => _GoalSetupPageState();
 }
 
-class _GoalSetupModalState extends State<_GoalSetupModal> {
+class _GoalSetupPageState extends State<_GoalSetupPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -175,227 +161,142 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Заголовок
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: AppColor.darkBlue,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Row(
-              children: [
-                Icon(widget.goalType.icon, color: Colors.white, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: widget.goalType == AdditionalGoalType.custom
-                      ? Text(
-                          textLang('Создать свою цель'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.goalType.title,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              widget.goalType.description,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-
-          // Содержимое
-          Flexible(
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Поля для custom типа цели
-                    if (widget.goalType == AdditionalGoalType.custom) ...[
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: InputDecoration(
-                          labelText: textLang('Название цели'),
-                          border: const OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return textLang('Введите название цели');
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: InputDecoration(
-                          labelText: textLang('Описание цели'),
-                          border: const OutlineInputBorder(),
-                        ),
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Поля для обычных целей (не лекарства)
-                    if (widget.goalType != AdditionalGoalType.medication) ...[
-                      TextFormField(
-                        initialValue: _targetCount.toString(),
-                        decoration: InputDecoration(
-                          labelText: textLang('Целевое количество'),
-                          border: const OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) =>
-                            _targetCount = int.tryParse(value) ?? 0,
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        initialValue: _unit,
-                        decoration: InputDecoration(
-                          labelText: textLang('Единица измерения'),
-                          border: const OutlineInputBorder(),
-                        ),
-                        onChanged: (value) => _unit = value,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Поля для лекарств
-                    if (widget.goalType == AdditionalGoalType.medication) ...[
-                      // Список подцелей (лекарств)
-                      if (subGoals.isNotEmpty) ...[
-                        Text(
-                          textLang('Добавленные лекарства:'),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColor.darkBlue,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ...subGoals.map(
-                          (subGoal) => Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              title: Text(subGoal.title),
-                              subtitle: Text(
-                                '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
-                              ),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: AppColor.red,
-                                ),
-                                onPressed: () => _removeSubGoal(subGoal.id),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _addSubGoal,
-                          icon: const Icon(Icons.add),
-                          label: Text(textLang('Добавить лекарство')),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColor.darkBlue,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    TextFormField(
-                      initialValue: _reminderText,
-                      decoration: InputDecoration(
-                        labelText: textLang('Текст напоминания'),
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (value) => _reminderText = value,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Кнопки действий
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColor.darkBlue,
-                              side: const BorderSide(color: AppColor.darkBlue),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(textLang('Отмена')),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _createGoal,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.darkBlue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(textLang('Создать')),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+    return Scaffold(
+      appBar: AppBarWidget(
+        title: widget.goalType.title,
+        isBack: true,
+        actions: [
+          TextButton(
+            onPressed: _createGoal,
+            child: Text(
+              textLang('Создать'),
+              style: const TextStyle(
+                color: AppColor.white,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
         ],
+      ),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Поля для custom типа цели
+              if (widget.goalType == AdditionalGoalType.custom) ...[
+                TextFormField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: textLang('Название цели'),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return textLang('Введите название цели');
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: textLang('Описание цели'),
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Поля для обычных целей (не лекарства)
+              if (widget.goalType != AdditionalGoalType.medication) ...[
+                TextFormField(
+                  initialValue: _targetCount.toString(),
+                  decoration: InputDecoration(
+                    labelText: textLang('Целевое количество'),
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) => _targetCount = int.tryParse(value) ?? 0,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  initialValue: _unit,
+                  decoration: InputDecoration(
+                    labelText: textLang('Единица измерения'),
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (value) => _unit = value,
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Поля для лекарств
+              if (widget.goalType == AdditionalGoalType.medication) ...[
+                // Список подцелей (лекарств)
+                if (subGoals.isNotEmpty) ...[
+                  Text(
+                    textLang('Добавленные лекарства:'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.darkBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...subGoals.map(
+                    (subGoal) => Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        title: Text(subGoal.title),
+                        subtitle: Text(
+                          '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: AppColor.red),
+                          onPressed: () => _removeSubGoal(subGoal.id),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _addSubGoal,
+                    icon: const Icon(Icons.add),
+                    label: Text(textLang('Добавить лекарство')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.darkBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              TextFormField(
+                initialValue: _reminderText,
+                decoration: InputDecoration(
+                  labelText: textLang('Текст напоминания'),
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (value) => _reminderText = value,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -444,7 +345,13 @@ class _GoalSetupModalState extends State<_GoalSetupModal> {
       subGoals: subGoals,
     );
 
-    widget.onGoalCreated(goal);
+    // Добавляем цель через GoalBloc
+    final goalBloc = Get.find<GoalBloc>();
+    goalBloc.add(AddAdditionalGoalEvent(goal));
+
+    // Возвращаемся на предыдущую страницу
+    Navigator.pop(context);
+    Navigator.pop(context);
   }
 }
 

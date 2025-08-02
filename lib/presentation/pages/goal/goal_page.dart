@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
-import 'package:tochka_balansa/presentation/pages/goal/widgets/add_additional_goal_modal.dart';
+import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class GoalPage extends StatefulWidget {
   const GoalPage({super.key});
@@ -31,11 +32,8 @@ class _GoalPageState extends State<GoalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(textLang('Цели')),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBarWidget(title: 'Цели'),
+
       body: BlocBuilder<GoalBloc, GoalState>(
         bloc: Get.find<GoalBloc>(),
         builder: (context, state) {
@@ -101,22 +99,7 @@ class _GoalPageState extends State<GoalPage> {
               const Spacer(),
               ElevatedButton.icon(
                 onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
-                      ),
-                      child: AddAdditionalGoalModal(
-                        onGoalAdded: (goal) {
-                          // TODO: Добавить логику сохранения цели
-                          print('Добавлена новая цель: ${goal.title}');
-                        },
-                      ),
-                    ),
-                  );
+                  context.push('/main/training/add-additional');
                 },
                 icon: const Icon(Icons.add, size: 16),
                 label: Text(textLang('Добавить')),
