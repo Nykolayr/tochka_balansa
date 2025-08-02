@@ -4,11 +4,10 @@ import 'package:get/get.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
-import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
-import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
+import 'package:tochka_balansa/presentation/pages/goal/widgets/add_additional_goal_modal.dart';
 
 class GoalPage extends StatefulWidget {
   const GoalPage({super.key});
@@ -32,6 +31,11 @@ class _GoalPageState extends State<GoalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(textLang('Цели')),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: BlocBuilder<GoalBloc, GoalState>(
         bloc: Get.find<GoalBloc>(),
         builder: (context, state) {
@@ -42,15 +46,6 @@ class _GoalPageState extends State<GoalPage> {
           return _buildContent(state);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Открыть страницу добавления дополнительной цели
-          // Get.to(() => const AdditionalGoalSetupPage());
-        },
-        backgroundColor: AppColor.darkBlue,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -60,33 +55,19 @@ class _GoalPageState extends State<GoalPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Заголовок
-          Text(
-            textLang('Цели'),
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColor.darkBlue,
-            ),
-          ),
-          const SizedBox(height: 24),
-
           // Главная цель
           if (state.mainGoal.hasMainGoal) ...[
             Text(
               textLang('Главная цель'),
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
                 color: AppColor.darkBlue,
               ),
             ),
             const SizedBox(height: 12),
             GoalCardWidget(
-              title: state.mainGoal.goalType.title,
-              description: _buildMainGoalDescription(state.mainGoal),
-              progress: state.mainGoal.progressPercentage,
-              daysLeft: state.mainGoal.daysUntilTarget,
+              goal: state.mainGoal,
               isMainGoal: true,
               onTap: () {
                 // Открываем модальное окно для редактирования главной цели
@@ -94,8 +75,12 @@ class _GoalPageState extends State<GoalPage> {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) =>
-                      GoalEditModal(currentGoal: state.mainGoal),
+                  builder: (context) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: GoalEditModal(currentGoal: state.mainGoal),
+                  ),
                 );
               },
             ),
@@ -103,48 +88,90 @@ class _GoalPageState extends State<GoalPage> {
           ],
 
           // Дополнительные цели
-          Text(
-            textLang('Дополнительные цели'),
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColor.darkBlue,
-            ),
+          Row(
+            children: [
+              Text(
+                textLang('Дополнительные цели'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.darkBlue,
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: AddAdditionalGoalModal(
+                        onGoalAdded: (goal) {
+                          // TODO: Добавить логику сохранения цели
+                          print('Добавлена новая цель: ${goal.title}');
+                        },
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add, size: 16),
+                label: Text(textLang('Добавить')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.darkBlue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
 
           if (state.additionalGoals.isEmpty) ...[
             // Сообщение если нет дополнительных целей
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColor.grey.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.flag_outlined, size: 48, color: AppColor.grey),
-                  const SizedBox(height: 12),
-                  Text(
-                    textLang('У вас нет дополнительных целей'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppColor.grey,
-                    ),
-                    textAlign: TextAlign.center,
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColor.grey.withValues(alpha: 0.3),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    textLang(
-                      'Создайте свою первую цель для отслеживания прогресса',
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.flag_outlined, size: 48, color: AppColor.grey),
+                    const SizedBox(height: 12),
+                    Text(
+                      textLang('У вас нет дополнительных целей'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: AppColor.grey,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    style: const TextStyle(fontSize: 14, color: AppColor.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      textLang(
+                        'Создайте свою первую цель для отслеживания прогресса',
+                      ),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColor.grey,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
           ] else ...[
@@ -156,13 +183,7 @@ class _GoalPageState extends State<GoalPage> {
                   final goal = state.additionalGoals[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: GoalCardWidget(
-                      title: goal.title,
-                      description: goal.description,
-                      progress: 0.0, // TODO: Добавить логику прогресса
-                      daysLeft: 0, // TODO: Добавить логику дней
-                      isMainGoal: false,
-                    ),
+                    child: GoalCardWidget(goal: goal, isMainGoal: false),
                   );
                 },
               ),
@@ -171,20 +192,5 @@ class _GoalPageState extends State<GoalPage> {
         ],
       ),
     );
-  }
-
-  String _buildMainGoalDescription(UserGoal goal) {
-    String description = goal.goalType.description;
-
-    if (goal.targetWeight > 0) {
-      description += ' до ${goal.targetWeight} кг';
-    }
-
-    if (goal.deadlineType == DeadlineType.fixed && goal.targetDate != null) {
-      description +=
-          ' до ${goal.targetDate!.day.toString().padLeft(2, '0')}.${goal.targetDate!.month.toString().padLeft(2, '0')}.${goal.targetDate!.year}';
-    }
-
-    return description;
   }
 }

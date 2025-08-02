@@ -1,13 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
-import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
-import 'package:tochka_balansa/data/models/goal/sleep_goal.dart' as old_sleep;
-import 'package:tochka_balansa/data/models/goal/supplement.dart';
-import 'package:tochka_balansa/data/models/goal/supplement_goal.dart';
-import 'package:tochka_balansa/data/models/goal/workout_goal.dart';
 
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 
@@ -56,52 +50,9 @@ class User extends Equatable {
     final additionalGoalsJson = json['additionalGoals'] as List<dynamic>? ?? [];
     final additionalGoals = additionalGoalsJson.map((goalJson) {
       final goalMap = goalJson as Map<String, dynamic>;
-      final type = goalMap['type'] as String?;
-      switch (type) {
-        case 'workout':
-          return WorkoutGoal.fromJson(goalMap);
-        case 'supplement':
-          return SupplementGoal.fromJson(goalMap);
-        case 'sleep':
-          return old_sleep.SleepGoal.fromJson(goalMap);
-        case 'medication':
-          return MedicationGoal.fromJson(goalMap);
-        case 'reading':
-          return ReadingGoal.fromJson(goalMap);
-        case 'exercise':
-          return ExerciseGoal.fromJson(goalMap);
-        case 'water':
-          return WaterGoal.fromJson(goalMap);
-        default:
-          // Для обратной совместимости с старыми данными
-          if (goalMap.containsKey('supplementName')) {
-            // Старый формат SupplementGoal
-            return SupplementGoal(
-              supplements: [
-                Supplement(
-                  name: goalMap['supplementName'] ?? 'Витамин D',
-                  dosage: goalMap['dosage'] ?? '1000 МЕ',
-                  timeToTake: const TimeOfDay(hour: 9, minute: 0),
-                  quantityInPackage: 30,
-                  frequency: 'ежедневно',
-                ),
-              ],
-              reminders: const [],
-              deadlineType: DeadlineType.fixed,
-            );
-          } else if (goalMap.containsKey('bedtime')) {
-            // Старый формат SleepGoal
-            return old_sleep.SleepGoal(
-              bedtime: const TimeOfDay(hour: 22, minute: 0),
-              wakeupTime: const TimeOfDay(hour: 7, minute: 0),
-              reminders: const [],
-              deadlineType: DeadlineType.flexible,
-            );
-          } else {
-            // По умолчанию создаем WorkoutGoal
-            return WorkoutGoal.init();
-          }
-      }
+
+      // Теперь используем универсальный AdditionalGoal
+      return AdditionalGoal.fromJson(goalMap);
     }).toList();
 
     // Обрабатываем mainGoal
