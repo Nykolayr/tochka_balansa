@@ -6,11 +6,13 @@ import 'package:tochka_balansa/data/datasources/secure_storage_servis.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/response_api.dart';
 import 'package:tochka_balansa/data/models/user.dart';
+import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 
 /// репо для юзера
 class UserRepository {
   String token = '';
   User user = User.initial();
+  List<AdditionalGoal> goalTypes = []; // Убираем геттер/сеттер
 
   bool get isReg => token.isNotEmpty;
 
@@ -246,5 +248,31 @@ class UserRepository {
 
     await HiveData.saveJson(json: json, key: HiveDataKey.user);
     Logger.i('Пользователь сохранен в Hive');
+  }
+
+  Future<void> saveGoalTypesToLocal() async {
+    try {
+      final goalTypesJson = goalTypes.map((goal) => goal.toJson()).toList();
+      await HiveData.saveListJson(
+        json: goalTypesJson,
+        key: HiveDataKey.goalTypes,
+      );
+    } catch (e) {
+      Logger.e('Ошибка сохранения типов целей: $e');
+    }
+  }
+
+  Future<void> loadGoalTypesFromLocal() async {
+    try {
+      final goalTypesJson = await HiveData.loadListJson(
+        key: HiveDataKey.goalTypes,
+      );
+      goalTypes = goalTypesJson
+          .map((json) => AdditionalGoal.fromJson(json))
+          .toList();
+    } catch (e) {
+      Logger.e('Ошибка загрузки типов целей: $e');
+      goalTypes = [];
+    }
   }
 }

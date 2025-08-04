@@ -5,6 +5,7 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
+import 'package:tochka_balansa/data/models/goal/default_goal_types.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
 part 'goal_event.dart';
@@ -15,6 +16,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
 
   GoalBloc() : super(GoalState.initial()) {
     on<LoadGoalsEvent>(_onLoadGoals);
+    on<LoadGoalTypesEvent>(_onLoadGoalTypes);
     on<SetMainGoalEvent>(_onSetMainGoal);
     on<AddAdditionalGoalEvent>(_onAddAdditionalGoal);
     on<RemoveAdditionalGoalEvent>(_onRemoveAdditionalGoal);
@@ -23,6 +25,27 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     // Загружаем цели при инициализации блока
     Logger.i('GoalBloc: Инициализация блока');
     add(const LoadGoalsEvent());
+    add(const LoadGoalTypesEvent());
+  }
+
+  Future<void> _onLoadGoalTypes(
+    LoadGoalTypesEvent event,
+    Emitter<GoalState> emit,
+  ) async {
+    try {
+      // Создаем стандартные типы целей, если их нет
+      final goalTypes = _userRepository.goalTypes;
+      if (goalTypes.isEmpty) {
+        final defaultTypes = DefaultGoalTypes.defaultTypes;
+        _userRepository.goalTypes = defaultTypes;
+        await _userRepository.saveGoalTypesToLocal();
+      }
+
+      emit(state.copyWith(goalTypes: _userRepository.goalTypes));
+    } catch (e) {
+      Logger.e('Ошибка загрузки типов целей: $e');
+      emit(state.copyWith(error: e.toString()));
+    }
   }
 
   Future<void> _onLoadGoals(

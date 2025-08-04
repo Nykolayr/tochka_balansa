@@ -303,9 +303,13 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
                     onPressed: () async {
                       final date = await showDatePicker(
                         context: context,
-                        initialDate: customTargetDate ?? DateTime.now().add(selectedTimeInterval.duration),
+                        initialDate:
+                            customTargetDate ??
+                            DateTime.now().add(selectedTimeInterval.duration),
                         firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365 * 2)), // 2 года
+                        lastDate: DateTime.now().add(
+                          const Duration(days: 365 * 2),
+                        ), // 2 года
                       );
                       if (date != null) {
                         setState(() {
@@ -378,7 +382,8 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
       deadlineType: deadlineType,
       targetWeight: targetWeight,
       targetDate: deadlineType == DeadlineType.fixed
-          ? customTargetDate ?? DateTime.now().add(selectedTimeInterval.duration)
+          ? customTargetDate ??
+                DateTime.now().add(selectedTimeInterval.duration)
           : null,
     );
 

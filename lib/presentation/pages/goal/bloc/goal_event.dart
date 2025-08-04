@@ -11,6 +11,10 @@ class LoadGoalsEvent extends GoalEvent {
   const LoadGoalsEvent();
 }
 
+class LoadGoalTypesEvent extends GoalEvent {
+  const LoadGoalTypesEvent();
+}
+
 class SetMainGoalEvent extends GoalEvent {
   final UserGoal goal;
   const SetMainGoalEvent(this.goal);

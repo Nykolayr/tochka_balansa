@@ -29,6 +29,9 @@ class AdditionalGoal extends Equatable {
   final String
   goalTo; // Для кого/чего цель (например, "лекарство", "книга", "упражнение")
 
+  // Добавляем поле для иконки
+  final IconData? icon;
+
   const AdditionalGoal({
     required this.id,
     required this.title,
@@ -46,6 +49,7 @@ class AdditionalGoal extends Equatable {
     this.unit = '',
     this.reminderText = '',
     this.goalTo = '',
+    this.icon,
   });
 
   bool get isActive => !isCompleted;
@@ -142,44 +146,48 @@ class AdditionalGoal extends Equatable {
       'unit': unit,
       'reminderText': reminderText,
       'goalTo': goalTo,
+      'icon': icon?.codePoint,
     };
   }
 
   factory AdditionalGoal.fromJson(Map<String, dynamic> json) {
     return AdditionalGoal(
-      id: json['id'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      isCompleted: json['isCompleted'] ?? false,
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      isCompleted: json['isCompleted'] as bool? ?? false,
       completionDate: json['completionDate'] != null
-          ? DateTime.parse(json['completionDate'])
+          ? DateTime.parse(json['completionDate'] as String)
           : null,
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: DateTime.parse(json['createdAt'] as String),
       deadline: json['deadline'] != null
-          ? DateTime.parse(json['deadline'])
+          ? DateTime.parse(json['deadline'] as String)
           : null,
       reminders:
           (json['reminders'] as List<dynamic>?)
-              ?.map((reminder) => Reminder.fromJson(reminder))
+              ?.map((r) => Reminder.fromJson(r as Map<String, dynamic>))
               .toList() ??
           [],
       deadlineType: DeadlineType.values.firstWhere(
-        (type) => type.name == json['deadlineType'],
+        (e) => e.name == json['deadlineType'],
         orElse: () => DeadlineType.fixed,
       ),
       targetDate: json['targetDate'] != null
-          ? DateTime.parse(json['targetDate'])
+          ? DateTime.parse(json['targetDate'] as String)
           : null,
       subGoals:
           (json['subGoals'] as List<dynamic>?)
-              ?.map((goal) => SubGoal.fromJson(goal))
+              ?.map((sg) => SubGoal.fromJson(sg as Map<String, dynamic>))
               .toList() ??
           [],
-      targetCount: json['targetCount'] ?? 0,
-      currentCount: json['currentCount'] ?? 0,
-      unit: json['unit'] ?? '',
-      reminderText: json['reminderText'] ?? '',
-      goalTo: json['goalTo'] ?? '',
+      targetCount: json['targetCount'] as int? ?? 0,
+      currentCount: json['currentCount'] as int? ?? 0,
+      unit: json['unit'] as String? ?? '',
+      reminderText: json['reminderText'] as String? ?? '',
+      goalTo: json['goalTo'] as String? ?? '',
+      icon: json['icon'] != null
+          ? IconData(json['icon'] as int, fontFamily: 'MaterialIcons')
+          : null,
     );
   }
 
@@ -189,6 +197,7 @@ class AdditionalGoal extends Equatable {
     String? description,
     bool? isCompleted,
     DateTime? completionDate,
+    DateTime? createdAt,
     DateTime? deadline,
     List<Reminder>? reminders,
     DeadlineType? deadlineType,
@@ -199,6 +208,7 @@ class AdditionalGoal extends Equatable {
     String? unit,
     String? reminderText,
     String? goalTo,
+    IconData? icon,
   }) {
     return AdditionalGoal(
       id: id ?? this.id,
@@ -206,7 +216,7 @@ class AdditionalGoal extends Equatable {
       description: description ?? this.description,
       isCompleted: isCompleted ?? this.isCompleted,
       completionDate: completionDate ?? this.completionDate,
-      createdAt: createdAt,
+      createdAt: createdAt ?? this.createdAt,
       deadline: deadline ?? this.deadline,
       reminders: reminders ?? this.reminders,
       deadlineType: deadlineType ?? this.deadlineType,
@@ -217,6 +227,7 @@ class AdditionalGoal extends Equatable {
       unit: unit ?? this.unit,
       reminderText: reminderText ?? this.reminderText,
       goalTo: goalTo ?? this.goalTo,
+      icon: icon ?? this.icon,
     );
   }
 
@@ -238,6 +249,7 @@ class AdditionalGoal extends Equatable {
     unit,
     reminderText,
     goalTo,
+    icon,
   ];
 }
 

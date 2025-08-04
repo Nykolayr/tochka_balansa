@@ -137,4 +137,4 @@ class HiveData {
   }
 }
 
-enum HiveDataKey { user, language }
+enum HiveDataKey { user, language, goalTypes }
