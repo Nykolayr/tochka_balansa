@@ -15,6 +15,10 @@ class AddAdditionalGoalPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBarWidget(title: textLang('Добавить цель'), isBack: true),
       body: BlocBuilder<GoalBloc, GoalState>(
+        bloc:
+            Get.find<
+              GoalBloc
+            >(), // Используем Get.find() как в других страницах
         builder: (context, state) {
           // Сначала шаблоны (goalTypes), потом пользовательские цели (additionalGoals)
           final templates = state.goalTypes;
@@ -257,7 +261,6 @@ class _GoalSetupPageState extends State<_GoalSetupPage> {
       createdAt: DateTime.now(),
       isCompleted: false,
       currentCount: 0,
-      // deadline, subGoals и т.д. можно добавить по необходимости
     );
 
     final goalBloc = Get.find<GoalBloc>();
