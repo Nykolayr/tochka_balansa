@@ -135,105 +135,134 @@ class _GoalSetupPageState extends State<_GoalSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isCustom = widget.template.id == 'custom';
+
     return Scaffold(
       appBar: AppBarWidget(
-        title: widget.template.id == 'custom'
-            ? textLang('Создать свою цель')
-            : widget.template.title,
+        title: isCustom ? textLang('Создать свою цель') : widget.template.title,
         isBack: true,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Для кастомной цели показываем поля ввода
-              if (widget.template.id == 'custom') ...[
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: textLang('Название цели'),
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return textLang('Введите название цели');
-                    }
-                    return null;
-                  },
+      body: Column(
+        children: [
+          if (!isCustom)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Text(
+                widget.template.description,
+                style: const TextStyle(
+                  fontSize: 18, // Сделал больше!
+                  color: AppColor.darkBlue,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: textLang('Описание цели'),
-                    border: const OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 24),
-              ],
-
-              // Подцели для всех типов целей
-              if (subGoals.isNotEmpty) ...[
-                Text(
-                  textLang('Добавленные ${widget.template.goalTo}:'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColor.darkBlue,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...subGoals.map(
-                  (subGoal) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      title: Text(subGoal.title),
-                      subtitle: Text(
-                        '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Для кастомной цели показываем поля ввода
+                    if (widget.template.id == 'custom') ...[
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: InputDecoration(
+                          labelText: textLang('Название цели'),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return textLang('Введите название цели');
+                          }
+                          return null;
+                        },
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: AppColor.red),
-                        onPressed: () => _removeSubGoal(subGoal.id),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: InputDecoration(
+                          labelText: textLang('Описание цели'),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      // Убираем эту кнопку - она будет только в bottomSheet
+                    ],
+
+                    // Подцели для всех типов целей
+                    if (subGoals.isNotEmpty) ...[
+                      Text(
+                        textLang('Добавленные ${widget.template.goalTo}:'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColor.darkBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...subGoals.map(
+                        (subGoal) => Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(subGoal.title),
+                            subtitle: Text(
+                              '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: AppColor.red,
+                              ),
+                              onPressed: () => _removeSubGoal(subGoal.id),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _addSubGoal,
+                        icon: const Icon(Icons.add),
+                        label: Text(
+                          textLang('Добавить задачу'),
+                        ), // Заменяем только эту строку
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.darkBlue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                    const SizedBox(height: 16),
 
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _addSubGoal,
-                  icon: const Icon(Icons.add),
-                  label: Text(textLang('Добавить ${widget.template.goalTo}')),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.darkBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    TextFormField(
+                      initialValue: _reminderText,
+                      decoration: InputDecoration(
+                        labelText: textLang('Текст напоминания'),
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (value) => _reminderText = value,
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                initialValue: _reminderText,
-                decoration: InputDecoration(
-                  labelText: textLang('Текст напоминания'),
-                  border: const OutlineInputBorder(),
-                ),
-                onChanged: (value) => _reminderText = value,
-              ),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
       bottomSheet: Container(
         color: Colors.white,
