@@ -257,6 +257,7 @@ class UserRepository {
         json: goalTypesJson,
         key: HiveDataKey.goalTypes,
       );
+      Logger.i('Типы целей сохранены в Hive');
     } catch (e) {
       Logger.e('Ошибка сохранения типов целей: $e');
     }
@@ -270,6 +271,7 @@ class UserRepository {
       goalTypes = goalTypesJson
           .map((json) => AdditionalGoal.fromJson(json))
           .toList();
+      Logger.i('Типы целей загружены из Hive: ${goalTypes.length}');
     } catch (e) {
       Logger.e('Ошибка загрузки типов целей: $e');
       goalTypes = [];
