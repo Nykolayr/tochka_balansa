@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
+import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
-import 'package:tochka_balansa/presentation/pages/goal/widgets/sub_goal_modal.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class AdditionalGoalSetupPage extends StatefulWidget {
-  final AdditionalGoalType goalType;
+  final AdditionalGoal template;
 
-  const AdditionalGoalSetupPage({super.key, required this.goalType});
+  const AdditionalGoalSetupPage({super.key, required this.template});
 
   @override
   State<AdditionalGoalSetupPage> createState() =>
@@ -28,7 +29,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
   String _unit = '';
   String _reminderText = '';
 
-  // Поля для подцелей (лекарства)
+  // Подцели для всех типов целей
   List<SubGoal> subGoals = [];
 
   @override
@@ -38,173 +39,193 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
   }
 
   void _setDefaultValues() {
-    _unit = widget.goalType.defaultUnit;
+    _unit = widget.template.unit;
+    _targetCount = widget.template.targetCount;
+    _reminderText = widget.template.reminderText;
 
-    switch (widget.goalType) {
-      case AdditionalGoalType.exercise:
-        _targetCount = 50;
-        _reminderText = 'Сделать упражнения';
-        break;
-      case AdditionalGoalType.reading:
-        _targetCount = 100;
-        _reminderText = 'Прочитать страницы';
-        break;
-      case AdditionalGoalType.water:
-        _targetCount = 2;
-        _reminderText = 'Выпить воду';
-        break;
-      case AdditionalGoalType.medication:
-        _targetCount = 30;
-        _reminderText = 'Принять лекарство';
-        break;
-      case AdditionalGoalType.custom:
-        _targetCount = 10;
-        _reminderText = 'Выполнить задачу';
-        _titleController.text = textLang('Моя цель');
-        _descriptionController.text = textLang('Описание моей цели');
-        break;
+    // Для кастомной цели заполняем контроллеры
+    if (widget.template.id == 'custom') {
+      _titleController.text = widget.template.title;
+      _descriptionController.text = widget.template.description;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWidget(
-        title: widget.goalType.title,
-        isBack: true,
-        actions: [
-          TextButton(
-            onPressed: _createGoal,
-            child: Text(
-              textLang('Создать'),
-              style: const TextStyle(
-                color: AppColor.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+    final isCustom = widget.template.id == 'custom';
+
+    return Consumer<ScreenHeight>(
+      builder: (context, res, child) {
+        // Вычисляем keyboardHeight один раз
+        final keyboardHeight = res.keyboardHeight > 0
+            ? res.keyboardHeight
+            : 0.0;
+
+        return Scaffold(
+          appBar: AppBarWidget(
+            title: isCustom
+                ? textLang('Создать свою цель')
+                : widget.template.title,
+            isBack: true,
           ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          body: Column(
             children: [
-              // Поля для custom типа цели
-              if (widget.goalType == AdditionalGoalType.custom) ...[
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: textLang('Название цели'),
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return textLang('Введите название цели');
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: textLang('Описание цели'),
-                    border: const OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Поля для обычных целей (не лекарства)
-              if (widget.goalType != AdditionalGoalType.medication) ...[
-                TextFormField(
-                  initialValue: _targetCount.toString(),
-                  decoration: InputDecoration(
-                    labelText: textLang('Целевое количество'),
-                    border: const OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) => _targetCount = int.tryParse(value) ?? 0,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  initialValue: _unit,
-                  decoration: InputDecoration(
-                    labelText: textLang('Единица измерения'),
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (value) => _unit = value,
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Поля для лекарств
-              if (widget.goalType == AdditionalGoalType.medication) ...[
-                // Список подцелей (лекарств)
-                if (subGoals.isNotEmpty) ...[
-                  Text(
-                    textLang('Добавленные лекарства:'),
+              if (!isCustom)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Text(
+                    widget.template.description,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 18, // Сделал больше!
                       color: AppColor.darkBlue,
+                      fontWeight: FontWeight.w500,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  ...subGoals.map(
-                    (subGoal) => Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        title: Text(subGoal.title),
-                        subtitle: Text(
-                          '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
+                ),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Для кастомной цели показываем поля ввода
+                        if (widget.template.id == 'custom') ...[
+                          TextFormField(
+                            controller: _titleController,
+                            decoration: InputDecoration(
+                              labelText: textLang('Название цели'),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return textLang('Введите название цели');
+                              }
+                              return null;
+                            },
+                          ),
+                          const Gap(20),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: InputDecoration(
+                              labelText: textLang('Описание цели'),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            maxLines: 3,
+                          ),
+                        ],
+                        TextFormField(
+                          initialValue: _reminderText,
+                          decoration: InputDecoration(
+                            labelText: textLang('Текст напоминания'),
+                            border: const OutlineInputBorder(),
+                          ),
+                          onChanged: (value) => _reminderText = value,
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: AppColor.red),
-                          onPressed: () => _removeSubGoal(subGoal.id),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                        const Gap(16),
+                        // Подцели для всех типов целей
+                        if (subGoals.isNotEmpty) ...[
+                          Text(
+                            textLang('Добавленные ${widget.template.goalTo}:'),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.darkBlue,
+                            ),
+                          ),
+                          const Gap(8),
+                          ...subGoals.map(
+                            (subGoal) => Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                title: Text(subGoal.title),
+                                subtitle: Text(
+                                  '${subGoal.targetCount} $_unit - ${subGoal.timeOfDayText}',
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: AppColor.red,
+                                  ),
+                                  onPressed: () => _removeSubGoal(subGoal.id),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Gap(16),
+                        ],
 
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _addSubGoal,
-                    icon: const Icon(Icons.add),
-                    label: Text(textLang('Добавить лекарство')),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.darkBlue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _addSubGoal,
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              textLang('Добавить задачу'),
+                            ), // Заменяем только эту строку
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColor.darkBlue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Gap(
+                          20 + keyboardHeight,
+                        ), // Используем вычисленное значение
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
-
-              TextFormField(
-                initialValue: _reminderText,
-                decoration: InputDecoration(
-                  labelText: textLang('Текст напоминания'),
-                  border: const OutlineInputBorder(),
-                ),
-                onChanged: (value) => _reminderText = value,
               ),
             ],
           ),
-        ),
-      ),
+
+          bottomSheet: Container(
+            color: Colors.white,
+            padding: EdgeInsets.only(
+              top: 10,
+              left: 20,
+              right: 20,
+              bottom: keyboardHeight > 20
+                  ? keyboardHeight - 20
+                  : 20, // Используем вычисленное значение
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _createGoal,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.darkBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                ),
+                child: Text(
+                  textLang('Создать'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -213,8 +234,8 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => SubGoalModal(
-        goalTo: widget.goalType.defaultGoalTo,
+      builder: (context) => _SubGoalModal(
+        goalTo: widget.template.goalTo,
         unit: _unit,
         onSubGoalAdded: (subGoal) {
           setState(() {
@@ -236,28 +257,324 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
 
     final goal = AdditionalGoal(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: widget.goalType == AdditionalGoalType.custom
+      title: widget.template.id == 'custom'
           ? _titleController.text
-          : widget.goalType.title,
-      description: widget.goalType == AdditionalGoalType.custom
+          : widget.template.title,
+      description: widget.template.id == 'custom'
           ? _descriptionController.text
-          : widget.goalType.description,
+          : widget.template.description,
       createdAt: DateTime.now(),
-      deadlineType: DeadlineType.fixed,
+      deadlineType: DeadlineType.fixed, // Теперь DeadlineType доступен
       targetDate: DateTime.now().add(const Duration(days: 30)),
       targetCount: _targetCount,
       unit: _unit,
-      goalTo: widget.goalType.defaultGoalTo,
+      goalTo: widget.template.goalTo,
       reminderText: _reminderText,
       subGoals: subGoals,
+      icon: widget.template.icon,
     );
 
-    // Добавляем цель через GoalBloc
     final goalBloc = Get.find<GoalBloc>();
     goalBloc.add(AddAdditionalGoalEvent(goal));
 
-    // Возвращаемся на предыдущую страницу
     Navigator.pop(context);
+    Navigator.pop(context);
+  }
+}
+
+class _SubGoalModal extends StatefulWidget {
+  final String goalTo;
+  final String unit;
+  final Function(SubGoal subGoal) onSubGoalAdded;
+
+  const _SubGoalModal({
+    required this.goalTo,
+    required this.unit,
+    required this.onSubGoalAdded,
+  });
+
+  @override
+  State<_SubGoalModal> createState() => _SubGoalModalState();
+}
+
+class _SubGoalModalState extends State<_SubGoalModal> {
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  int _targetCount = 1;
+
+  // Время приема
+  bool _takeMorning = false;
+  bool _takeLunch = false;
+  bool _takeEvening = false;
+  TimeOfDay _morningTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _lunchTime = const TimeOfDay(hour: 13, minute: 0);
+  TimeOfDay _eveningTime = const TimeOfDay(hour: 20, minute: 0);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Заголовок
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: AppColor.darkBlue,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  widget.goalTo == 'лекарство'
+                      ? Icons.medication
+                      : Icons.add_task,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Добавить ${widget.goalTo}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+
+          // Содержимое
+          Flexible(
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Название ${widget.goalTo}',
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Введите название ${widget.goalTo}';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      initialValue: _targetCount.toString(),
+                      decoration: InputDecoration(
+                        labelText: 'Количество ${widget.unit}',
+                        border: const OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) =>
+                          _targetCount = int.tryParse(value) ?? 1,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Время приема
+                    Text(
+                      textLang('Время выполнения:'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.darkBlue,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    Card(
+                      child: Column(
+                        children: [
+                          CheckboxListTile(
+                            title: Text(textLang('Утром')),
+                            value: _takeMorning,
+                            onChanged: (value) {
+                              setState(() {
+                                _takeMorning = value ?? false;
+                              });
+                            },
+                            secondary: _takeMorning
+                                ? TextButton(
+                                    onPressed: () async {
+                                      final time = await showTimePicker(
+                                        context: context,
+                                        initialTime: _morningTime,
+                                      );
+                                      if (time != null) {
+                                        setState(() {
+                                          _morningTime = time;
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      '${_morningTime.hour.toString().padLeft(2, '0')}:${_morningTime.minute.toString().padLeft(2, '0')}',
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          CheckboxListTile(
+                            title: Text(textLang('В обед')),
+                            value: _takeLunch,
+                            onChanged: (value) {
+                              setState(() {
+                                _takeLunch = value ?? false;
+                              });
+                            },
+                            secondary: _takeLunch
+                                ? TextButton(
+                                    onPressed: () async {
+                                      final time = await showTimePicker(
+                                        context: context,
+                                        initialTime: _lunchTime,
+                                      );
+                                      if (time != null) {
+                                        setState(() {
+                                          _lunchTime = time;
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      '${_lunchTime.hour.toString().padLeft(2, '0')}:${_lunchTime.minute.toString().padLeft(2, '0')}',
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          CheckboxListTile(
+                            title: Text(textLang('Вечером')),
+                            value: _takeEvening,
+                            onChanged: (value) {
+                              setState(() {
+                                _takeEvening = value ?? false;
+                              });
+                            },
+                            secondary: _takeEvening
+                                ? TextButton(
+                                    onPressed: () async {
+                                      final time = await showTimePicker(
+                                        context: context,
+                                        initialTime: _eveningTime,
+                                      );
+                                      if (time != null) {
+                                        setState(() {
+                                          _eveningTime = time;
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      '${_eveningTime.hour.toString().padLeft(2, '0')}:${_eveningTime.minute.toString().padLeft(2, '0')}',
+                                    ),
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        labelText: textLang('Описание'),
+                        border: const OutlineInputBorder(),
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Кнопки действий
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColor.darkBlue,
+                              side: const BorderSide(color: AppColor.darkBlue),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(textLang('Отмена')),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _createSubGoal,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColor.darkBlue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(textLang('Добавить')),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _createSubGoal() {
+    if (!_formKey.currentState!.validate()) return;
+    if (!_takeMorning && !_takeLunch && !_takeEvening) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(textLang('Выберите хотя бы одно время выполнения')),
+        ),
+      );
+      return;
+    }
+
+    final subGoal = SubGoal(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: _titleController.text,
+      targetCount: _targetCount,
+      createdAt: DateTime.now(),
+      takeMorning: _takeMorning,
+      takeLunch: _takeLunch,
+      takeEvening: _takeEvening,
+      morningTime: _takeMorning ? _morningTime : null,
+      lunchTime: _takeLunch ? _lunchTime : null,
+      eveningTime: _takeEvening ? _eveningTime : null,
+      description: _descriptionController.text.isNotEmpty
+          ? _descriptionController.text
+          : null,
+    );
+
+    widget.onSubGoalAdded(subGoal);
     Navigator.pop(context);
   }
 }

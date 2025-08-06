@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:flutter_keyboard_size/flutter_keyboard_size.dart'; // Добавляем импорт
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -77,54 +78,56 @@ class MyApp extends StatelessWidget {
               : const Locale('ru', 'RU');
         }
 
-        return MaterialApp.router(
-          key: ValueKey(languageState), // Уникальный ключ для пересоздания
-          title: 'Tochka Balansa',
-          locale: currentLocale,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('ru', 'RU'), Locale('en', 'US')],
-          theme: ThemeData(
-            useMaterial3: true,
-            scaffoldBackgroundColor: AppColor.white,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppColor.primary,
-              surface: AppColor.white,
-            ),
-            textTheme: GoogleFonts.robotoTextTheme(Theme.of(context).textTheme),
-            pageTransitionsTheme: const PageTransitionsTheme(
-              builders: {
-                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-              },
-            ),
-          ),
-          debugShowCheckedModeBanner: false,
-          routeInformationProvider: router.routeInformationProvider,
-          routeInformationParser: router.routeInformationParser,
-          routerDelegate: router.routerDelegate,
-          builder: (context, child) {
-            final mq = MediaQuery.of(context);
-            final fontScale = mq.textScaler.clamp(
-              minScaleFactor: 0.9,
-              maxScaleFactor: 1.1,
-            );
-            return FToastBuilder()(
-              context,
-              MediaQuery(
-                data: mq.copyWith(textScaler: fontScale),
-                child: SafeArea(
-                  top: false,
-                  bottom: true,
-                  left: false,
-                  right: false,
-                  child: child!,
-                ),
+        return KeyboardSizeProvider( // Обертываем вокруг MaterialApp.router
+          child: MaterialApp.router(
+            key: ValueKey(languageState), // Уникальный ключ для пересоздания
+            title: 'Tochka Balansa',
+            locale: currentLocale,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('ru', 'RU'), Locale('en', 'US')],
+            theme: ThemeData(
+              useMaterial3: true,
+              scaffoldBackgroundColor: AppColor.white,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColor.primary,
+                surface: AppColor.white,
               ),
-            );
-          },
+              textTheme: GoogleFonts.robotoTextTheme(Theme.of(context).textTheme),
+              pageTransitionsTheme: const PageTransitionsTheme(
+                builders: {
+                  TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+                },
+              ),
+            ),
+            debugShowCheckedModeBanner: false,
+            routeInformationProvider: router.routeInformationProvider,
+            routeInformationParser: router.routeInformationParser,
+            routerDelegate: router.routerDelegate,
+            builder: (context, child) {
+              final mq = MediaQuery.of(context);
+              final fontScale = mq.textScaler.clamp(
+                minScaleFactor: 0.9,
+                maxScaleFactor: 1.1,
+              );
+              return FToastBuilder()(
+                context,
+                MediaQuery(
+                  data: mq.copyWith(textScaler: fontScale),
+                  child: SafeArea(
+                    top: false,
+                    bottom: true,
+                    left: false,
+                    right: false,
+                    child: child!,
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );
