@@ -181,54 +181,15 @@ class UserRepository {
   Future<void> loadUserFromLocal() async {
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.user);
-      Logger.e('loadUserFromLocal $data');
+      Logger.i('loadUserFromLocal: загружены данные из Hive');
 
-      // Проверяем, есть ли поле error
-      if (data.containsKey('error')) {
-        Logger.e('User data contains error: ${data['error']}');
-        // Если есть ошибка, оставляем user как есть (User.initial())
-        return;
-      }
-
-      // Дополнительная диагностика mainGoal
-      if (data.containsKey('mainGoal')) {
-        final mainGoalData = data['mainGoal'];
-        Logger.i('Найдена mainGoal в данных: $mainGoalData');
-        Logger.i('Тип mainGoal: ${mainGoalData.runtimeType}');
-        if (mainGoalData is Map) {
-          Logger.i(
-            'mainGoal является Map с ключами: ${mainGoalData.keys.toList()}',
-          );
-          if (mainGoalData.containsKey('goalType')) {
-            Logger.i('goalType в mainGoal: ${mainGoalData['goalType']}');
-          }
-        }
-      } else {
-        Logger.e('mainGoal отсутствует в данных пользователя');
-      }
-
-      // Сохраняем текущие цели перед загрузкой
-      final currentMainGoal = user.mainGoal;
-
-      // Загружаем пользователя из Hive
-      final loadedUser = User.fromJson(data);
-      Logger.i(
-        'Загружен пользователь из Hive: ${loadedUser.name}, mainGoal: ${loadedUser.mainGoal}',
-      );
-
-      // Если у загруженного пользователя нет цели, но у текущего есть - сохраняем текущую
-      if (!loadedUser.mainGoal.hasMainGoal && currentMainGoal.hasMainGoal) {
-        Logger.i('Сохраняем текущую цель, так как загруженная цель пустая');
-        user = loadedUser.copyWith(mainGoal: currentMainGoal);
-      } else {
-        user = loadedUser;
-      }
-
-      Logger.i(
-        'Итоговый пользователь: ${user.name}, mainGoal: ${user.mainGoal}',
-      );
+      // Конвертируем Map<dynamic, dynamic> в Map<String, dynamic>
+      final convertedData = Map<String, dynamic>.from(data);
+      Logger.i('convertedData ${convertedData.runtimeType}');
+      user = User.fromJson(convertedData);
+      Logger.i('loadUserFromLocal: пользователь загружен: ${user.name}');
     } catch (e) {
-      Logger.e('user error $e');
+      Logger.e('loadUserFromLocal error: $e');
     }
   }
 
@@ -269,7 +230,9 @@ class UserRepository {
         key: HiveDataKey.goalTypes,
       );
       goalTypes = goalTypesJson
-          .map((json) => AdditionalGoal.fromJson(json))
+          .map(
+            (json) => AdditionalGoal.fromJson(Map<String, dynamic>.from(json)),
+          )
           .toList();
       Logger.i('Типы целей загружены из Hive: ${goalTypes.length}');
     } catch (e) {

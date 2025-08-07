@@ -8,7 +8,6 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
-import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class GoalPage extends StatefulWidget {
   const GoalPage({super.key});

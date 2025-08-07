@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
@@ -151,6 +152,19 @@ class AdditionalGoal extends Equatable {
   }
 
   factory AdditionalGoal.fromJson(Map<String, dynamic> json) {
+    List<Map<String, dynamic>> subJsonGoals = [];
+    List<SubGoal> subGoals = [];
+
+    try {
+      if (json.containsKey('subGoals') && json['subGoals'] is List) {
+        subJsonGoals = List<Map<String, dynamic>>.from(
+          json['subGoals'].map((e) => Map<String, dynamic>.from(e)),
+        );
+      }
+      subGoals = subJsonGoals.map((sg) => SubGoal.fromJson(sg)).toList();
+    } catch (e) {
+      Logger.e('AdditionalGoal.fromJson: Ошибка при создании subGoals: $e');
+    }
     return AdditionalGoal(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -175,11 +189,7 @@ class AdditionalGoal extends Equatable {
       targetDate: json['targetDate'] != null
           ? DateTime.parse(json['targetDate'] as String)
           : null,
-      subGoals:
-          (json['subGoals'] as List<dynamic>?)
-              ?.map((sg) => SubGoal.fromJson(sg as Map<String, dynamic>))
-              .toList() ??
-          [],
+      subGoals: subGoals,
       targetCount: json['targetCount'] as int? ?? 0,
       currentCount: json['currentCount'] as int? ?? 0,
       unit: json['unit'] as String? ?? '',

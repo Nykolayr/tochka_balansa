@@ -57,8 +57,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
 
     return Consumer<ScreenHeight>(
       builder: (context, res, child) {
-        // Вычисляем keyboardHeight один раз
-        final keyboardHeight = res.keyboardHeight > 0
+        final keyboardHeight = res.keyboardHeight > 20
             ? res.keyboardHeight
             : 0.0;
 

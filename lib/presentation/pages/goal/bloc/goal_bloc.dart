@@ -24,8 +24,12 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
 
     // Загружаем цели при инициализации блока
     Logger.i('GoalBloc: Инициализация блока');
-    add(const LoadGoalsEvent());
-    add(const LoadGoalTypesEvent());
+
+    // Добавляем небольшую задержку, чтобы UserRepository успел инициализироваться
+    Future.delayed(const Duration(milliseconds: 100), () {
+      add(const LoadGoalsEvent());
+      add(const LoadGoalTypesEvent());
+    });
   }
 
   Future<void> _onLoadGoalTypes(
@@ -55,6 +59,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     emit(state.copyWith(isLoading: true));
 
     try {
+      // Явно загружаем данные из локального хранилища
+      await _userRepository.loadUserFromLocal();
+
       Logger.i('Загрузка целей из UserRepository');
       final user = _userRepository.user;
       Logger.i('Загружена главная цель: ${user.mainGoal}');
