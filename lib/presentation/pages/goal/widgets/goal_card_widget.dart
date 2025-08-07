@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
@@ -47,14 +50,16 @@ class GoalCardWidget extends StatelessWidget {
             .length;
         return '$completed/${additionalGoal.subGoals.length} подцелей выполнено';
       } else if (additionalGoal.targetCount > 0) {
-        final unit = additionalGoal.unit.isNotEmpty ? additionalGoal.unit : 'единиц';
+        final unit = additionalGoal.unit.isNotEmpty
+            ? additionalGoal.unit
+            : 'единиц';
         return '${additionalGoal.currentCount}/${additionalGoal.targetCount} $unit';
       }
       return additionalGoal.description.isNotEmpty
           ? additionalGoal.description
           : additionalGoal.reminderText.isNotEmpty
-              ? additionalGoal.reminderText
-              : 'Дополнительная цель';
+          ? additionalGoal.reminderText
+          : 'Дополнительная цель';
     }
     return '';
   }
@@ -112,99 +117,77 @@ class GoalCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isMainGoal
-                ? AppColor.darkBlue
-                : AppColor.grey.withValues(alpha: 0.3),
-            width: isMainGoal ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Заголовок и иконка
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isMainGoal ? AppColor.darkBlue : AppColor.grey,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isMainGoal ? AppColor.darkBlue : Colors.black87,
-                    ),
-                  ),
-                ),
-                // Иконка редактирования для главной цели
-                if (isMainGoal && onTap != null) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.edit, color: AppColor.grey, size: 16),
-                ],
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            // Описание
-            Text(
-              description,
-              style: const TextStyle(fontSize: 14, color: AppColor.grey),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Прогресс бар
-            if (progress > 0) ...[
-              LinearProgressIndicator(
-                value: progress / 100,
-                backgroundColor: AppColor.grey.withValues(alpha: 0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isMainGoal ? AppColor.darkBlue : AppColor.grey,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${progress.toStringAsFixed(1)}% выполнено',
-                style: const TextStyle(fontSize: 12, color: AppColor.grey),
-              ),
-            ],
-
-            // Дни до цели
-            if (daysLeft > 0) ...[
-              const SizedBox(height: 8),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 16, color: AppColor.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$daysLeft дней до цели',
-                    style: const TextStyle(fontSize: 12, color: AppColor.grey),
+                  Icon(icon, color: AppColor.darkBlue, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColor.darkBlue,
+                          ),
+                        ),
+                        Text(
+                          description,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColor.greyText,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              LinearProgressIndicator(
+                value: progress / 100,
+                backgroundColor: AppColor.grey,
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColor.darkBlue,
+                ),
+                minHeight: 6,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${progress.toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.darkBlue,
+                    ),
+                  ),
+                  if (daysLeft > 0)
+                    Text(
+                      '$daysLeft ${textLang('дней')}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColor.greyText,
+                      ),
+                    ),
+                ],
+              ),
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -8,6 +8,7 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
+import 'package:tochka_balansa/presentation/pages/goal/additional_goal_detail_page.dart';
 
 class GoalPage extends StatefulWidget {
   const GoalPage({super.key});
@@ -163,7 +164,16 @@ class _GoalPageState extends State<GoalPage> {
                   final goal = state.additionalGoals[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: GoalCardWidget(goal: goal, isMainGoal: false),
+                    child: GoalCardWidget(
+                      goal: goal,
+                      isMainGoal: false,
+                      onTap: () {
+                        context.push(
+                          '/additional-goal/${goal.id}',
+                          extra: goal,
+                        );
+                      },
+                    ),
                   );
                 },
               ),
