@@ -12,10 +12,12 @@ import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/food_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/add_additional_goal_page.dart';
+import 'package:tochka_balansa/presentation/pages/goal/additional_goal_detail_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
+import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -165,6 +167,24 @@ final GoRouter router = GoRouter(
                   context: context,
                   state: state,
                   child: AddAdditionalGoalPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'Детали дополнительной цели',
+              path: 'goal-detail',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                // Получаем цель из параметров
+                final goal = state.extra as AdditionalGoal;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: AdditionalGoalDetailPage(
+                    key: ValueKey(languageState),
+                    goal: goal,
+                  ),
                 );
               },
             ),

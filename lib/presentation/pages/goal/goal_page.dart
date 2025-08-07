@@ -168,10 +168,8 @@ class _GoalPageState extends State<GoalPage> {
                       goal: goal,
                       isMainGoal: false,
                       onTap: () {
-                        context.push(
-                          '/additional-goal/${goal.id}',
-                          extra: goal,
-                        );
+                        // Переходим на страницу деталей цели через роутер
+                        context.push('/main/training/goal-detail', extra: goal);
                       },
                     ),
                   );
