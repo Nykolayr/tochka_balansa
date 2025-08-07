@@ -21,7 +21,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     on<AddAdditionalGoalEvent>(_onAddAdditionalGoal);
     on<RemoveAdditionalGoalEvent>(_onRemoveAdditionalGoal);
     on<UpdateAdditionalGoalEvent>(_onUpdateAdditionalGoal);
-    on<AddGoalTemplateEvent>(_onAddGoalTemplate); // Добавляем новый обработчик
+    on<AddGoalTemplateEvent>(_onAddGoalTemplate);
+    on<CompleteSubGoalEvent>(_onCompleteSubGoal); // Добавляем обработчик
+    on<MoveToArchiveEvent>(_onMoveToArchive); // Добавляем обработчик
 
     // Загружаем цели при инициализации блока
     Logger.i('GoalBloc: Инициализация блока');
@@ -65,12 +67,16 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     try {
       // Явно загружаем данные из локального хранилища
       await _userRepository.loadUserFromLocal();
+      await _userRepository.loadArchivedGoalsFromLocal(); // Загружаем архив
 
       Logger.i('Загрузка целей из UserRepository');
       final user = _userRepository.user;
       Logger.i('Загружена главная цель: ${user.mainGoal}');
       Logger.i(
         'Загружено дополнительных целей: ${user.additionalGoals.length}',
+      );
+      Logger.i(
+        'Загружено архивных целей: ${_userRepository.archivedGoals.length}',
       );
 
       // Проверяем, не загружаем ли мы пустую цель, когда у нас уже есть цель
@@ -94,6 +100,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           isLoading: false,
           mainGoal: user.mainGoal,
           additionalGoals: user.additionalGoals,
+          archivedGoals: _userRepository.archivedGoals, // Добавляем архив
         ),
       );
     } catch (e) {
@@ -244,6 +251,141 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       await _userRepository.saveGoalTypesToLocal();
 
       emit(state.copyWith(isLoading: false, goalTypes: updatedGoalTypes));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> _onCompleteSubGoal(
+    CompleteSubGoalEvent event,
+    Emitter<GoalState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+
+    try {
+      // Находим цель
+      final goalIndex = state.additionalGoals.indexWhere(
+        (g) => g.id == event.goalId,
+      );
+      if (goalIndex == -1) {
+        emit(state.copyWith(isLoading: false, error: 'Цель не найдена'));
+        return;
+      }
+
+      final goal = state.additionalGoals[goalIndex];
+
+      // Обновляем подзадачу
+      final updatedSubGoals = goal.subGoals.map((subGoal) {
+        if (subGoal.id == event.subGoalId) {
+          return subGoal.copyWith(
+            isCompleted: true,
+            currentCount:
+                subGoal.targetCount, // Устанавливаем максимальное значение
+          );
+        }
+        return subGoal;
+      }).toList();
+
+      final updatedGoal = goal.copyWith(subGoals: updatedSubGoals);
+
+      // Проверяем, все ли подзадачи завершены
+      final allCompleted = updatedSubGoals.every((sg) => sg.isCompleted);
+
+      if (allCompleted) {
+        // Все подзадачи завершены - перемещаем в архив
+        final completedGoal = updatedGoal.copyWith(
+          isCompleted: true,
+          completionDate: DateTime.now(),
+        );
+
+        final updatedAdditionalGoals = state.additionalGoals
+            .where((g) => g.id != event.goalId)
+            .toList();
+
+        final updatedArchivedGoals = [...state.archivedGoals, completedGoal];
+
+        // Сохраняем изменения
+        final updatedUser = _userRepository.user.copyWith(
+          additionalGoals: updatedAdditionalGoals,
+        );
+        _userRepository.user = updatedUser;
+        await _userRepository.saveUserToLocal();
+
+        // Сохраняем архив
+        _userRepository.archivedGoals = updatedArchivedGoals;
+        await _userRepository.saveArchivedGoalsToLocal();
+
+        emit(
+          state.copyWith(
+            isLoading: false,
+            additionalGoals: updatedAdditionalGoals,
+            archivedGoals: updatedArchivedGoals,
+          ),
+        );
+
+        // Убираем Get.snackbar отсюда
+      } else {
+        // Не все подзадачи завершены - просто обновляем цель
+        final updatedAdditionalGoals = List<AdditionalGoal>.from(
+          state.additionalGoals,
+        );
+        updatedAdditionalGoals[goalIndex] = updatedGoal;
+
+        // Сохраняем изменения
+        final updatedUser = _userRepository.user.copyWith(
+          additionalGoals: updatedAdditionalGoals,
+        );
+        _userRepository.user = updatedUser;
+        await _userRepository.saveUserToLocal();
+
+        emit(
+          state.copyWith(
+            isLoading: false,
+            additionalGoals: updatedAdditionalGoals,
+          ),
+        );
+      }
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> _onMoveToArchive(
+    MoveToArchiveEvent event,
+    Emitter<GoalState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+
+    try {
+      final completedGoal = event.goal.copyWith(
+        isCompleted: true,
+        completionDate: DateTime.now(),
+      );
+
+      final updatedAdditionalGoals = state.additionalGoals
+          .where((g) => g.id != event.goal.id)
+          .toList();
+
+      final updatedArchivedGoals = [...state.archivedGoals, completedGoal];
+
+      // Сохраняем изменения
+      final updatedUser = _userRepository.user.copyWith(
+        additionalGoals: updatedAdditionalGoals,
+      );
+      _userRepository.user = updatedUser;
+      await _userRepository.saveUserToLocal();
+
+      // Сохраняем архив
+      _userRepository.archivedGoals = updatedArchivedGoals;
+      await _userRepository.saveArchivedGoalsToLocal();
+
+      emit(
+        state.copyWith(
+          isLoading: false,
+          additionalGoals: updatedAdditionalGoals,
+          archivedGoals: updatedArchivedGoals,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }

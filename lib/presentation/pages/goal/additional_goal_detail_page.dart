@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
+import 'package:get/get.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 
 class AdditionalGoalDetailPage extends StatelessWidget {
   final AdditionalGoal goal;
@@ -12,49 +15,91 @@ class AdditionalGoalDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWidget(title: goal.title, isBack: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Описание цели
-            if (goal.description.isNotEmpty) ...[
-              Text(
-                goal.description,
-                style: const TextStyle(fontSize: 16, color: AppColor.greyText),
-              ),
-              const SizedBox(height: 24),
-            ],
+    return BlocListener<GoalBloc, GoalState>(
+      bloc: Get.find<GoalBloc>(),
+      listener: (context, state) {
+        // Проверяем, была ли цель перемещена в архив
+        final goalInArchive = state.archivedGoals.any((g) => g.id == goal.id);
+        final goalInActive = state.additionalGoals.any((g) => g.id == goal.id);
 
-            // Общий прогресс
-            _buildOverallProgress(),
-            const SizedBox(height: 24),
-
-            // Подзадачи
-            Text(
-              textLang('Подзадачи'),
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColor.darkBlue,
+        if (goalInArchive && !goalInActive) {
+          // Цель была перемещена в архив - показываем уведомление и возвращаемся
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                textLang(
+                  'Поздравляем! Все задачи выполнены! Цель перемещена в архив.',
+                ),
               ),
+              backgroundColor: AppColor.green,
+              duration: const Duration(seconds: 3),
             ),
-            const SizedBox(height: 12),
-            ...goal.subGoals.map((subGoal) => _buildSubGoalCard(subGoal)),
-          ],
+          );
+
+          // Возвращаемся на предыдущую страницу
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBarWidget(title: goal.title, isBack: true),
+        body: BlocBuilder<GoalBloc, GoalState>(
+          bloc: Get.find<GoalBloc>(),
+          builder: (context, state) {
+            // Находим актуальную цель в состоянии
+            final currentGoal = state.additionalGoals.firstWhere(
+              (g) => g.id == goal.id,
+              orElse: () => goal,
+            );
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Описание цели
+                  if (currentGoal.description.isNotEmpty) ...[
+                    Text(
+                      currentGoal.description,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColor.greyText,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Общий прогресс
+                  _buildOverallProgress(currentGoal),
+                  const SizedBox(height: 24),
+
+                  // Подзадачи
+                  Text(
+                    textLang('Подзадачи'),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.darkBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...currentGoal.subGoals.map(
+                    (subGoal) => _buildSubGoalCard(context, subGoal),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildOverallProgress() {
-    final progress = goal.progressPercentage;
-    final completedSubGoals = goal.subGoals
+  Widget _buildOverallProgress(AdditionalGoal currentGoal) {
+    final progress = currentGoal.progressPercentage;
+    final completedSubGoals = currentGoal.subGoals
         .where((sg) => sg.isCompleted)
         .length;
-    final totalSubGoals = goal.subGoals.length;
+    final totalSubGoals = currentGoal.subGoals.length;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -90,7 +135,7 @@ class AdditionalGoalDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSubGoalCard(SubGoal subGoal) {
+  Widget _buildSubGoalCard(BuildContext context, SubGoal subGoal) {
     final progress = subGoal.targetCount > 0
         ? (subGoal.currentCount / subGoal.targetCount).clamp(0.0, 1.0)
         : 0.0;
@@ -113,9 +158,7 @@ class AdditionalGoalDetailPage extends StatelessWidget {
                       color: subGoal.isCompleted
                           ? AppColor.green
                           : AppColor.darkBlue,
-                      decoration: subGoal.isCompleted
-                          ? TextDecoration.lineThrough
-                          : null,
+                      // Убираем зачеркивание
                     ),
                   ),
                 ),
@@ -154,9 +197,7 @@ class AdditionalGoalDetailPage extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Добавить логику закрытия подзадачи
-                  },
+                  onPressed: () => _showCompleteSubGoalDialog(context, subGoal),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.darkBlue,
                     foregroundColor: Colors.white,
@@ -173,5 +214,45 @@ class AdditionalGoalDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showCompleteSubGoalDialog(BuildContext context, SubGoal subGoal) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(textLang('Завершить подзадачу?')),
+          content: Text(
+            textLang(
+              'Вы уверены, что хотите завершить подзадачу "${subGoal.title}"?',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                textLang('Отмена'),
+                style: const TextStyle(color: AppColor.greyText),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _completeSubGoal(subGoal.id);
+              },
+              child: Text(
+                textLang('Завершить'),
+                style: const TextStyle(color: AppColor.darkBlue),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _completeSubGoal(String subGoalId) {
+    final goalBloc = Get.find<GoalBloc>();
+    goalBloc.add(CompleteSubGoalEvent(goal.id, subGoalId));
   }
 }

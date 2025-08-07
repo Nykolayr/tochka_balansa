@@ -55,3 +55,22 @@ class AddGoalTemplateEvent extends GoalEvent {
   @override
   List<Object> get props => [goal];
 }
+
+class CompleteSubGoalEvent extends GoalEvent {
+  final String goalId;
+  final String subGoalId;
+
+  const CompleteSubGoalEvent(this.goalId, this.subGoalId);
+
+  @override
+  List<Object> get props => [goalId, subGoalId];
+}
+
+class MoveToArchiveEvent extends GoalEvent {
+  final AdditionalGoal goal;
+
+  const MoveToArchiveEvent(this.goal);
+
+  @override
+  List<Object> get props => [goal];
+}

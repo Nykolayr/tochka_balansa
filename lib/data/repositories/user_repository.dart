@@ -13,6 +13,7 @@ class UserRepository {
   String token = '';
   User user = User.initial();
   List<AdditionalGoal> goalTypes = []; // Убираем геттер/сеттер
+  List<AdditionalGoal> archivedGoals = []; // Добавляем архив
 
   bool get isReg => token.isNotEmpty;
 
@@ -238,6 +239,34 @@ class UserRepository {
     } catch (e) {
       Logger.e('Ошибка загрузки типов целей: $e');
       goalTypes = [];
+    }
+  }
+
+  Future<void> saveArchivedGoalsToLocal() async {
+    try {
+      final archivedGoalsJson = archivedGoals.map((goal) => goal.toJson()).toList();
+      await HiveData.saveListJson(
+        json: archivedGoalsJson,
+        key: HiveDataKey.archivedGoals, // Нужно добавить в HiveDataKey
+      );
+      Logger.i('Архивные цели сохранены в Hive');
+    } catch (e) {
+      Logger.e('Ошибка сохранения архивных целей: $e');
+    }
+  }
+
+  Future<void> loadArchivedGoalsFromLocal() async {
+    try {
+      final archivedGoalsJson = await HiveData.loadListJson(
+        key: HiveDataKey.archivedGoals,
+      );
+      archivedGoals = archivedGoalsJson
+          .map((json) => AdditionalGoal.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
+      Logger.i('Архивные цели загружены из Hive: ${archivedGoals.length}');
+    } catch (e) {
+      Logger.e('Ошибка загрузки архивных целей: $e');
+      archivedGoals = [];
     }
   }
 }

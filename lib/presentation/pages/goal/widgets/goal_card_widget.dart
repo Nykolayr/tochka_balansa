@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
@@ -131,11 +129,7 @@ class GoalCardWidget extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    icon,
-                    color: AppColor.darkBlue,
-                    size: 24,
-                  ),
+                  Icon(icon, color: AppColor.darkBlue, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -177,7 +171,9 @@ class GoalCardWidget extends StatelessWidget {
               LinearProgressIndicator(
                 value: progress / 100,
                 backgroundColor: AppColor.grey,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColor.darkBlue),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColor.darkBlue,
+                ),
                 minHeight: 6,
               ),
               const SizedBox(height: 8),
@@ -215,7 +211,11 @@ class GoalCardWidget extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(textLang('Удалить цель?')),
-          content: Text(textLang('Вы уверены, что хотите удалить эту цель? Это действие нельзя отменить.')),
+          content: Text(
+            textLang(
+              'Вы уверены, что хотите удалить цель "${title}"? Это действие нельзя отменить.',
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

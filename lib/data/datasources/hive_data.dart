@@ -137,4 +137,9 @@ class HiveData {
   }
 }
 
-enum HiveDataKey { user, language, goalTypes }
+enum HiveDataKey {
+  user,
+  language,
+  goalTypes,
+  archivedGoals, // Добавляем ключ для архива
+}
