@@ -7,6 +7,7 @@ import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/presentation/widgets/goal_completed_dialog.dart';
 
 class AdditionalGoalDetailPage extends StatelessWidget {
   final AdditionalGoal goal;
@@ -82,79 +83,11 @@ class AdditionalGoalDetailPage extends StatelessWidget {
   }
 
   void _showGoalCompletedDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Нельзя закрыть по клику вне окна
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: AppColor.green, size: 64),
-              const SizedBox(height: 16),
-              Text(
-                textLang('Поздравляем!'),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColor.darkBlue,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                textLang('Все задачи выполнены!'),
-                style: const TextStyle(fontSize: 16, color: AppColor.greyText),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                textLang(
-                  'Цель перемещена в архив, где вы сможете ее просмотреть.',
-                ),
-                style: const TextStyle(fontSize: 14, color: AppColor.greyText),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(
-                      context,
-                    ).pop(); // Возвращаемся на предыдущую страницу
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.darkBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    textLang('ОК'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
+    GoalCompletedDialog.show(
+      context,
+      onOkPressed: () {
+        Navigator.of(context).pop(); // Закрываем диалог
+        Navigator.of(context).pop(); // Возвращаемся на предыдущую страницу
       },
     );
   }
