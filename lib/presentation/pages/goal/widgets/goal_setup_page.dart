@@ -9,6 +9,7 @@ import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/sub_goal_page.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
+import 'package:tochka_balansa/presentation/pages/goal/widgets/create_template_modal.dart';
 
 class AdditionalGoalSetupPage extends StatefulWidget {
   final AdditionalGoal template;
@@ -120,6 +121,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
                             maxLines: 3,
                           ),
                         ],
+                        const Gap(20),
                         TextFormField(
                           initialValue: _reminderText,
                           decoration: InputDecoration(
@@ -256,7 +258,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
 
   void _createGoal() {
     if (!_formKey.currentState!.validate()) return;
-    if (subGoals.isEmpty) return; // Дополнительная проверка
+    if (subGoals.isEmpty) return;
 
     final goal = AdditionalGoal(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -288,7 +290,42 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
       ),
     );
 
-    Navigator.pop(context);
-    Navigator.pop(context);
+    // Если это пользовательская цель, предлагаем создать шаблон
+    if (widget.template.id == 'custom') {
+      _showCreateTemplateDialog(context, goal);
+    } else {
+      Navigator.pop(context);
+      Navigator.pop(context);
+    }
+  }
+
+  void _showCreateTemplateDialog(BuildContext context, AdditionalGoal goal) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: CreateTemplateModal(goal: goal),
+      ),
+    ).then((shouldCreateTemplate) {
+      if (shouldCreateTemplate == true) {
+        // Создаем шаблон
+        final goalBloc = Get.find<GoalBloc>();
+        goalBloc.add(AddGoalTemplateEvent(goal));
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(textLang('Шаблон создан')),
+            backgroundColor: AppColor.green,
+          ),
+        );
+      }
+
+      Navigator.pop(context);
+      Navigator.pop(context);
+    });
   }
 }

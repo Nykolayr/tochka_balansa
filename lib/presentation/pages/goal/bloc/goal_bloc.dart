@@ -21,6 +21,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     on<AddAdditionalGoalEvent>(_onAddAdditionalGoal);
     on<RemoveAdditionalGoalEvent>(_onRemoveAdditionalGoal);
     on<UpdateAdditionalGoalEvent>(_onUpdateAdditionalGoal);
+    on<AddGoalTemplateEvent>(_onAddGoalTemplate); // Добавляем новый обработчик
 
     // Загружаем цели при инициализации блока
     Logger.i('GoalBloc: Инициализация блока');
@@ -37,6 +38,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     Emitter<GoalState> emit,
   ) async {
     try {
+      // Загружаем типы целей из локального хранилища
+      await _userRepository.loadGoalTypesFromLocal();
+
       // Создаем стандартные типы целей, если их нет
       final goalTypes = _userRepository.goalTypes;
       if (goalTypes.isEmpty) {
@@ -206,6 +210,40 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       await _userRepository.saveUserToLocal();
 
       emit(state.copyWith(isLoading: false, additionalGoals: updatedGoals));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> _onAddGoalTemplate(
+    AddGoalTemplateEvent event,
+    Emitter<GoalState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+
+    try {
+      // Создаем новый шаблон на основе цели
+      final template = AdditionalGoal(
+        id: 'template_${DateTime.now().millisecondsSinceEpoch}',
+        title: event.goal.title,
+        description: event.goal.description,
+        createdAt: DateTime.now(),
+        deadlineType: DeadlineType.fixed,
+        targetDate: DateTime.now().add(const Duration(days: 30)),
+        targetCount: event.goal.targetCount,
+        unit: event.goal.unit,
+        goalTo: event.goal.goalTo,
+        reminderText: event.goal.reminderText,
+        subGoals: event.goal.subGoals,
+        icon: event.goal.icon,
+      );
+
+      // Добавляем шаблон в список типов целей
+      final updatedGoalTypes = [...state.goalTypes, template];
+      _userRepository.goalTypes = updatedGoalTypes;
+      await _userRepository.saveGoalTypesToLocal();
+
+      emit(state.copyWith(isLoading: false, goalTypes: updatedGoalTypes));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }

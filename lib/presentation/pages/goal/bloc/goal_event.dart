@@ -46,3 +46,12 @@ class UpdateAdditionalGoalEvent extends GoalEvent {
   @override
   List<Object> get props => [goal];
 }
+
+class AddGoalTemplateEvent extends GoalEvent {
+  final AdditionalGoal goal;
+
+  const AddGoalTemplateEvent(this.goal);
+
+  @override
+  List<Object> get props => [goal];
+}

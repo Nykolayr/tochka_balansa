@@ -18,7 +18,24 @@ class AddAdditionalGoalPage extends StatelessWidget {
       body: BlocBuilder<GoalBloc, GoalState>(
         bloc: Get.find<GoalBloc>(),
         builder: (context, state) {
-          final templates = state.goalTypes;
+          // Сортируем шаблоны: сначала стандартные, потом пользовательские
+          final sortedTemplates = List<AdditionalGoal>.from(state.goalTypes);
+          sortedTemplates.sort((a, b) {
+            // Если один из них "Своя цель" (id == 'custom'), он идет в конец
+            if (a.id == 'custom') return 1;
+            if (b.id == 'custom') return -1;
+            
+            // Если оба пользовательские шаблоны (начинаются с 'template_'), сортируем по дате создания
+            if (a.id.startsWith('template_') && b.id.startsWith('template_')) {
+              return b.createdAt.compareTo(a.createdAt); // Новые шаблоны сверху
+            }
+            
+            // Если один пользовательский, а другой стандартный
+            if (a.id.startsWith('template_')) return 1; // Пользовательские после стандартных
+            if (b.id.startsWith('template_')) return -1;
+            
+            return 0; // Стандартные шаблоны остаются в исходном порядке
+          });
 
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -39,7 +56,7 @@ class AddAdditionalGoalPage extends StatelessWidget {
                 style: const TextStyle(fontSize: 16, color: AppColor.grey),
               ),
               const SizedBox(height: 24),
-              ...templates.map((goal) => _GoalTypeTile(goal: goal)),
+              ...sortedTemplates.map((goal) => _GoalTypeTile(goal: goal)),
             ],
           );
         },

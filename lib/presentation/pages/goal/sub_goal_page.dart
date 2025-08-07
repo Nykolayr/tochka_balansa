@@ -135,10 +135,7 @@ class _SubGoalPageState extends State<SubGoalPage> {
             : 0.0;
 
         return Scaffold(
-          appBar: AppBarWidget(
-            title: 'Добавить ${widget.goalTo}',
-            isBack: true,
-          ),
+          appBar: AppBarWidget(title: 'Добавить задачу', isBack: true),
           body: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -152,12 +149,12 @@ class _SubGoalPageState extends State<SubGoalPage> {
                     controller: _titleController,
                     focusNode: _titleFocusNode,
                     decoration: InputDecoration(
-                      labelText: 'Название ${widget.goalTo}',
+                      labelText: 'Название задачи',
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Введите название ${widget.goalTo}';
+                        return 'Введите название задачи';
                       }
                       return null;
                     },
@@ -169,7 +166,8 @@ class _SubGoalPageState extends State<SubGoalPage> {
                     focusNode: _amountFocusNode,
                     initialValue: _amountPerDose.toString(),
                     decoration: InputDecoration(
-                      labelText: 'Количество ${widget.unit} за прием',
+                      labelText:
+                          'Количество ${widget.unit} за один раз', // Изменили с 'за прием' на 'за один раз'
                       border: const OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
@@ -180,7 +178,7 @@ class _SubGoalPageState extends State<SubGoalPage> {
 
                   // Тип достижения цели
                   Text(
-                    textLang('Тип достижения цели:'),
+                    textLang('Тип достижения задачи:'),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
