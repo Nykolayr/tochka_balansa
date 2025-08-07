@@ -11,6 +11,7 @@ import 'package:tochka_balansa/presentation/pages/profile/profile_app_bar.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/goal/archive_page.dart';
 
 enum MainPages {
   home,
@@ -46,7 +47,21 @@ enum MainPages {
         return switch (this) {
           home => HomeAppBar(),
           food => FoodAppBar(),
-          training => AppBarWidget(title: 'Цели'),
+          training => AppBarWidget(
+            title: textLang('Цели'),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ArchivePage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.history, color: Colors.white),
+              ),
+            ],
+          ),
           profile => ProfileAppBar(),
         };
       },

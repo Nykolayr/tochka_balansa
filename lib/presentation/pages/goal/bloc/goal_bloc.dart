@@ -286,7 +286,10 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         return subGoal;
       }).toList();
 
-      final updatedGoal = goal.copyWith(subGoals: updatedSubGoals);
+      final updatedGoal = goal.copyWith(
+        subGoals: updatedSubGoals,
+        endDate: DateTime.now(), // Добавляем endDate
+      );
 
       // Проверяем, все ли подзадачи завершены
       final allCompleted = updatedSubGoals.every((sg) => sg.isCompleted);
@@ -296,6 +299,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         final completedGoal = updatedGoal.copyWith(
           isCompleted: true,
           completionDate: DateTime.now(),
+          // endDate уже установлен в updatedGoal, поэтому не нужно его устанавливать снова
         );
 
         final updatedAdditionalGoals = state.additionalGoals
@@ -360,6 +364,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       final completedGoal = event.goal.copyWith(
         isCompleted: true,
         completionDate: DateTime.now(),
+        endDate: DateTime.now(), // Добавляем endDate
       );
 
       final updatedAdditionalGoals = state.additionalGoals

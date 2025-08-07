@@ -213,7 +213,7 @@ class GoalCardWidget extends StatelessWidget {
           title: Text(textLang('Удалить цель?')),
           content: Text(
             textLang(
-              'Вы уверены, что хотите удалить цель "${title}"? Это действие нельзя отменить.',
+              'Вы уверены, что хотите удалить цель "$title"? Это действие нельзя отменить.',
             ),
           ),
           actions: [

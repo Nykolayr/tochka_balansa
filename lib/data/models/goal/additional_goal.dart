@@ -13,6 +13,7 @@ class AdditionalGoal extends Equatable {
   final DateTime? completionDate;
   final DateTime createdAt;
   final DateTime? deadline;
+  final DateTime? endDate; // Добавляем поле endDate
   final List<Reminder> reminders;
   final DeadlineType deadlineType;
   final DateTime? targetDate;
@@ -41,6 +42,7 @@ class AdditionalGoal extends Equatable {
     this.completionDate,
     required this.createdAt,
     this.deadline,
+    this.endDate, // Добавляем в конструктор
     this.reminders = const [],
     required this.deadlineType,
     this.targetDate,
@@ -138,6 +140,7 @@ class AdditionalGoal extends Equatable {
       'completionDate': completionDate?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'deadline': deadline?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(), // Добавляем в toJson
       'reminders': reminders.map((reminder) => reminder.toJson()).toList(),
       'deadlineType': deadlineType.name,
       'targetDate': targetDate?.toIso8601String(),
@@ -177,6 +180,11 @@ class AdditionalGoal extends Equatable {
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'] as String)
           : null,
+      endDate:
+          json['endDate'] !=
+              null // Добавляем в fromJson
+          ? DateTime.parse(json['endDate'] as String)
+          : null,
       reminders:
           (json['reminders'] as List<dynamic>?)
               ?.map((r) => Reminder.fromJson(r as Map<String, dynamic>))
@@ -209,6 +217,7 @@ class AdditionalGoal extends Equatable {
     DateTime? completionDate,
     DateTime? createdAt,
     DateTime? deadline,
+    DateTime? endDate, // Добавляем в copyWith
     List<Reminder>? reminders,
     DeadlineType? deadlineType,
     DateTime? targetDate,

@@ -244,7 +244,9 @@ class UserRepository {
 
   Future<void> saveArchivedGoalsToLocal() async {
     try {
-      final archivedGoalsJson = archivedGoals.map((goal) => goal.toJson()).toList();
+      final archivedGoalsJson = archivedGoals
+          .map((goal) => goal.toJson())
+          .toList();
       await HiveData.saveListJson(
         json: archivedGoalsJson,
         key: HiveDataKey.archivedGoals, // Нужно добавить в HiveDataKey
@@ -257,16 +259,27 @@ class UserRepository {
 
   Future<void> loadArchivedGoalsFromLocal() async {
     try {
-      final archivedGoalsJson = await HiveData.loadListJson(
-        key: HiveDataKey.archivedGoals,
-      );
-      archivedGoals = archivedGoalsJson
-          .map((json) => AdditionalGoal.fromJson(Map<String, dynamic>.from(json)))
-          .toList();
-      Logger.i('Архивные цели загружены из Hive: ${archivedGoals.length}');
+      final data = await HiveData.loadListJson(key: HiveDataKey.archivedGoals);
+      if (data.isNotEmpty && !data.first.containsKey('error')) {
+        archivedGoals = data.map((goalJson) {
+          Logger.d('Загружаем архивную цель: $goalJson');
+          final goal = AdditionalGoal.fromJson(
+            Map<String, dynamic>.from(goalJson),
+          );
+          Logger.d('Цель загружена: ${goal.title}, endDate: ${goal.endDate}');
+          // Если endDate не установлена, устанавливаем сегодняшнюю дату
+          if (goal.endDate == null) {
+            Logger.d('endDate не установлена, устанавливаем сегодняшнюю дату');
+            return goal.copyWith(endDate: DateTime.now());
+          }
+          return goal;
+        }).toList();
+        Logger.i(
+          'Архивные цели загружены из Hive: ${archivedGoals.length} целей',
+        );
+      }
     } catch (e) {
-      Logger.e('Ошибка загрузки архивных целей: $e');
-      archivedGoals = [];
+      Logger.e('loadArchivedGoalsFromLocal error: $e');
     }
   }
 }
