@@ -273,13 +273,14 @@ class SubGoal extends Equatable {
   final TimeOfDay? eveningTime; // Время вечернего приема
   final String? description; // Описание (например, "до еды", "после еды")
 
-  // Новые поля для управления курсом
+  // Новые поля для управления достижением цели
   final int amountPerDose; // Количество за прием (например, 2 таблетки)
-  final CourseType courseType; // Тип курса: по дням или по общему количеству
+  final GoalAchievementType
+  achievementType; // Тип достижения цели: по времени или по общему количеству
+  final TimeInterval?
+  timeInterval; // Интервал времени (если achievementType == GoalAchievementType.byTime)
   final int?
-  courseDays; // Количество дней курса (если courseType == CourseType.byDays)
-  final int?
-  totalAmount; // Общее количество (если courseType == CourseType.byTotal)
+  totalAmount; // Общее количество (если achievementType == GoalAchievementType.byTotal)
 
   const SubGoal({
     required this.id,
@@ -298,8 +299,8 @@ class SubGoal extends Equatable {
     this.eveningTime,
     this.description,
     required this.amountPerDose,
-    required this.courseType,
-    this.courseDays,
+    required this.achievementType,
+    this.timeInterval,
     this.totalAmount,
   });
 
@@ -317,8 +318,8 @@ class SubGoal extends Equatable {
     TimeOfDay? eveningTime,
     String? description,
     int? amountPerDose,
-    CourseType? courseType,
-    int? courseDays,
+    GoalAchievementType? achievementType,
+    TimeInterval? timeInterval,
     int? totalAmount,
   }) {
     return SubGoal(
@@ -338,8 +339,8 @@ class SubGoal extends Equatable {
       eveningTime: eveningTime ?? this.eveningTime,
       description: description ?? this.description,
       amountPerDose: amountPerDose ?? this.amountPerDose,
-      courseType: courseType ?? this.courseType,
-      courseDays: courseDays ?? this.courseDays,
+      achievementType: achievementType ?? this.achievementType,
+      timeInterval: timeInterval ?? this.timeInterval,
       totalAmount: totalAmount ?? this.totalAmount,
     );
   }
@@ -351,11 +352,12 @@ class SubGoal extends Equatable {
   double get progressPercentage =>
       targetCount > 0 ? (currentCount / targetCount).clamp(0.0, 1.0) : 0.0;
 
-  // Вычисляемое количество дней курса
-  int get calculatedCourseDays {
-    if (courseType == CourseType.byDays) {
-      return courseDays ?? 0;
-    } else if (courseType == CourseType.byTotal && totalAmount != null) {
+  // Вычисляемое количество дней достижения цели
+  int get calculatedDays {
+    if (achievementType == GoalAchievementType.byTime && timeInterval != null) {
+      return timeInterval!.days;
+    } else if (achievementType == GoalAchievementType.byTotal &&
+        totalAmount != null) {
       final dosesPerDay = _getDosesPerDay();
       return dosesPerDay > 0
           ? (totalAmount! / (amountPerDose * dosesPerDay)).ceil()
@@ -366,11 +368,12 @@ class SubGoal extends Equatable {
 
   // Вычисляемое общее количество
   int get calculatedTotalAmount {
-    if (courseType == CourseType.byTotal) {
+    if (achievementType == GoalAchievementType.byTotal) {
       return totalAmount ?? 0;
-    } else if (courseType == CourseType.byDays && courseDays != null) {
+    } else if (achievementType == GoalAchievementType.byTime &&
+        timeInterval != null) {
       final dosesPerDay = _getDosesPerDay();
-      return courseDays! * amountPerDose * dosesPerDay;
+      return timeInterval!.days * amountPerDose * dosesPerDay;
     }
     return 0;
   }
@@ -408,15 +411,38 @@ class SubGoal extends Equatable {
     return times.join(', ');
   }
 
-  // Получить описание курса
-  String get courseDescription {
+  // Получить описание достижения цели
+  String get achievementDescription {
     final dosesPerDay = _getDosesPerDay();
-    if (courseType == CourseType.byDays) {
-      return '$amountPerDose за прием, $dosesPerDay раз в день, $calculatedCourseDays дней';
+    if (achievementType == GoalAchievementType.byTime && timeInterval != null) {
+      return '$amountPerDose за прием, $dosesPerDay раз в день, ${timeInterval!.title}';
     } else {
       return '$amountPerDose за прием, $dosesPerDay раз в день, всего $calculatedTotalAmount';
     }
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    title,
+    targetCount,
+    currentCount,
+    reminderText,
+    reminderTimes,
+    isCompleted,
+    createdAt,
+    takeMorning,
+    takeLunch,
+    takeEvening,
+    morningTime,
+    lunchTime,
+    eveningTime,
+    description,
+    amountPerDose,
+    achievementType,
+    timeInterval,
+    totalAmount,
+  ];
 
   // Сериализация в JSON
   Map<String, dynamic> toJson() {
@@ -439,8 +465,8 @@ class SubGoal extends Equatable {
       'eveningTime': eveningTime?.toString(),
       'description': description,
       'amountPerDose': amountPerDose,
-      'courseType': courseType.name,
-      'courseDays': courseDays,
+      'achievementType': achievementType.name,
+      'timeInterval': timeInterval?.name,
       'totalAmount': totalAmount,
     };
   }
@@ -474,11 +500,16 @@ class SubGoal extends Equatable {
           : null,
       description: json['description'] as String?,
       amountPerDose: json['amountPerDose'] as int,
-      courseType: CourseType.values.firstWhere(
-        (e) => e.name == json['courseType'],
-        orElse: () => CourseType.byDays,
+      achievementType: GoalAchievementType.values.firstWhere(
+        (e) => e.name == json['achievementType'],
+        orElse: () => GoalAchievementType.byTime,
       ),
-      courseDays: json['courseDays'] as int?,
+      timeInterval: json['timeInterval'] != null
+          ? TimeInterval.values.firstWhere(
+              (e) => e.name == json['timeInterval'],
+              orElse: () => TimeInterval.oneMonth,
+            )
+          : null,
       totalAmount: json['totalAmount'] as int?,
     );
   }
@@ -491,52 +522,29 @@ class SubGoal extends Equatable {
         .split(':');
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
-
-  @override
-  List<Object?> get props => [
-    id,
-    title,
-    targetCount,
-    currentCount,
-    reminderText,
-    reminderTimes,
-    isCompleted,
-    createdAt,
-    takeMorning,
-    takeLunch,
-    takeEvening,
-    morningTime,
-    lunchTime,
-    eveningTime,
-    description,
-    amountPerDose,
-    courseType,
-    courseDays,
-    totalAmount,
-  ];
 }
 
-// Тип курса
-enum CourseType {
-  byDays, // По количеству дней
+// Тип достижения цели
+enum GoalAchievementType {
+  byTime, // По времени (дни, недели, месяцы)
   byTotal, // По общему количеству
 }
 
-extension CourseTypeExtension on CourseType {
+extension GoalAchievementTypeExtension on GoalAchievementType {
   String get title {
     switch (this) {
-      case CourseType.byDays:
-        return 'По дням';
-      case CourseType.byTotal:
+      case GoalAchievementType.byTime:
+        return 'По времени';
+      case GoalAchievementType.byTotal:
         return 'По общему количеству';
     }
   }
 
   String get description {
     switch (this) {
-      case CourseType.byDays:
-        return 'Указать количество дней курса';
-      case CourseType.byTotal:
+      case GoalAchievementType.byTime:
+        return 'Указать период времени';
+      case GoalAchievementType.byTotal:
         return 'Указать общее количество';
     }
   }

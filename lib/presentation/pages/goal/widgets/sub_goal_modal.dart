@@ -3,6 +3,7 @@ import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 
 class SubGoalModal extends StatefulWidget {
   final String goalTo;
@@ -28,13 +29,13 @@ class _SubGoalModalState extends State<SubGoalModal> {
   // Количество за прием
   int _amountPerDose = 1;
 
-  // Тип курса
-  CourseType _courseType = CourseType.byDays;
+  // Тип достижения цели
+  GoalAchievementType _achievementType = GoalAchievementType.byTime;
 
-  // Поля для курса по дням
-  int _courseDays = 7;
+  // Поля для достижения цели по времени
+  TimeInterval _timeInterval = TimeInterval.oneMonth;
 
-  // Поля для курса по общему количеству
+  // Поля для достижения цели по общему количеству
   int _totalAmount = 30;
 
   // Время приема
@@ -135,9 +136,9 @@ class _SubGoalModalState extends State<SubGoalModal> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Тип курса
+                        // Тип достижения цели
                         Text(
-                          textLang('Тип курса:'),
+                          textLang('Тип достижения цели:'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -153,10 +154,10 @@ class _SubGoalModalState extends State<SubGoalModal> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: DropdownButtonHideUnderline(
-                            child: DropdownButton<CourseType>(
-                              value: _courseType,
+                            child: DropdownButton<GoalAchievementType>(
+                              value: _achievementType,
                               isExpanded: true,
-                              items: CourseType.values.map((type) {
+                              items: GoalAchievementType.values.map((type) {
                                 return DropdownMenuItem(
                                   value: type,
                                   child: Column(
@@ -179,7 +180,7 @@ class _SubGoalModalState extends State<SubGoalModal> {
                               onChanged: (value) {
                                 if (value != null) {
                                   setState(() {
-                                    _courseType = value;
+                                    _achievementType = value;
                                   });
                                 }
                               },
@@ -188,17 +189,43 @@ class _SubGoalModalState extends State<SubGoalModal> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Поля в зависимости от типа курса
-                        if (_courseType == CourseType.byDays) ...[
-                          TextFormField(
-                            initialValue: _courseDays.toString(),
-                            decoration: InputDecoration(
-                              labelText: 'Количество дней курса',
-                              border: const OutlineInputBorder(),
+                        // Поля в зависимости от типа достижения цели
+                        if (_achievementType == GoalAchievementType.byTime) ...[
+                          Text(
+                            textLang('Период времени:'),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.darkBlue,
                             ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) =>
-                                _courseDays = int.tryParse(value) ?? 7,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColor.grey),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<TimeInterval>(
+                                value: _timeInterval,
+                                isExpanded: true,
+                                items: TimeInterval.values.map((interval) {
+                                  return DropdownMenuItem(
+                                    value: interval,
+                                    child: Text(interval.title),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _timeInterval = value;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
                           ),
                         ] else ...[
                           TextFormField(
@@ -386,11 +413,11 @@ class _SubGoalModalState extends State<SubGoalModal> {
       return;
     }
 
-    // Вычисляем targetCount в зависимости от типа курса
+    // Вычисляем targetCount в зависимости от типа достижения цели
     int targetCount;
-    if (_courseType == CourseType.byDays) {
+    if (_achievementType == GoalAchievementType.byTime) {
       final dosesPerDay = _getDosesPerDay();
-      targetCount = _courseDays * _amountPerDose * dosesPerDay;
+      targetCount = _timeInterval.days * _amountPerDose * dosesPerDay;
     } else {
       targetCount = _totalAmount;
     }
@@ -410,9 +437,13 @@ class _SubGoalModalState extends State<SubGoalModal> {
           ? _descriptionController.text
           : null,
       amountPerDose: _amountPerDose,
-      courseType: _courseType,
-      courseDays: _courseType == CourseType.byDays ? _courseDays : null,
-      totalAmount: _courseType == CourseType.byTotal ? _totalAmount : null,
+      achievementType: _achievementType,
+      timeInterval: _achievementType == GoalAchievementType.byTime
+          ? _timeInterval
+          : null,
+      totalAmount: _achievementType == GoalAchievementType.byTotal
+          ? _totalAmount
+          : null,
     );
 
     widget.onSubGoalAdded(subGoal);
