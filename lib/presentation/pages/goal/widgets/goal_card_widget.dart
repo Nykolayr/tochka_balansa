@@ -6,6 +6,8 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
+import 'package:get/get.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 
 class GoalCardWidget extends StatelessWidget {
   final dynamic goal; // UserGoal или AdditionalGoal
@@ -129,7 +131,11 @@ class GoalCardWidget extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(icon, color: AppColor.darkBlue, size: 24),
+                  Icon(
+                    icon,
+                    color: AppColor.darkBlue,
+                    size: 24,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -153,15 +159,25 @@ class GoalCardWidget extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Кнопка удаления только для дополнительных целей
+                  if (!isMainGoal && goal is AdditionalGoal)
+                    IconButton(
+                      onPressed: () => _showDeleteDialog(context),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: AppColor.red,
+                        size: 20,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
               LinearProgressIndicator(
                 value: progress / 100,
                 backgroundColor: AppColor.grey,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColor.darkBlue,
-                ),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColor.darkBlue),
                 minHeight: 6,
               ),
               const SizedBox(height: 8),
@@ -191,5 +207,44 @@ class GoalCardWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(textLang('Удалить цель?')),
+          content: Text(textLang('Вы уверены, что хотите удалить эту цель? Это действие нельзя отменить.')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                textLang('Отмена'),
+                style: const TextStyle(color: AppColor.greyText),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteGoal();
+              },
+              child: Text(
+                textLang('Удалить'),
+                style: const TextStyle(color: AppColor.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteGoal() {
+    if (goal is AdditionalGoal) {
+      final additionalGoal = goal as AdditionalGoal;
+      final goalBloc = Get.find<GoalBloc>();
+      goalBloc.add(RemoveAdditionalGoalEvent(additionalGoal.id));
+    }
   }
 }
