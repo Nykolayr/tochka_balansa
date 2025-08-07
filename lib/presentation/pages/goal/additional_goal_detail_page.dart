@@ -23,21 +23,8 @@ class AdditionalGoalDetailPage extends StatelessWidget {
         final goalInActive = state.additionalGoals.any((g) => g.id == goal.id);
 
         if (goalInArchive && !goalInActive) {
-          // Цель была перемещена в архив - показываем уведомление и возвращаемся
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                textLang(
-                  'Поздравляем! Все задачи выполнены! Цель перемещена в архив.',
-                ),
-              ),
-              backgroundColor: AppColor.green,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-
-          // Возвращаемся на предыдущую страницу
-          Navigator.of(context).pop();
+          // Цель была перемещена в архив - показываем модальное окно
+          _showGoalCompletedDialog(context);
         }
       },
       child: Scaffold(
@@ -91,6 +78,84 @@ class AdditionalGoalDetailPage extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  void _showGoalCompletedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Нельзя закрыть по клику вне окна
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle, color: AppColor.green, size: 64),
+              const SizedBox(height: 16),
+              Text(
+                textLang('Поздравляем!'),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.darkBlue,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                textLang('Все задачи выполнены!'),
+                style: const TextStyle(fontSize: 16, color: AppColor.greyText),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                textLang(
+                  'Цель перемещена в архив, где вы сможете ее просмотреть.',
+                ),
+                style: const TextStyle(fontSize: 14, color: AppColor.greyText),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(
+                      context,
+                    ).pop(); // Возвращаемся на предыдущую страницу
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.darkBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    textLang('ОК'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
