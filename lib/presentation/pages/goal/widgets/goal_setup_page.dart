@@ -197,16 +197,18 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
               top: 10,
               left: 20,
               right: 20,
-              bottom: keyboardHeight > 20
-                  ? keyboardHeight - 20
-                  : 20, // Используем вычисленное значение
+              bottom: keyboardHeight > 0 ? keyboardHeight - 20 : 20,
             ),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _createGoal,
+                onPressed: subGoals.isNotEmpty
+                    ? _createGoal
+                    : null, // Кнопка неактивна, если нет подцелей
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.darkBlue,
+                  backgroundColor: subGoals.isNotEmpty
+                      ? AppColor.darkBlue
+                      : AppColor.grey, // Серый цвет, если неактивна
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -255,6 +257,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
 
   void _createGoal() {
     if (!_formKey.currentState!.validate()) return;
+    if (subGoals.isEmpty) return; // Дополнительная проверка
 
     final goal = AdditionalGoal(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -265,7 +268,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
           ? _descriptionController.text
           : widget.template.description,
       createdAt: DateTime.now(),
-      deadlineType: DeadlineType.fixed, // Теперь DeadlineType доступен
+      deadlineType: DeadlineType.fixed,
       targetDate: DateTime.now().add(const Duration(days: 30)),
       targetCount: _targetCount,
       unit: _unit,
@@ -277,6 +280,14 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
 
     final goalBloc = Get.find<GoalBloc>();
     goalBloc.add(AddAdditionalGoalEvent(goal));
+
+    // Показываем уведомление
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(textLang('Дополнительная цель создана')),
+        backgroundColor: AppColor.darkBlue,
+      ),
+    );
 
     Navigator.pop(context);
     Navigator.pop(context);

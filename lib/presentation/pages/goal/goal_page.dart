@@ -32,8 +32,6 @@ class _GoalPageState extends State<GoalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarWidget(title: 'Цели'),
-
       body: BlocBuilder<GoalBloc, GoalState>(
         bloc: Get.find<GoalBloc>(),
         builder: (context, state) {
