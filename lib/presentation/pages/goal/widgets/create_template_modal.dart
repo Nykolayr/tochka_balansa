@@ -46,6 +46,7 @@ class CreateTemplateModal extends StatelessWidget {
 
             // Информация о цели
             Container(
+              width: double.infinity, // Добавляем полную ширину
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColor.greyLine,
@@ -72,16 +73,7 @@ class CreateTemplateModal extends StatelessWidget {
                       ),
                     ),
                   ],
-                  if (goal.subGoals.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      '${goal.subGoals.length} ${textLang('подзадач')}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColor.greyText,
-                      ),
-                    ),
-                  ],
+                  // Убираем блок с количеством подзадач
                 ],
               ),
             ),

@@ -110,6 +110,7 @@ class _GoalPageState extends State<GoalPage> {
               ),
             ],
           ),
+          const SizedBox(height: 12), // Добавляем небольшой отступ
 
           if (state.additionalGoals.isEmpty) ...[
             // Сообщение если нет дополнительных целей
