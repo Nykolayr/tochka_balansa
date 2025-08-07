@@ -7,7 +7,7 @@ import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
-import 'package:tochka_balansa/presentation/pages/goal/widgets/sub_goal_modal.dart';
+import 'package:tochka_balansa/presentation/pages/goal/sub_goal_page.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class AdditionalGoalSetupPage extends StatefulWidget {
@@ -231,18 +231,18 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
   }
 
   void _addSubGoal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => SubGoalModal(
-        goalTo: widget.template.goalTo,
-        unit: _unit,
-        onSubGoalAdded: (subGoal) {
-          setState(() {
-            subGoals.add(subGoal);
-          });
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubGoalPage(
+          goalTo: widget.template.goalTo,
+          unit: _unit,
+          onSubGoalAdded: (subGoal) {
+            setState(() {
+              subGoals.add(subGoal);
+            });
+          },
+        ),
       ),
     );
   }
