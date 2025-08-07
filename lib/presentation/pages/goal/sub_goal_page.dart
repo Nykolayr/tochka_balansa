@@ -58,6 +58,18 @@ class _SubGoalPageState extends State<SubGoalPage> {
   void initState() {
     super.initState();
     _setupFocusListeners();
+
+    // Добавляем слушатель для обновления состояния кнопки
+    _titleController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  // Геттер для проверки валидности формы
+  bool get _isFormValid {
+    final hasTitle = _titleController.text.trim().isNotEmpty;
+    final hasTimeSelected = _takeMorning || _takeLunch || _takeEvening;
+    return hasTitle && hasTimeSelected;
   }
 
   void _setupFocusListeners() {
@@ -395,9 +407,11 @@ class _SubGoalPageState extends State<SubGoalPage> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _createSubGoal,
+                onPressed: _isFormValid ? _createSubGoal : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.darkBlue,
+                  backgroundColor: _isFormValid
+                      ? AppColor.darkBlue
+                      : AppColor.grey,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
