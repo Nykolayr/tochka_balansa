@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
@@ -400,6 +399,8 @@ class _GoalSetupPageState extends State<GoalSetupPage> {
       mainBloc.add(GoToPageEvent(2)); // 2 - индекс таба "Цели" (training)
 
       // Используем GoRouter для навигации
+
+      // ignore: use_build_context_synchronously
       context.go('/main');
 
       AppToast.show('${textLang('Цель создана')}: ${goal.goalType.title}');
