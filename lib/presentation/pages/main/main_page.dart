@@ -97,27 +97,18 @@ class _MainPageState extends State<MainPage> {
               },
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
-                extendBodyBehindAppBar: true,
+                extendBody: true, // Добавляем это чтобы контент шел под табами
                 backgroundColor: AppColor.white,
                 appBar: PreferredSize(
                   preferredSize: Size.fromHeight(56),
                   child: MainPages.values[selectedIndex].appBar,
                 ),
-                bottomNavigationBar: Stack(
-                  children: [
-                    // Овальный фон
-                    const OvalBottomBar(),
-                    // Кнопки навигации поверх
-                    NavigationButtons(
-                      selectedIndex: selectedIndex,
-                      onItemTapped: onItemTapped,
-                    ),
-                  ],
-                ),
                 body: Stack(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 90),
+                      padding: const EdgeInsets.only(
+                        bottom: 60,
+                      ), // Добавляем отступ снизу
                       child: PageView(
                         physics: const NeverScrollableScrollPhysics(),
                         controller: pageController,
@@ -134,6 +125,21 @@ class _MainPageState extends State<MainPage> {
                         child: CircularProgressIndicator(color: AppColor.white),
                       ),
                     ],
+                    // Овал с табами поверх контента
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Stack(
+                        children: [
+                          const OvalBottomBar(),
+                          NavigationButtons(
+                            selectedIndex: selectedIndex,
+                            onItemTapped: onItemTapped,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
