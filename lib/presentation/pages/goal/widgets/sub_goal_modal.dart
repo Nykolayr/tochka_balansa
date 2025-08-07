@@ -54,7 +54,13 @@ class _SubGoalModalState extends State<SubGoalModal> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.medication, color: Colors.white, size: 24),
+                Icon(
+                  widget.goalTo == 'лекарство'
+                      ? Icons.medication
+                      : Icons.add_task,
+                  color: Colors.white,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -112,7 +118,7 @@ class _SubGoalModalState extends State<SubGoalModal> {
 
                     // Время приема
                     Text(
-                      textLang('Время приема:'),
+                      textLang('Время выполнения:'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -214,9 +220,7 @@ class _SubGoalModalState extends State<SubGoalModal> {
                     TextFormField(
                       controller: _descriptionController,
                       decoration: InputDecoration(
-                        labelText: textLang(
-                          'Описание (например: до еды, после еды)',
-                        ),
+                        labelText: textLang('Описание'),
                         border: const OutlineInputBorder(),
                       ),
                       maxLines: 2,
@@ -269,7 +273,9 @@ class _SubGoalModalState extends State<SubGoalModal> {
     if (!_formKey.currentState!.validate()) return;
     if (!_takeMorning && !_takeLunch && !_takeEvening) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(textLang('Выберите хотя бы одно время приема'))),
+        SnackBar(
+          content: Text(textLang('Выберите хотя бы одно время выполнения')),
+        ),
       );
       return;
     }
@@ -288,16 +294,12 @@ class _SubGoalModalState extends State<SubGoalModal> {
       description: _descriptionController.text.isNotEmpty
           ? _descriptionController.text
           : null,
+      amountPerDose: _targetCount, // Количество за прием
+      courseType: CourseType.byDays, // По умолчанию по дням
+      courseDays: 7, // По умолчанию 7 дней
     );
 
     widget.onSubGoalAdded(subGoal);
     Navigator.pop(context);
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
   }
 }

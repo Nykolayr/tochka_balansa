@@ -273,6 +273,14 @@ class SubGoal extends Equatable {
   final TimeOfDay? eveningTime; // Время вечернего приема
   final String? description; // Описание (например, "до еды", "после еды")
 
+  // Новые поля для управления курсом
+  final int amountPerDose; // Количество за прием (например, 2 таблетки)
+  final CourseType courseType; // Тип курса: по дням или по общему количеству
+  final int?
+  courseDays; // Количество дней курса (если courseType == CourseType.byDays)
+  final int?
+  totalAmount; // Общее количество (если courseType == CourseType.byTotal)
+
   const SubGoal({
     required this.id,
     required this.title,
@@ -289,6 +297,10 @@ class SubGoal extends Equatable {
     this.lunchTime,
     this.eveningTime,
     this.description,
+    required this.amountPerDose,
+    required this.courseType,
+    this.courseDays,
+    this.totalAmount,
   });
 
   // Обновление прогресса
@@ -304,6 +316,10 @@ class SubGoal extends Equatable {
     TimeOfDay? lunchTime,
     TimeOfDay? eveningTime,
     String? description,
+    int? amountPerDose,
+    CourseType? courseType,
+    int? courseDays,
+    int? totalAmount,
   }) {
     return SubGoal(
       id: id,
@@ -321,6 +337,10 @@ class SubGoal extends Equatable {
       lunchTime: lunchTime ?? this.lunchTime,
       eveningTime: eveningTime ?? this.eveningTime,
       description: description ?? this.description,
+      amountPerDose: amountPerDose ?? this.amountPerDose,
+      courseType: courseType ?? this.courseType,
+      courseDays: courseDays ?? this.courseDays,
+      totalAmount: totalAmount ?? this.totalAmount,
     );
   }
 
@@ -330,6 +350,39 @@ class SubGoal extends Equatable {
   // Процент выполнения
   double get progressPercentage =>
       targetCount > 0 ? (currentCount / targetCount).clamp(0.0, 1.0) : 0.0;
+
+  // Вычисляемое количество дней курса
+  int get calculatedCourseDays {
+    if (courseType == CourseType.byDays) {
+      return courseDays ?? 0;
+    } else if (courseType == CourseType.byTotal && totalAmount != null) {
+      final dosesPerDay = _getDosesPerDay();
+      return dosesPerDay > 0
+          ? (totalAmount! / (amountPerDose * dosesPerDay)).ceil()
+          : 0;
+    }
+    return 0;
+  }
+
+  // Вычисляемое общее количество
+  int get calculatedTotalAmount {
+    if (courseType == CourseType.byTotal) {
+      return totalAmount ?? 0;
+    } else if (courseType == CourseType.byDays && courseDays != null) {
+      final dosesPerDay = _getDosesPerDay();
+      return courseDays! * amountPerDose * dosesPerDay;
+    }
+    return 0;
+  }
+
+  // Количество доз в день
+  int _getDosesPerDay() {
+    int doses = 0;
+    if (takeMorning) doses++;
+    if (takeLunch) doses++;
+    if (takeEvening) doses++;
+    return doses;
+  }
 
   // Получить время приема в текстовом виде
   String get timeOfDayText {
@@ -352,14 +405,20 @@ class SubGoal extends Equatable {
         'вечер (${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')})',
       );
     }
-
-    if (times.isEmpty) return 'не указано';
-    if (times.length == 1) return times.first;
-    if (times.length == 2) return '${times[0]} и ${times[1]}';
-    return '${times[0]}, ${times[1]} и ${times[2]}';
+    return times.join(', ');
   }
 
-  // Метод для сериализации в JSON
+  // Получить описание курса
+  String get courseDescription {
+    final dosesPerDay = _getDosesPerDay();
+    if (courseType == CourseType.byDays) {
+      return '$amountPerDose за прием, $dosesPerDay раз в день, $calculatedCourseDays дней';
+    } else {
+      return '$amountPerDose за прием, $dosesPerDay раз в день, всего $calculatedTotalAmount';
+    }
+  }
+
+  // Сериализация в JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -375,47 +434,62 @@ class SubGoal extends Equatable {
       'takeMorning': takeMorning,
       'takeLunch': takeLunch,
       'takeEvening': takeEvening,
-      'morningTime': morningTime != null
-          ? '${morningTime!.hour.toString().padLeft(2, '0')}:${morningTime!.minute.toString().padLeft(2, '0')}'
-          : null,
-      'lunchTime': lunchTime != null
-          ? '${lunchTime!.hour.toString().padLeft(2, '0')}:${lunchTime!.minute.toString().padLeft(2, '0')}'
-          : null,
-      'eveningTime': eveningTime != null
-          ? '${eveningTime!.hour.toString().padLeft(2, '0')}:${eveningTime!.minute.toString().padLeft(2, '0')}'
-          : null,
+      'morningTime': morningTime?.toString(),
+      'lunchTime': lunchTime?.toString(),
+      'eveningTime': eveningTime?.toString(),
       'description': description,
+      'amountPerDose': amountPerDose,
+      'courseType': courseType.name,
+      'courseDays': courseDays,
+      'totalAmount': totalAmount,
     };
   }
 
+  // Десериализация из JSON
   factory SubGoal.fromJson(Map<String, dynamic> json) {
-    TimeOfDay? parseTime(String? timeStr) {
-      if (timeStr == null) return null;
-      final parts = timeStr.split(':');
-      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-    }
-
     return SubGoal(
-      id: json['id'] ?? '',
-      title: json['title'] ?? '',
-      targetCount: json['targetCount'] ?? 0,
-      currentCount: json['currentCount'] ?? 0,
-      reminderText: json['reminderText'],
+      id: json['id'] as String,
+      title: json['title'] as String,
+      targetCount: json['targetCount'] as int,
+      currentCount: json['currentCount'] as int? ?? 0,
+      reminderText: json['reminderText'] as String?,
       reminderTimes:
           (json['reminderTimes'] as List<dynamic>?)
-              ?.map((time) => DateTime.parse(time))
+              ?.map((time) => DateTime.parse(time as String))
               .toList() ??
           [],
-      isCompleted: json['isCompleted'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      takeMorning: json['takeMorning'] ?? false,
-      takeLunch: json['takeLunch'] ?? false,
-      takeEvening: json['takeEvening'] ?? false,
-      morningTime: parseTime(json['morningTime']),
-      lunchTime: parseTime(json['lunchTime']),
-      eveningTime: parseTime(json['eveningTime']),
-      description: json['description'],
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      takeMorning: json['takeMorning'] as bool? ?? false,
+      takeLunch: json['takeLunch'] as bool? ?? false,
+      takeEvening: json['takeEvening'] as bool? ?? false,
+      morningTime: json['morningTime'] != null
+          ? _parseTimeOfDay(json['morningTime'] as String)
+          : null,
+      lunchTime: json['lunchTime'] != null
+          ? _parseTimeOfDay(json['lunchTime'] as String)
+          : null,
+      eveningTime: json['eveningTime'] != null
+          ? _parseTimeOfDay(json['eveningTime'] as String)
+          : null,
+      description: json['description'] as String?,
+      amountPerDose: json['amountPerDose'] as int,
+      courseType: CourseType.values.firstWhere(
+        (e) => e.name == json['courseType'],
+        orElse: () => CourseType.byDays,
+      ),
+      courseDays: json['courseDays'] as int?,
+      totalAmount: json['totalAmount'] as int?,
     );
+  }
+
+  // Вспомогательный метод для парсинга TimeOfDay
+  static TimeOfDay _parseTimeOfDay(String timeString) {
+    final parts = timeString
+        .replaceAll('TimeOfDay(', '')
+        .replaceAll(')', '')
+        .split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
   @override
@@ -435,7 +509,37 @@ class SubGoal extends Equatable {
     lunchTime,
     eveningTime,
     description,
+    amountPerDose,
+    courseType,
+    courseDays,
+    totalAmount,
   ];
+}
+
+// Тип курса
+enum CourseType {
+  byDays, // По количеству дней
+  byTotal, // По общему количеству
+}
+
+extension CourseTypeExtension on CourseType {
+  String get title {
+    switch (this) {
+      case CourseType.byDays:
+        return 'По дням';
+      case CourseType.byTotal:
+        return 'По общему количеству';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case CourseType.byDays:
+        return 'Указать количество дней курса';
+      case CourseType.byTotal:
+        return 'Указать общее количество';
+    }
+  }
 }
 
 class Reminder extends Equatable {
