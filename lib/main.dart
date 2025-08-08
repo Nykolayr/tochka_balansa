@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
-import 'package:flutter_keyboard_size/flutter_keyboard_size.dart'; // Добавляем импорт
+import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -12,9 +12,8 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/core/di/locator.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool isMock = true;
@@ -25,32 +24,11 @@ void main() async {
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
 
-  // Инициализируем UserRepository и загружаем данные
-  final userRepository = UserRepository();
-  await userRepository.init();
-  Get.put(userRepository);
-
-  // Инициализируем блоки
-  Get.put(LanguageBloc()..add(LoadLanguageEvent()));
-  Get.put(MainBloc());
-
-  // Инициализируем GoalBloc и загружаем цели
-  final goalBloc = GoalBloc();
-  Get.put(goalBloc);
+  // Инициализируем все зависимости
+  await initMain();
 
   // Загружаем цели и проверяем их
-  goalBloc.add(const LoadGoalsEvent());
-
-  // Дополнительная проверка через небольшую задержку
-  Future.delayed(const Duration(milliseconds: 500), () {
-    final userRepo = Get.find<UserRepository>();
-    Logger.i(
-      'Проверка после инициализации: mainGoal = ${userRepo.user.mainGoal}',
-    );
-    if (!userRepo.user.mainGoal.hasMainGoal) {
-      Logger.w('mainGoal не загружена после инициализации');
-    }
-  });
+  Get.find<GoalBloc>().add(const LoadGoalsEvent());
 
   runApp(const MyApp());
 }
@@ -78,9 +56,9 @@ class MyApp extends StatelessWidget {
               : const Locale('ru', 'RU');
         }
 
-        return KeyboardSizeProvider( // Обертываем вокруг MaterialApp.router
+        return KeyboardSizeProvider(
           child: MaterialApp.router(
-            key: ValueKey(languageState), // Уникальный ключ для пересоздания
+            key: ValueKey(languageState),
             title: 'Tochka Balansa',
             locale: currentLocale,
             localizationsDelegates: const [

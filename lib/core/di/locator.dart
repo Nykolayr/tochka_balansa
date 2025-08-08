@@ -7,10 +7,13 @@ import 'package:tochka_balansa/data/api/api.dart';
 import 'package:tochka_balansa/data/api/dio_client.dart';
 import 'package:tochka_balansa/data/repositories/main_repository.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/data/repositories/health_repository.dart';
 import 'package:tochka_balansa/presentation/pages/auth/bloc/auth_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
+import 'package:tochka_balansa/providers/language_bloc.dart';
 
 /// внедряем зависимости
 Future initMain() async {
@@ -37,11 +40,22 @@ Future initMain() async {
     return 'user $e';
   }
 
+  // Регистрируем HealthRepository
+  try {
+    await Get.putAsync(() async {
+      final healthRepository = HealthRepository();
+      return healthRepository;
+    });
+  } catch (e) {
+    Logger.e('HealthRepository error = $e');
+    return 'HealthRepository $e';
+  }
+
   try {
     Get.put<AuthBloc>(AuthBloc());
   } catch (e) {
     Logger.e('AuthBloc error = $e');
-    return 'bloc $e';
+    return 'AuthBloc $e';
   }
 
   try {
@@ -65,19 +79,37 @@ Future initMain() async {
     Get.put<MainBloc>(MainBloc());
   } catch (e) {
     Logger.e('MainBloc error = $e');
-    return 'bloc $e';
+    return 'MainBloc $e';
   }
+
   try {
     Get.put<GoalBloc>(GoalBloc());
   } catch (e) {
     Logger.e('GoalBloc error = $e');
-    return 'bloc $e';
+    return 'GoalBloc $e';
   }
+
   try {
     Get.put<FoodBloc>(FoodBloc());
   } catch (e) {
     Logger.e('FoodBloc error = $e');
-    return 'bloc $e';
+    return 'FoodBloc $e';
+  }
+
+  // Добавляем LanguageBloc
+  try {
+    Get.put<LanguageBloc>(LanguageBloc());
+  } catch (e) {
+    Logger.e('LanguageBloc error = $e');
+    return 'LanguageBloc $e';
+  }
+
+  // Добавляем HealthBloc
+  try {
+    Get.put<HealthBloc>(HealthBloc());
+  } catch (e) {
+    Logger.e('HealthBloc error = $e');
+    return 'HealthBloc $e';
   }
 
   await Future.delayed(Duration(seconds: 2));

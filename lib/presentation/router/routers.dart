@@ -5,11 +5,11 @@ import 'package:tochka_balansa/core/utils/functions.dart';
 import 'package:tochka_balansa/presentation/pages/auth/auth_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/code_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/health_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/main_page.dart';
 import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
 import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
 import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
-import 'package:tochka_balansa/presentation/pages/food/food_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/add_additional_goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/additional_goal_detail_page.dart';
@@ -119,15 +119,15 @@ final GoRouter router = GoRouter(
           },
         ),
         GoRoute(
-          name: 'Еда',
-          path: 'food',
+          name: 'Здоровье',
+          path: 'health',
           pageBuilder: (context, state) {
             final languageState = Get.find<LanguageBloc>().state;
             return buildPageWithDefaultTransition(
               type: PageTransitionType.leftToRight,
               context: context,
               state: state,
-              child: FoodPage(key: ValueKey(languageState)),
+              child: HealthPage(key: ValueKey(languageState)),
             );
           },
         ),

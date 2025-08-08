@@ -17,7 +17,7 @@ class SubGoalPage extends StatefulWidget {
 }
 
 class _SubGoalPageState extends State<SubGoalPage> {
-  final _formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _amountPerDoseController = TextEditingController(text: '1');
