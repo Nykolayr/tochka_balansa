@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
+import 'package:tochka_balansa/data/models/user.dart';
+import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/empty_state.dart';
 
@@ -15,19 +17,30 @@ class HealthPage extends StatefulWidget {
 }
 
 class _HealthPageState extends State<HealthPage> {
+  final UserRepository _userRepository = Get.find<UserRepository>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
         builder: (context, state) {
-          if (state.healthData.metrics.isEmpty) {
-            return EmptyState(
-              icon: Icons.health_and_safety,
-              title: textLang('Нет данных о здоровье'),
-              subtitle: textLang('Добавьте свой первый показатель здоровья'),
-            );
+          // Получаем последнее измерение веса
+          HealthMetric? latestWeight;
+          if (state.healthData.metrics.isNotEmpty) {
+            final weightMetrics = state.healthData.metrics
+                .where((m) => m.type == HealthMetricType.weight)
+                .toList();
+            if (weightMetrics.isNotEmpty) {
+              weightMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+              latestWeight = weightMetrics.first;
+            }
           }
+
+          // Сортируем все метрики по дате (новые сверху) для истории
+          final sortedMetrics = List<HealthMetric>.from(
+            state.healthData.metrics,
+          )..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
           // Группируем метрики по типу и берем последнюю запись для каждого типа
           final Map<HealthMetricType, HealthMetric> latestMetrics = {};
@@ -39,16 +52,16 @@ class _HealthPageState extends State<HealthPage> {
             }
           }
 
-          // Сортируем все метрики по дате (новые сверху) для истории
-          final sortedMetrics = List<HealthMetric>.from(
-            state.healthData.metrics,
-          )..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Блок о весе
+                _buildWeightBlock(latestWeight),
+
+                const SizedBox(height: 24),
+
                 // Секция текущих показателей
                 Text(
                   textLang('Текущие показатели'),
@@ -59,9 +72,22 @@ class _HealthPageState extends State<HealthPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ...latestMetrics.values.map(
-                  (metric) => _buildMetricCard(metric),
-                ),
+                if (latestMetrics.isNotEmpty)
+                  ...latestMetrics.values
+                      .where((metric) => metric.type != HealthMetricType.weight)
+                      .map((metric) => _buildMetricCard(metric))
+                else
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        textLang('Добавьте свой первый показатель здоровья'),
+                        style: TextStyle(
+                          color: AppColor.greyText.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // Место для графиков (будет добавлено позже)
                 const SizedBox(height: 24),
@@ -131,7 +157,20 @@ class _HealthPageState extends State<HealthPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ...sortedMetrics.map((metric) => _buildHistoryItem(metric)),
+                if (sortedMetrics.isNotEmpty)
+                  ...sortedMetrics.map((metric) => _buildHistoryItem(metric))
+                else
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        textLang('История измерений пуста'),
+                        style: TextStyle(
+                          color: AppColor.greyText.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // Отступ снизу для FAB
                 const SizedBox(height: 80),
@@ -144,6 +183,230 @@ class _HealthPageState extends State<HealthPage> {
         onPressed: () => _showAddMetricDialog(context),
         backgroundColor: AppColor.darkBlue,
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildWeightBlock(HealthMetric? latestWeight) {
+    final user = _userRepository.user;
+    final height = user.height;
+    final initialWeight = user.initialWeight;
+    final currentWeight = latestWeight != null
+        ? double.tryParse(latestWeight.value) ?? initialWeight
+        : initialWeight;
+
+    // Расчет ИМТ (Индекс массы тела)
+    double bmi = 0;
+    String bmiCategory = '';
+    Color bmiColor = AppColor.grey;
+
+    if (height > 0 && currentWeight > 0) {
+      bmi = currentWeight / ((height / 100) * (height / 100));
+
+      if (bmi < 18.5) {
+        bmiCategory = textLang('Недостаточный вес');
+        bmiColor = Colors.blue;
+      } else if (bmi < 25) {
+        bmiCategory = textLang('Нормальный вес');
+        bmiColor = Colors.green;
+      } else if (bmi < 30) {
+        bmiCategory = textLang('Избыточный вес');
+        bmiColor = Colors.orange;
+      } else {
+        bmiCategory = textLang('Ожирение');
+        bmiColor = Colors.red;
+      }
+    }
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  textLang('Мой вес'),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.darkBlue,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _showAddWeightDialog(context),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(textLang('Добавить вес')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.darkBlue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        textLang('Текущий вес'),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColor.greyText.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$currentWeight кг',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (latestWeight != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(latestWeight.timestamp),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColor.greyText.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(height: 50, width: 1, color: AppColor.greyLine),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          textLang('Индекс массы тела (ИМТ)'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColor.greyText.withValues(alpha: 0.7),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          bmi > 0 ? bmi.toStringAsFixed(1) : '—',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (bmiCategory.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            bmiCategory,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: bmiColor,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (initialWeight > 0 && initialWeight != currentWeight) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(
+                    currentWeight > initialWeight
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
+                    color: currentWeight > initialWeight
+                        ? Colors.red
+                        : Colors.green,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${(currentWeight - initialWeight).abs().toStringAsFixed(1)} кг ${currentWeight > initialWeight ? textLang('набрано') : textLang('сброшено')}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: currentWeight > initialWeight
+                          ? Colors.red
+                          : Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddWeightDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(textLang('Добавить текущий вес')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: textLang('Вес (кг)'),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(textLang('Отмена')),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                final weight = double.tryParse(controller.text);
+                if (weight != null && weight > 0) {
+                  // Создаем метрику веса
+                  final metric = HealthMetric(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    type: HealthMetricType.weight,
+                    value: weight.toString(),
+                    timestamp: DateTime.now(),
+                  );
+
+                  // Добавляем в блок
+                  Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
+                  Navigator.of(context).pop();
+                }
+              }
+            },
+            child: Text(textLang('Сохранить')),
+          ),
+        ],
       ),
     );
   }
