@@ -141,5 +141,6 @@ enum HiveDataKey {
   user,
   language,
   goalTypes,
-  archivedGoals, // Добавляем ключ для архива
+  archivedGoals,
+  scannedProducts, // Переименовали с drugs на scannedProducts
 }

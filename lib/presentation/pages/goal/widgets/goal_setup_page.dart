@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:gap/gap.dart';
@@ -233,21 +235,21 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
     );
   }
 
-  void _addSubGoal() {
-    Navigator.push(
-      context,
+  Future<void> _addSubGoal() async {
+    final subGoal = await Navigator.of(context).push<SubGoal>(
       MaterialPageRoute(
-        builder: (context) => SubGoalPage(
-          goalTo: widget.template.goalTo,
-          unit: _unit,
-          onSubGoalAdded: (subGoal) {
-            setState(() {
-              subGoals.add(subGoal);
-            });
-          },
+        builder: (_) => SubGoalPage(
+          template: widget.template, // ПЕРЕДАЁМ ОБЯЗАТЕЛЬНЫЙ template
         ),
       ),
     );
+
+    if (subGoal != null) {
+      setState(() {
+        subGoals.add(subGoal);
+      });
+      // тут же активируй тип достижения "по общему количеству", если subGoal.totalAmount != null
+    }
   }
 
   void _removeSubGoal(String id) {
