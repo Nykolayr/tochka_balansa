@@ -6,6 +6,8 @@ import 'package:tochka_balansa/presentation/pages/auth/auth_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/code_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/health_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/weight_history_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/main_page.dart';
 import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
 import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
@@ -13,10 +15,10 @@ import 'package:tochka_balansa/presentation/pages/home/home_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/add_additional_goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/additional_goal_detail_page.dart';
+import 'package:tochka_balansa/presentation/pages/goal/archive_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
-import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 
 final GoRouter router = GoRouter(
@@ -93,20 +95,20 @@ final GoRouter router = GoRouter(
       ],
     ),
     GoRoute(
-      name: 'Общая',
+      name: 'основная',
       path: '/main',
       pageBuilder: (context, state) {
         final languageState = Get.find<LanguageBloc>().state;
         return buildPageWithDefaultTransition(
-          type: PageTransitionType.leftToRight,
+          type: PageTransitionType.fade,
           context: context,
           state: state,
           child: MainPage(key: ValueKey(languageState)),
         );
       },
-      routes: <GoRoute>[
+      routes: [
         GoRoute(
-          name: 'Главная',
+          name: 'домашняя',
           path: 'home',
           pageBuilder: (context, state) {
             final languageState = Get.find<LanguageBloc>().state;
@@ -119,7 +121,7 @@ final GoRouter router = GoRouter(
           },
         ),
         GoRoute(
-          name: 'Здоровье',
+          name: 'здоровье',
           path: 'health',
           pageBuilder: (context, state) {
             final languageState = Get.find<LanguageBloc>().state;
@@ -130,9 +132,39 @@ final GoRouter router = GoRouter(
               child: HealthPage(key: ValueKey(languageState)),
             );
           },
+          routes: [
+            GoRoute(
+              name: 'вес',
+              path: 'weight',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: WeightPage(key: ValueKey(languageState)),
+                );
+              },
+              routes: [
+                GoRoute(
+                  name: 'история веса',
+                  path: 'history',
+                  pageBuilder: (context, state) {
+                    final languageState = Get.find<LanguageBloc>().state;
+                    return buildPageWithDefaultTransition(
+                      type: PageTransitionType.rightToLeft,
+                      context: context,
+                      state: state,
+                      child: WeightHistoryPage(key: ValueKey(languageState)),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
-          name: 'Тренировки',
+          name: 'тренировки',
           path: 'training',
           pageBuilder: (context, state) {
             final languageState = Get.find<LanguageBloc>().state;
@@ -143,22 +175,9 @@ final GoRouter router = GoRouter(
               child: GoalPage(key: ValueKey(languageState)),
             );
           },
-          routes: <GoRoute>[
+          routes: [
             GoRoute(
-              name: 'Настройка цели',
-              path: 'setup',
-              pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
-                return buildPageWithDefaultTransition(
-                  type: PageTransitionType.rightToLeft,
-                  context: context,
-                  state: state,
-                  child: GoalSetupPage(key: ValueKey(languageState)),
-                );
-              },
-            ),
-            GoRoute(
-              name: 'Добавить дополнительную цель',
+              name: 'добавить дополнительную цель',
               path: 'add-additional',
               pageBuilder: (context, state) {
                 final languageState = Get.find<LanguageBloc>().state;
@@ -171,11 +190,23 @@ final GoRouter router = GoRouter(
               },
             ),
             GoRoute(
-              name: 'Детали дополнительной цели',
+              name: 'архив целей',
+              path: 'archive',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: ArchivePage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'детали дополнительной цели',
               path: 'goal-detail',
               pageBuilder: (context, state) {
                 final languageState = Get.find<LanguageBloc>().state;
-                // Получаем цель из параметров
                 final goal = state.extra as AdditionalGoal;
                 return buildPageWithDefaultTransition(
                   type: PageTransitionType.rightToLeft,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
@@ -42,8 +43,17 @@ class _WeightPageState extends State<WeightPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1E2E), // Темный фон как на скриншоте
-      appBar: AppBarWidget(title: textLang('Вес'), isBack: true),
+      backgroundColor: const Color(0xFF1A1E2E),
+      appBar: AppBarWidget(
+        title: textLang('Вес'),
+        isBack: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () => context.push('/main/health/weight/history'),
+          ),
+        ],
+      ),
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
         builder: (context, state) {
@@ -152,116 +162,58 @@ class _WeightPageState extends State<WeightPage>
                     ),
                     _buildBulletPoint(
                       textLang('Сейчас'),
-                      '$currentWeight кг',
+                      '${currentWeight.toStringAsFixed(1)} кг',
                       Colors.white,
                     ),
                     _buildBulletPoint(
                       textLang('Разница'),
                       '$weightDifferenceText кг',
-                      weightDifference <= 0 ? AppColor.green : AppColor.red,
+                      weightDifference <= 0 ? AppColor.green : Colors.red,
                     ),
                   ],
                 ),
               ),
 
               // График веса
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: 250,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: filteredMetrics.isEmpty
                       ? Center(
-                          child: Text(
-                            textLang('Нет данных для отображения графика'),
-                            style: TextStyle(color: AppColor.greyText),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.show_chart,
+                                size: 64,
+                                color: AppColor.greyText,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                textLang('Нет данных для отображения графика'),
+                                style: TextStyle(
+                                  color: AppColor.greyText,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                textLang(
+                                  'Добавьте измерения веса для просмотра динамики',
+                                ),
+                                style: TextStyle(
+                                  color: AppColor.greyText.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         )
                       : _buildWeightChart(filteredMetrics, targetWeight),
                 ),
-              ),
-
-              // Заголовок истории
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  textLang('История'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-              // Список измерений веса
-              Expanded(
-                child: weightMetrics.isEmpty
-                    ? Center(
-                        child: Text(
-                          textLang('История измерений веса пуста'),
-                          style: TextStyle(color: AppColor.greyText),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        itemCount: weightMetrics.length,
-                        itemBuilder: (context, index) {
-                          final metric = weightMetrics[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _formatDate(metric.timestamp),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      textLang(
-                                        'время измерения: ${_formatTime(metric.timestamp)}',
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColor.greyText,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '${double.parse(metric.value).toStringAsFixed(1)} кг',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.delete_outline,
-                                        color: AppColor.greyText,
-                                      ),
-                                      onPressed: () => _showDeleteConfirmation(
-                                        context,
-                                        metric,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
               ),
             ],
           );
@@ -387,8 +339,9 @@ class _WeightPageState extends State<WeightPage>
               reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 // Показываем даты на оси X
-                if (value.toInt() % interval != 0)
+                if (value.toInt() % interval != 0) {
                   return const SizedBox.shrink();
+                }
 
                 final date = firstDate.add(Duration(days: value.toInt()));
                 return Padding(
@@ -476,11 +429,11 @@ class _WeightPageState extends State<WeightPage>
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
-  String _formatTime(DateTime date) {
+  String formatTime(DateTime date) {
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
-  void _showDeleteConfirmation(BuildContext context, HealthMetric metric) {
+  void showDeleteConfirmation(BuildContext context, HealthMetric metric) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
