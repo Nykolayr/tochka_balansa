@@ -45,33 +45,141 @@ class WeightBlockWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Верхняя часть с весом
+            // Заголовок "Мониторинг веса" по центру
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text(
+                  textLang('Мониторинг веса'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.darkBlue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Строка с исходным весом, прогрессом и текущим весом
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Исходный вес
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Заголовок "Текущий вес"
                     Text(
-                      textLang('Текущий вес'),
+                      textLang('Исходный'),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColor.greyText.withValues(alpha: 0.7),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    // Значение веса
+                    const SizedBox(height: 4),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          currentWeight.toStringAsFixed(
-                            1,
-                          ), // Форматируем до одного знака
+                          initialWeight.toStringAsFixed(1),
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'кг',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColor.greyText.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // Прогресс (изменение веса)
+                if (initialWeight > 0 && initialWeight != currentWeight)
+                  Column(
+                    children: [
+                      Text(
+                        textLang('Изменение'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColor.greyText.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            currentWeight > initialWeight
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
+                            color: currentWeight > initialWeight
+                                ? Colors.red
+                                : Colors.green,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${(currentWeight - initialWeight).abs().toStringAsFixed(1)} кг',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: currentWeight > initialWeight
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                else
+                  Column(
+                    children: [
+                      Text(
+                        textLang('Изменение'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColor.greyText.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '0.0 кг',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                // Текущий вес
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      textLang('Текущий'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColor.greyText.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          currentWeight.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColor.darkBlue,
                           ),
@@ -80,7 +188,7 @@ class WeightBlockWidget extends StatelessWidget {
                         Text(
                           'кг',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             color: AppColor.greyText.withValues(alpha: 0.7),
                           ),
                         ),
@@ -88,16 +196,6 @@ class WeightBlockWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (latestWeight != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    _formatDate(latestWeight!.timestamp),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColor.greyText.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
               ],
             ),
 
@@ -105,57 +203,53 @@ class WeightBlockWidget extends StatelessWidget {
             const Divider(height: 1),
             const SizedBox(height: 16),
 
-            // ИМТ в одну строку с блоком
+            // ИМТ на всю ширину
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Заголовок ИМТ
                 Text(
                   textLang('ИМТ:'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: AppColor.greyText.withValues(alpha: 0.9),
                   ),
                 ),
-                const SizedBox(width: 12),
 
                 if (bmiCategory != null) ...[
                   // Блок с ИМТ
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: bmiCategory.color.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          bmi.toStringAsFixed(1),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: bmiCategory.color,
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bmiCategory.color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            bmi.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: bmiCategory.color,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 1,
-                          height: 16,
-                          color: bmiCategory.color.withValues(alpha: 0.3),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          bmiCategory.title,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: bmiCategory.color,
+                          Text(
+                            bmiCategory.title,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: bmiCategory.color,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ] else ...[
@@ -170,6 +264,20 @@ class WeightBlockWidget extends StatelessWidget {
                 ],
               ],
             ),
+
+            // Добавляем рекомендацию под блоком ИМТ
+            if (bmiCategory != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                bmiCategory.recommendation,
+                textAlign: TextAlign.start, // Выравнивание по левому краю
+                style: TextStyle(
+                  fontSize: 12, // Уменьшаем размер с 14 до 12
+                  color: AppColor.greyText.withValues(alpha: 0.9),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
 
             const SizedBox(height: 16),
 
@@ -206,64 +314,13 @@ class WeightBlockWidget extends StatelessWidget {
                 ),
               ],
             ),
-
-            const SizedBox(height: 12),
-
-            // Изменение веса (если есть)
-            if (initialWeight > 0 && initialWeight != currentWeight)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color:
-                      (currentWeight > initialWeight
-                              ? Colors.red
-                              : Colors.green)
-                          .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color:
-                        (currentWeight > initialWeight
-                                ? Colors.red
-                                : Colors.green)
-                            .withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      currentWeight > initialWeight
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      color: currentWeight > initialWeight
-                          ? Colors.red
-                          : Colors.green,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${(currentWeight - initialWeight).abs().toStringAsFixed(1)} кг',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: currentWeight > initialWeight
-                            ? Colors.red
-                            : Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
           ],
         ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
+  String formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
