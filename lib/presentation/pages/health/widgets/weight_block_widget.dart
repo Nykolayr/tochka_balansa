@@ -9,11 +9,13 @@ import 'package:tochka_balansa/data/repositories/user_repository.dart';
 class WeightBlockWidget extends StatelessWidget {
   final HealthMetric? latestWeight;
   final Function() onAddWeightPressed;
+  final Function() onViewWeightPressed;
 
   const WeightBlockWidget({
     super.key,
     required this.latestWeight,
     required this.onAddWeightPressed,
+    required this.onViewWeightPressed,
   });
 
   @override
@@ -43,78 +45,59 @@ class WeightBlockWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Верхняя часть с весом и кнопкой
+            // Верхняя часть с весом
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Левая часть с текущим весом
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    // Заголовок "Текущий вес"
+                    Text(
+                      textLang('Текущий вес'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColor.greyText.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    // Значение веса
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        // Заголовок "Текущий вес"
                         Text(
-                          textLang('Текущий вес'),
+                          currentWeight.toStringAsFixed(
+                            1,
+                          ), // Форматируем до одного знака
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.darkBlue,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'кг',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             color: AppColor.greyText.withValues(alpha: 0.7),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        // Значение веса
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '$currentWeight',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: AppColor.darkBlue,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              'кг',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColor.greyText.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
-                    if (latestWeight != null) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        _formatDate(latestWeight!.timestamp),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColor.greyText.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
-
-                // Кнопка добавления веса
-                ElevatedButton.icon(
-                  onPressed: onAddWeightPressed,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(textLang('Добавить вес')),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.darkBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                if (latestWeight != null) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    _formatDate(latestWeight!.timestamp),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColor.greyText.withValues(alpha: 0.7),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
 
@@ -185,6 +168,42 @@ class WeightBlockWidget extends StatelessWidget {
                     ),
                   ),
                 ],
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Кнопки добавления и просмотра
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: onAddWeightPressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.darkBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(textLang('Добавить вес')),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onViewWeightPressed,
+                    icon: const Icon(Icons.bar_chart, size: 18),
+                    label: Text(textLang('Просмотр')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.greyText.withValues(alpha: 0.2),
+                      foregroundColor: AppColor.darkBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
 

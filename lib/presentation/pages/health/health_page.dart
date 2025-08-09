@@ -11,6 +11,7 @@ import 'package:tochka_balansa/presentation/pages/health/widgets/add_weight_dial
 import 'package:tochka_balansa/presentation/pages/health/widgets/history_item_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/metric_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/weight_block_widget.dart';
+import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 
 class HealthPage extends StatefulWidget {
   const HealthPage({super.key});
@@ -64,6 +65,9 @@ class _HealthPageState extends State<HealthPage> {
                 WeightBlockWidget(
                   latestWeight: latestWeight,
                   onAddWeightPressed: () => AddWeightDialog.show(context),
+                  onViewWeightPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const WeightPage()),
+                  ),
                 ),
 
                 const SizedBox(height: 24),
