@@ -145,7 +145,8 @@ class HealthData extends Equatable {
     return HealthData(
       metrics: metricsList
           .map(
-            (metric) => HealthMetric.fromJson(metric as Map<String, dynamic>),
+            (metric) =>
+                HealthMetric.fromJson(Map<String, dynamic>.from(metric)),
           )
           .toList(),
     );

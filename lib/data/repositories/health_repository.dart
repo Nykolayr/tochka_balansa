@@ -17,7 +17,9 @@ class HealthRepository {
       final data = await HiveData.loadJson(key: HiveDataKey.healthData);
       // Проверяем, что в данных нет ошибки
       if (!data.containsKey('error')) {
-        healthData = HealthData.fromJson(data);
+        // Конвертируем Map<dynamic, dynamic> в Map<String, dynamic>
+        final convertedData = Map<String, dynamic>.from(data);
+        healthData = HealthData.fromJson(convertedData);
       }
     } catch (e) {
       Logger.e('Error loading health data: $e');

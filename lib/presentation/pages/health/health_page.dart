@@ -8,8 +8,8 @@ import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_metric_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_weight_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/weight_block_widget.dart';
-import 'package:tochka_balansa/presentation/pages/health/widgets/blood_pressure_block_widget.dart'
-    hide Get, Navigator;
+import 'package:tochka_balansa/presentation/pages/health/widgets/blood_pressure_block_widget.dart';
+
 import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 
 class HealthPage extends StatefulWidget {

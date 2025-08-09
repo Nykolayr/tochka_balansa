@@ -4,15 +4,10 @@ import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 
-class WeightChartWidget extends StatelessWidget {
+class BloodPressureChartWidget extends StatelessWidget {
   final List<HealthMetric> metrics;
-  final double targetWeight;
 
-  const WeightChartWidget({
-    super.key,
-    required this.metrics,
-    required this.targetWeight,
-  });
+  const BloodPressureChartWidget({super.key, required this.metrics});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +33,7 @@ class WeightChartWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.show_chart, size: 64, color: Colors.white),
+          const Icon(Icons.favorite, size: 64, color: Colors.white),
           const SizedBox(height: 16),
           Text(
             textLang('Нет данных для отображения графика'),
@@ -46,7 +41,9 @@ class WeightChartWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            textLang('Добавьте измерения веса для просмотра динамики'),
+            textLang(
+              'Добавьте измерения давления и пульса для просмотра динамики',
+            ),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,
@@ -63,54 +60,49 @@ class WeightChartWidget extends StatelessWidget {
     double minY = double.infinity;
     double maxY = 0;
 
-    // Добавляем целевой вес в расчет
-    if (targetWeight < minY) minY = targetWeight;
-    if (targetWeight > maxY) maxY = targetWeight;
+    // Создаем списки точек для каждой линии
+    List<FlSpot> systolicSpots = [];
+    List<FlSpot> diastolicSpots = [];
+    List<FlSpot> pulseSpots = [];
 
-    // Добавляем веса из измерений
-    for (final metric in metrics) {
-      final weight = double.tryParse(metric.value) ?? 0;
-      if (weight < minY) minY = weight;
-      if (weight > maxY) maxY = weight;
+    for (int i = 0; i < metrics.length; i++) {
+      final metric = metrics[i];
+      final value = metric.value;
+
+      if (value.contains('/')) {
+        final parts = value.split('/');
+        if (parts.length == 3) {
+          final systolic = double.tryParse(parts[0]) ?? 0;
+          final diastolic = double.tryParse(parts[1]) ?? 0;
+          final pulse = double.tryParse(parts[2]) ?? 0;
+
+          // Используем индекс как x-координату для равномерного распределения
+          final x = i.toDouble();
+
+          systolicSpots.add(FlSpot(x, systolic));
+          diastolicSpots.add(FlSpot(x, diastolic));
+          pulseSpots.add(FlSpot(x, pulse));
+
+          // Обновляем границы оси Y
+          if (systolic < minY) minY = systolic;
+          if (systolic > maxY) maxY = systolic;
+          if (diastolic < minY) minY = diastolic;
+          if (diastolic > maxY) maxY = diastolic;
+          if (pulse < minY) minY = pulse;
+          if (pulse > maxY) maxY = pulse;
+        }
+      }
     }
 
     // Добавляем отступ для оси Y
-    minY = (minY - 10).clamp(0, double.infinity);
-    maxY = maxY + 10;
-
-    // Создаем точки для графика
-    final spots = metrics.map((metric) {
-      final weight = double.tryParse(metric.value) ?? 0;
-      // Используем timestamp как x-координату (в днях от начала периода)
-      final days = metric.timestamp
-          .difference(metrics.first.timestamp)
-          .inDays
-          .toDouble();
-      return FlSpot(days, weight);
-    }).toList();
-
-    // Создаем горизонтальную линию для целевого веса
-    final targetLine = [
-      FlSpot(0, targetWeight),
-      FlSpot(
-        metrics.last.timestamp
-            .difference(metrics.first.timestamp)
-            .inDays
-            .toDouble(),
-        targetWeight,
-      ),
-    ];
-
-    // Определяем даты для оси X
-    final firstDate = metrics.first.timestamp;
-    final lastDate = metrics.last.timestamp;
-    final daysDifference = lastDate.difference(firstDate).inDays;
+    minY = (minY - 20).clamp(0, double.infinity);
+    maxY = maxY + 20;
 
     // Определяем интервал для меток на оси X
-    int interval = 5;
-    if (daysDifference > 60) interval = 10;
-    if (daysDifference > 120) interval = 20;
-    if (daysDifference > 240) interval = 30;
+    int interval = 1;
+    if (metrics.length > 10) interval = 2;
+    if (metrics.length > 20) interval = 3;
+    if (metrics.length > 30) interval = 5;
 
     return LineChart(
       LineChartData(
@@ -118,7 +110,7 @@ class WeightChartWidget extends StatelessWidget {
           show: true,
           drawVerticalLine: true,
           drawHorizontalLine: true,
-          horizontalInterval: 10,
+          horizontalInterval: 20,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: Colors.white.withValues(alpha: 0.2),
@@ -145,12 +137,14 @@ class WeightChartWidget extends StatelessWidget {
               showTitles: true,
               reservedSize: 30,
               getTitlesWidget: (value, meta) {
-                // Показываем даты на оси X
-                if (value.toInt() % interval != 0) {
+                final index = value.toInt();
+                if (index < 0 ||
+                    index >= metrics.length ||
+                    index % interval != 0) {
                   return const SizedBox.shrink();
                 }
 
-                final date = firstDate.add(Duration(days: value.toInt()));
+                final date = metrics[index].timestamp;
                 return Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
@@ -164,7 +158,7 @@ class WeightChartWidget extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: 10,
+              interval: 20,
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 return Text(
@@ -177,28 +171,48 @@ class WeightChartWidget extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         minX: 0,
-        maxX: daysDifference.toDouble(),
+        maxX: (metrics.length - 1).toDouble(),
         minY: minY,
         maxY: maxY,
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                final date = firstDate.add(Duration(days: spot.x.toInt()));
+                final index = spot.x.toInt();
+                if (index < 0 || index >= metrics.length) return null;
+
+                final date = metrics[index].timestamp;
+                final metric = metrics[index];
+                final parts = metric.value.split('/');
+
+                String label = '';
+                Color color = Colors.white;
+
+                if (spot.barIndex == 0) {
+                  label = 'Систолическое: ${parts[0]} мм рт.ст.';
+                  color = Colors.red;
+                } else if (spot.barIndex == 1) {
+                  label = 'Диастолическое: ${parts[1]} мм рт.ст.';
+                  color = Colors.orange;
+                } else if (spot.barIndex == 2) {
+                  label = 'Пульс: ${parts[2]} уд/мин';
+                  color = AppColor.green;
+                }
+
                 return LineTooltipItem(
-                  '${spot.y.toStringAsFixed(1)} кг\n${_formatDate(date)}',
-                  const TextStyle(color: Colors.white),
+                  '$label\n${_formatDate(date)}',
+                  TextStyle(color: color),
                 );
               }).toList();
             },
           ),
         ),
         lineBarsData: [
-          // Линия веса
+          // Линия систолического давления (красная)
           LineChartBarData(
-            spots: spots,
+            spots: systolicSpots,
             isCurved: true,
-            color: Colors.white,
+            color: Colors.red,
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -206,26 +220,50 @@ class WeightChartWidget extends StatelessWidget {
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: Colors.white,
+                  color: Colors.red,
                   strokeWidth: 2,
-                  strokeColor: AppColor.darkBlue,
+                  strokeColor: Colors.white,
                 );
               },
             ),
-            belowBarData: BarAreaData(
+          ),
+          // Линия диастолического давления (оранжевая)
+          LineChartBarData(
+            spots: diastolicSpots,
+            isCurved: true,
+            color: Colors.orange,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
               show: true,
-              color: Colors.white.withValues(alpha: 0.2),
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.orange,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                );
+              },
             ),
           ),
-          // Линия целевого веса
+          // Линия пульса (зеленая)
           LineChartBarData(
-            spots: targetLine,
-            isCurved: false,
+            spots: pulseSpots,
+            isCurved: true,
             color: AppColor.green,
-            barWidth: 2,
+            barWidth: 3,
             isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            dashArray: [5, 5], // Пунктирная линия
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: AppColor.green,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                );
+              },
+            ),
           ),
         ],
       ),
