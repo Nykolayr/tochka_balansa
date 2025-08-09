@@ -257,7 +257,7 @@ class _BloodPressurePageState extends State<BloodPressurePage>
                     // Средние значения за период
                     Center(
                       child: Text(
-                        textLang('Среднее за период'),
+                        '${textLang('Среднее за период')} (${filteredMetrics.length} ${_getPluralForm(filteredMetrics.length)})',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -629,5 +629,16 @@ class _BloodPressurePageState extends State<BloodPressurePage>
         ),
       ],
     );
+  }
+
+  String _getPluralForm(int count) {
+    if (count % 10 == 1 && count % 100 != 11) {
+      return textLang('измерение');
+    } else if ((count % 10 >= 2 && count % 10 <= 4) &&
+        (count % 100 < 10 || count % 100 >= 20)) {
+      return textLang('измерения');
+    } else {
+      return textLang('измерений');
+    }
   }
 }
