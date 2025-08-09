@@ -57,6 +57,20 @@ class _HealthPageState extends State<HealthPage> {
                 // Блок давления и пульса (показывается при наличии данных)
                 const BloodPressureBlockWidget(),
 
+                // Подсказка о добавлении новых показателей
+                const SizedBox(height: 24),
+                Center(
+                  child: Text(
+                    'Для добавления других показателей здоровья\nнажмите на кнопку + справа снизу',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColor.greyText.withValues(alpha: 0.7),
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+
                 // Отступ снизу для FAB
                 const SizedBox(height: 80),
               ],
