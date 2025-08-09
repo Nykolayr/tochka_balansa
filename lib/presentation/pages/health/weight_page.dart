@@ -43,11 +43,15 @@ class _WeightPageState extends State<WeightPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1E2E),
+      backgroundColor: Colors.white,
       appBar: AppBarWidget(
         title: textLang('Вес'),
         isBack: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => AddWeightDialog.show(context),
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () => context.push('/main/health/weight/history'),
@@ -80,6 +84,16 @@ class _WeightPageState extends State<WeightPage>
           final weightDifferenceText = weightDifference >= 0
               ? '+${weightDifference.toStringAsFixed(1)}'
               : weightDifference.toStringAsFixed(1);
+
+          // Расчет прогноза - используем примерную дату начала цели
+          final forecastData = _calculateForecast(
+            weightMetrics,
+            targetWeight,
+            initialWeight,
+            DateTime.now().subtract(
+              const Duration(days: 30),
+            ), // Предполагаем, что цель создана месяц назад
+          );
 
           // Определяем период для отображения (30 дней, 12 недель, 12 месяцев)
           DateTime startDate;
@@ -119,16 +133,19 @@ class _WeightPageState extends State<WeightPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Табы для переключения периодов
-              TabBar(
-                controller: _tabController,
-                labelColor: Colors.white,
-                unselectedLabelColor: AppColor.greyText,
-                indicatorColor: AppColor.darkBlue,
-                tabs: [
-                  Tab(text: textLang('ПО ДНЯМ')),
-                  Tab(text: textLang('ПО НЕДЕЛЯМ')),
-                  Tab(text: textLang('ПО МЕСЯЦАМ')),
-                ],
+              Container(
+                color: Colors.white,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: AppColor.darkBlue,
+                  unselectedLabelColor: AppColor.greyText,
+                  indicatorColor: AppColor.darkBlue,
+                  tabs: [
+                    Tab(text: textLang('ПО ДНЯМ')),
+                    Tab(text: textLang('ПО НЕДЕЛЯМ')),
+                    Tab(text: textLang('ПО МЕСЯЦАМ')),
+                  ],
+                ),
               ),
 
               // Заголовок периода
@@ -139,7 +156,7 @@ class _WeightPageState extends State<WeightPage>
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -153,7 +170,7 @@ class _WeightPageState extends State<WeightPage>
                     _buildBulletPoint(
                       textLang('Исходный вес'),
                       '$initialWeight кг',
-                      Colors.white,
+                      Colors.black,
                     ),
                     _buildBulletPoint(
                       textLang('Желаемый вес'),
@@ -163,12 +180,22 @@ class _WeightPageState extends State<WeightPage>
                     _buildBulletPoint(
                       textLang('Сейчас'),
                       '${currentWeight.toStringAsFixed(1)} кг',
-                      Colors.white,
+                      Colors.black,
                     ),
                     _buildBulletPoint(
                       textLang('Разница'),
                       '$weightDifferenceText кг',
                       weightDifference <= 0 ? AppColor.green : Colors.red,
+                    ),
+                    // Прогноз - обязательно отображаем
+                    _buildBulletPoint(
+                      textLang('Прогноз'),
+                      forecastData != null
+                          ? forecastData['text']!
+                          : textLang('Недостаточно данных'),
+                      forecastData != null
+                          ? forecastData['color'] as Color
+                          : AppColor.greyText,
                     ),
                   ],
                 ),
@@ -178,53 +205,220 @@ class _WeightPageState extends State<WeightPage>
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: filteredMetrics.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.show_chart,
-                                size: 64,
-                                color: AppColor.greyText,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                textLang('Нет данных для отображения графика'),
-                                style: TextStyle(
-                                  color: AppColor.greyText,
-                                  fontSize: 16,
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: AppColor.darkBlue,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: filteredMetrics.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.show_chart,
+                                  size: 64,
+                                  color: Colors.white,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                textLang(
-                                  'Добавьте измерения веса для просмотра динамики',
-                                ),
-                                style: TextStyle(
-                                  color: AppColor.greyText.withValues(
-                                    alpha: 0.7,
+                                const SizedBox(height: 16),
+                                Text(
+                                  textLang(
+                                    'Нет данных для отображения графика',
                                   ),
-                                  fontSize: 14,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        )
-                      : _buildWeightChart(filteredMetrics, targetWeight),
+                                const SizedBox(height: 8),
+                                Text(
+                                  textLang(
+                                    'Добавьте измерения веса для просмотра динамики',
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : _buildWeightChart(filteredMetrics, targetWeight),
+                  ),
                 ),
               ),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => AddWeightDialog.show(context),
-        backgroundColor: AppColor.darkBlue,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
+  }
+
+  Map<String, dynamic>? _calculateForecast(
+    List<HealthMetric> weightMetrics,
+    double targetWeight,
+    double initialWeight,
+    DateTime goalCreatedDate,
+  ) {
+    // Если есть измерения веса, используем их
+    if (weightMetrics.isNotEmpty) {
+      // Берем последние 30 дней или все доступные данные
+      final recentMetrics = weightMetrics.take(30).toList();
+
+      // Сортируем по дате (старые сначала для расчета тренда)
+      recentMetrics.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      final firstWeight = double.tryParse(recentMetrics.first.value) ?? 0;
+      final lastWeight = double.tryParse(recentMetrics.last.value) ?? 0;
+      final daysDifference = recentMetrics.last.timestamp
+          .difference(recentMetrics.first.timestamp)
+          .inDays;
+
+      // Если есть только одно измерение, сравниваем с изначальным весом
+      if (recentMetrics.length == 1) {
+        final currentWeight = double.tryParse(recentMetrics.first.value) ?? 0;
+        final daysSinceGoalCreated = recentMetrics.first.timestamp
+            .difference(goalCreatedDate)
+            .inDays;
+
+        if (daysSinceGoalCreated > 0) {
+          final weightChangePerDay =
+              (currentWeight - initialWeight) / daysSinceGoalCreated;
+          return _calculateForecastFromTrend(
+            weightChangePerDay,
+            currentWeight,
+            targetWeight,
+          );
+        }
+      }
+
+      // Если есть несколько измерений и они не в один день
+      if (recentMetrics.length >= 2 && daysDifference > 0) {
+        final weightChangePerDay = (lastWeight - firstWeight) / daysDifference;
+        return _calculateForecastFromTrend(
+          weightChangePerDay,
+          lastWeight,
+          targetWeight,
+        );
+      }
+    }
+
+    // Если измерений нет совсем, но есть изначальный и текущий вес
+    final currentWeight = weightMetrics.isNotEmpty
+        ? double.tryParse(weightMetrics.first.value) ?? initialWeight
+        : initialWeight;
+
+    // Если текущий вес отличается от изначального, значит есть прогресс
+    if ((currentWeight - initialWeight).abs() > 0.1) {
+      // Рассчитываем изменение с момента создания цели
+      final daysSinceGoalCreated = DateTime.now()
+          .difference(goalCreatedDate)
+          .inDays;
+      if (daysSinceGoalCreated > 0) {
+        final weightChangePerDay =
+            (currentWeight - initialWeight) / daysSinceGoalCreated;
+        return _calculateForecastFromTrend(
+          weightChangePerDay,
+          currentWeight,
+          targetWeight,
+        );
+      }
+    }
+
+    // Если вес не изменился
+    return {
+      'text': textLang('Добавьте измерения для прогноза'),
+      'color': AppColor.greyText,
+    };
+  }
+
+  Map<String, dynamic> _calculateForecastFromTrend(
+    double weightChangePerDay,
+    double currentWeight,
+    double targetWeight,
+  ) {
+    // Если нет изменений
+    if (weightChangePerDay.abs() < 0.01) {
+      return {'text': textLang('Вес стабилен'), 'color': AppColor.greyText};
+    }
+
+    // Рассчитываем, сколько нужно сбросить/набрать до цели
+    final weightToTarget = targetWeight - currentWeight;
+
+    // Если уже достигли цели
+    if (weightToTarget.abs() < 0.5) {
+      return {'text': textLang('Цель достигнута!'), 'color': AppColor.green};
+    }
+
+    // Проверяем, движемся ли в правильном направлении
+    final movingTowardsTarget =
+        (weightToTarget > 0 && weightChangePerDay > 0) ||
+        (weightToTarget < 0 && weightChangePerDay < 0);
+
+    if (!movingTowardsTarget) {
+      final direction = weightToTarget > 0
+          ? textLang('набирать')
+          : textLang('снижать');
+      return {'text': textLang('Нужно $direction вес'), 'color': Colors.red};
+    }
+
+    // Рассчитываем дни до достижения цели
+    final daysToTarget = (weightToTarget / weightChangePerDay).abs().round();
+    final targetDate = DateTime.now().add(Duration(days: daysToTarget));
+
+    // Получаем целевую дату из главной цели пользователя
+    final userRepository = Get.find<UserRepository>();
+    final goalTargetDate = userRepository.user.mainGoal.targetDate;
+
+    // Определяем цвет на основе сравнения с целевой датой
+    Color forecastColor;
+    if (goalTargetDate != null) {
+      if (targetDate.isBefore(goalTargetDate) ||
+          targetDate.isAtSameMomentAs(goalTargetDate)) {
+        // Прогноз достижения раньше или в срок - зеленый
+        forecastColor = AppColor.green;
+      } else {
+        final daysDifference = targetDate.difference(goalTargetDate).inDays;
+        if (daysDifference <= 7) {
+          // Опоздание до недели - оранжевый
+          forecastColor = Colors.orange;
+        } else {
+          // Опоздание больше недели - красный
+          forecastColor = Colors.red;
+        }
+      }
+    } else {
+      // Если целевая дата не установлена - синий (нейтральный)
+      forecastColor = AppColor.darkBlue;
+    }
+
+    // Форматируем дату - только дни и месяцы
+    String formattedText;
+    if (daysToTarget < 30) {
+      formattedText = textLang(
+        'через $daysToTarget дн. (${_formatTargetDate(targetDate)})',
+      );
+    } else {
+      final months = (daysToTarget / 30).round();
+      formattedText = textLang(
+        'через $months мес. (${_formatTargetDate(targetDate)})',
+      );
+    }
+
+    return {'text': formattedText, 'color': forecastColor};
+  }
+
+  String _formatTargetDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
   Widget _buildBulletPoint(String label, String value, Color valueColor) {
@@ -235,13 +429,13 @@ class _WeightPageState extends State<WeightPage>
           Container(
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: AppColor.darkBlue,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 8),
-          Text('$label: ', style: const TextStyle(color: Colors.white)),
+          Text('$label: ', style: const TextStyle(color: Colors.black)),
           Text(
             value,
             style: TextStyle(fontWeight: FontWeight.bold, color: valueColor),
@@ -314,13 +508,13 @@ class _WeightPageState extends State<WeightPage>
           horizontalInterval: 10,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: AppColor.greyText.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               strokeWidth: 1,
             );
           },
           getDrawingVerticalLine: (value) {
             return FlLine(
-              color: AppColor.greyText.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               strokeWidth: 1,
             );
           },
@@ -348,7 +542,7 @@ class _WeightPageState extends State<WeightPage>
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
                     '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                    style: TextStyle(color: AppColor.greyText, fontSize: 10),
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
                   ),
                 );
               },
@@ -362,7 +556,7 @@ class _WeightPageState extends State<WeightPage>
               getTitlesWidget: (value, meta) {
                 return Text(
                   value.toInt().toString(),
-                  style: TextStyle(color: AppColor.greyText, fontSize: 10),
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
                 );
               },
             ),
@@ -391,7 +585,7 @@ class _WeightPageState extends State<WeightPage>
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppColor.darkBlue,
+            color: Colors.white,
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -399,15 +593,15 @@ class _WeightPageState extends State<WeightPage>
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: AppColor.darkBlue,
+                  color: Colors.white,
                   strokeWidth: 2,
-                  strokeColor: Colors.white,
+                  strokeColor: AppColor.darkBlue,
                 );
               },
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColor.darkBlue.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.2),
             ),
           ),
           // Линия целевого веса
@@ -415,7 +609,7 @@ class _WeightPageState extends State<WeightPage>
             spots: targetLine,
             isCurved: false,
             color: AppColor.green,
-            barWidth: 1,
+            barWidth: 2,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: false),
             dashArray: [5, 5], // Пунктирная линия
@@ -427,37 +621,5 @@ class _WeightPageState extends State<WeightPage>
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  }
-
-  String formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  void showDeleteConfirmation(BuildContext context, HealthMetric metric) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(textLang('Удалить запись?')),
-        content: Text(
-          textLang(
-            'Вы уверены, что хотите удалить эту запись веса? Это действие нельзя отменить.',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(textLang('Отмена')),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.find<HealthBloc>().add(DeleteHealthMetricEvent(metric.id));
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(textLang('Удалить')),
-          ),
-        ],
-      ),
-    );
   }
 }
