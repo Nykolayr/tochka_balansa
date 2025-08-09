@@ -8,6 +8,7 @@ import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/data/models/health/blood_pressure_category.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/blood_pressure_chart_widget.dart';
+import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_pressure_dialog.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class BloodPressurePage extends StatefulWidget {
@@ -40,86 +41,7 @@ class _BloodPressurePageState extends State<BloodPressurePage>
   }
 
   void _showAddPressureDialog() {
-    final systolicController = TextEditingController();
-    final diastolicController = TextEditingController();
-    final pulseController = TextEditingController();
-    final noteController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(textLang('Давление и пульс')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: systolicController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Систолическое (верхнее)'),
-                suffixText: 'мм рт.ст.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: diastolicController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Диастолическое (нижнее)'),
-                suffixText: 'мм рт.ст.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pulseController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Пульс'),
-                suffixText: 'уд/мин',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: noteController,
-              decoration: InputDecoration(
-                labelText: textLang('Заметка (необязательно)'),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(textLang('Отмена')),
-          ),
-          TextButton(
-            onPressed: () {
-              final systolic = systolicController.text.trim();
-              final diastolic = diastolicController.text.trim();
-              final pulse = pulseController.text.trim();
-
-              if (systolic.isNotEmpty &&
-                  diastolic.isNotEmpty &&
-                  pulse.isNotEmpty) {
-                final metric = HealthMetric(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  type: HealthMetricType.bloodPressureAndPulse,
-                  value: '$systolic/$diastolic/$pulse',
-                  timestamp: DateTime.now(),
-                  note: noteController.text.trim().isEmpty
-                      ? null
-                      : noteController.text.trim(),
-                );
-
-                Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
-                Navigator.pop(context);
-              }
-            },
-            child: Text(textLang('Добавить')),
-          ),
-        ],
-      ),
-    );
+    AddBloodPressureDialog.show(context);
   }
 
   @override

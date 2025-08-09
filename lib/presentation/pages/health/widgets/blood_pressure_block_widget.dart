@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:uuid/uuid.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/blood_pressure_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_pressure_dialog.dart';
 
 class BloodPressureBlockWidget extends StatelessWidget {
   const BloodPressureBlockWidget({super.key});
@@ -140,7 +140,7 @@ class BloodPressureBlockWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => _showAddPressureDialog(context),
+                        onPressed: () => AddBloodPressureDialog.show(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColor.darkBlue,
                           foregroundColor: Colors.white,
@@ -258,90 +258,6 @@ class BloodPressureBlockWidget extends StatelessWidget {
         ],
         // Убрал else блок с пустым SizedBox - теперь просто ничего не показываем
       ],
-    );
-  }
-
-  void _showAddPressureDialog(BuildContext context) {
-    final systolicController = TextEditingController();
-    final diastolicController = TextEditingController();
-    final pulseController = TextEditingController();
-    final noteController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(textLang('Давление и пульс')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: systolicController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Систолическое (верхнее)'),
-                suffixText: 'мм рт.ст.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: diastolicController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Диастолическое (нижнее)'),
-                suffixText: 'мм рт.ст.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pulseController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Пульс'),
-                suffixText: 'уд/мин',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: noteController,
-              decoration: InputDecoration(
-                labelText: textLang('Заметка (необязательно)'),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(textLang('Отмена')),
-          ),
-          TextButton(
-            onPressed: () {
-              final systolic = systolicController.text.trim();
-              final diastolic = diastolicController.text.trim();
-              final pulse = pulseController.text.trim();
-
-              if (systolic.isNotEmpty &&
-                  diastolic.isNotEmpty &&
-                  pulse.isNotEmpty) {
-                // Сохраняем одной метрикой в формате "систолическое/диастолическое/пульс"
-                final metric = HealthMetric(
-                  id: const Uuid().v4(),
-                  type: HealthMetricType.bloodPressureAndPulse,
-                  value: '$systolic/$diastolic/$pulse',
-                  timestamp: DateTime.now(),
-                  note: noteController.text.trim().isEmpty
-                      ? null
-                      : noteController.text.trim(),
-                );
-
-                Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
-                Navigator.pop(context);
-              }
-            },
-            child: Text(textLang('Добавить')),
-          ),
-        ],
-      ),
     );
   }
 }
