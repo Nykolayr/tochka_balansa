@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
+import 'package:tochka_balansa/data/models/health/blood_pressure_category.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/blood_pressure_chart_widget.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
@@ -229,42 +230,137 @@ class _BloodPressurePageState extends State<BloodPressurePage>
                 ),
               ),
 
-              // Информация о текущих показателях
+              // Информация о показателях
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildBulletPoint(
-                      textLang('Систолическое'),
-                      '$currentSystolic мм рт.ст.',
-                      Colors.black,
+                    // Текущие значения
+                    Center(
+                      child: Text(
+                        textLang('Текущие значения'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
-                    _buildBulletPoint(
-                      textLang('Диастолическое'),
-                      '$currentDiastolic мм рт.ст.',
-                      Colors.black,
+                    const SizedBox(height: 4),
+
+                    // Цифры текущих значений
+                    if (pressureMetrics.isNotEmpty)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Систолическое
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                currentSystolic,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                'мм рт.ст.',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColor.greyText.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Диастолическое
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                currentDiastolic,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                'мм рт.ст.',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColor.greyText.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Пульс
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                currentPulse,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColor.darkBlue,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                'уд/мин',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColor.greyText.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 8),
+
+                    // Средние значения за период
+                    Center(
+                      child: Text(
+                        textLang('Среднее за период'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
-                    _buildBulletPoint(
-                      textLang('Пульс'),
-                      '$currentPulse уд/мин',
-                      AppColor.darkBlue,
-                    ),
-                    _buildBulletPoint(
-                      textLang('Общее количество измерений'),
-                      '${pressureMetrics.length}',
-                      AppColor.greyText,
-                    ),
+                    const SizedBox(height: 8),
+                    _buildAverageValuesSimple(filteredMetrics),
+
+                    const SizedBox(height: 8),
+
+                    // Рекомендации
+                    _buildRecommendations(filteredMetrics),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16),
-
               // График давления и пульса
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: BloodPressureChartWidget(metrics: filteredMetrics),
                 ),
               ),
@@ -275,27 +371,341 @@ class _BloodPressurePageState extends State<BloodPressurePage>
     );
   }
 
-  Widget _buildBulletPoint(String label, String value, Color valueColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: AppColor.darkBlue,
-              shape: BoxShape.circle,
+  Widget buildAverageValues(List<HealthMetric> metrics) {
+    if (metrics.isEmpty) {
+      return Text(
+        textLang('Нет данных за период'),
+        style: TextStyle(
+          fontSize: 14,
+          color: AppColor.greyText.withValues(alpha: 0.7),
+        ),
+      );
+    }
+
+    final averages = _calculateAverageValues(metrics);
+    if (averages == null) {
+      return Text(
+        textLang('Нет валидных данных'),
+        style: TextStyle(
+          fontSize: 14,
+          color: AppColor.greyText.withValues(alpha: 0.7),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Систолическое
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              textLang('Систолическое'),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  averages['systolic'].toString(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  'мм рт.ст.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColor.greyText.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Диастолическое
+        Column(
+          children: [
+            Text(
+              textLang('Диастолическое'),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  averages['diastolic'].toString(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  'мм рт.ст.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColor.greyText.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Пульс
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              textLang('Пульс'),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  averages['pulse'].toString(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.darkBlue,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  'уд/мин',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColor.greyText.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Map<String, int>? _calculateAverageValues(List<HealthMetric> metrics) {
+    double totalSystolic = 0;
+    double totalDiastolic = 0;
+    double totalPulse = 0;
+    int validCount = 0;
+
+    for (final metric in metrics) {
+      if (metric.value.contains('/')) {
+        final parts = metric.value.split('/');
+        if (parts.length == 3) {
+          final systolic = double.tryParse(parts[0]);
+          final diastolic = double.tryParse(parts[1]);
+          final pulse = double.tryParse(parts[2]);
+
+          if (systolic != null && diastolic != null && pulse != null) {
+            totalSystolic += systolic;
+            totalDiastolic += diastolic;
+            totalPulse += pulse;
+            validCount++;
+          }
+        }
+      }
+    }
+
+    if (validCount == 0) return null;
+
+    return {
+      'systolic': (totalSystolic / validCount).round(),
+      'diastolic': (totalDiastolic / validCount).round(),
+      'pulse': (totalPulse / validCount).round(),
+    };
+  }
+
+  Widget _buildAverageValuesSimple(List<HealthMetric> metrics) {
+    final averages = _calculateAverageValues(metrics);
+    if (averages == null) {
+      return Center(
+        child: Text(
+          textLang('Нет данных'),
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColor.greyText.withValues(alpha: 0.7),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Систолическое
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              averages['systolic'].toString(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              'мм рт.ст.',
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        // Диастолическое
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              averages['diastolic'].toString(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              'мм рт.ст.',
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        // Пульс
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              averages['pulse'].toString(),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColor.darkBlue,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              'уд/мин',
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecommendations(List<HealthMetric> metrics) {
+    final averages = _calculateAverageValues(metrics);
+    if (averages == null) {
+      return const SizedBox.shrink();
+    }
+
+    final bpCategory = BloodPressureCategory.getCategory(
+      averages['systolic']!,
+      averages['diastolic']!,
+    );
+    final pulseCategory = PulseCategory.getCategory(averages['pulse']!);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Рекомендация по давлению
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(8), // уменьшил с 12 до 8
+          decoration: BoxDecoration(
+            color: bpCategory.color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: bpCategory.color.withValues(alpha: 0.3),
+              width: 1,
             ),
           ),
-          const SizedBox(width: 8),
-          Text('$label: ', style: const TextStyle(color: Colors.black)),
-          Text(
-            value,
-            style: TextStyle(fontWeight: FontWeight.bold, color: valueColor),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${textLang('Давление')}: ${bpCategory.title}',
+                style: TextStyle(
+                  fontSize: 12, // уменьшил с 14 до 12
+                  fontWeight: FontWeight.bold,
+                  color: bpCategory.color,
+                ),
+              ),
+              const SizedBox(height: 2), // уменьшил с 4 до 2
+              Text(
+                bpCategory.recommendation,
+                style: TextStyle(
+                  fontSize: 11, // уменьшил с 12 до 11
+                  color: bpCategory.color,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+
+        const SizedBox(height: 6), // уменьшил с 8 до 6
+        // Рекомендация по пульсу
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(8), // уменьшил с 12 до 8
+          decoration: BoxDecoration(
+            color: pulseCategory.color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: pulseCategory.color.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${textLang('Пульс')}: ${pulseCategory.title}',
+                style: TextStyle(
+                  fontSize: 12, // уменьшил с 14 до 12
+                  fontWeight: FontWeight.bold,
+                  color: pulseCategory.color,
+                ),
+              ),
+              const SizedBox(height: 2), // уменьшил с 4 до 2
+              Text(
+                pulseCategory.recommendation,
+                style: TextStyle(
+                  fontSize: 11, // уменьшил с 12 до 11
+                  color: pulseCategory.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
