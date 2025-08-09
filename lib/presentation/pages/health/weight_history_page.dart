@@ -13,7 +13,7 @@ class WeightHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1E2E),
+      backgroundColor: Colors.white,
       appBar: AppBarWidget(title: textLang('История веса'), isBack: true),
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
@@ -60,7 +60,6 @@ class WeightHistoryPage extends StatelessWidget {
                   itemCount: weightMetrics.length,
                   itemBuilder: (context, index) {
                     final metric = weightMetrics[index];
-                    final isFirst = index == 0;
                     final isLast = index == weightMetrics.length - 1;
 
                     // Определяем разницу с предыдущим измерением
@@ -74,109 +73,42 @@ class WeightHistoryPage extends StatelessWidget {
                     }
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12.0),
-                      padding: const EdgeInsets.all(16.0),
+                      margin: const EdgeInsets.only(bottom: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 5.0,
+                      ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF252B42),
-                        borderRadius: BorderRadius.circular(12),
-                        border: isFirst
-                            ? Border.all(color: AppColor.darkBlue, width: 1)
-                            : null,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          // Иконка и индикатор
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: isFirst
-                                  ? AppColor.darkBlue.withValues(alpha: 0.2)
-                                  : AppColor.greyText.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Icon(
-                              Icons.monitor_weight,
-                              color: isFirst
-                                  ? AppColor.darkBlue
-                                  : AppColor.greyText,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
                           // Информация о весе
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Вес и прогресс в одной строке
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       '${double.parse(metric.value).toStringAsFixed(1)} кг',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: isFirst
-                                            ? AppColor.darkBlue
-                                            : Colors.white,
+                                        color: Colors.black,
                                       ),
                                     ),
-                                    if (isFirst)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColor.darkBlue,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          textLang('Текущий'),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-
-                                // Дата и время
-                                Text(
-                                  '${_formatDate(metric.timestamp)} в ${_formatTime(metric.timestamp)}',
-                                  style: TextStyle(
-                                    color: AppColor.greyText,
-                                    fontSize: 14,
-                                  ),
-                                ),
-
-                                // Разница с предыдущим измерением
-                                if (difference != null) ...[
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        difference > 0
-                                            ? Icons.trending_up
-                                            : difference < 0
-                                            ? Icons.trending_down
-                                            : Icons.trending_flat,
-                                        size: 16,
-                                        color: difference > 0
-                                            ? Colors.red
-                                            : difference < 0
-                                            ? AppColor.green
-                                            : AppColor.greyText,
-                                      ),
-                                      const SizedBox(width: 4),
+                                    if (difference != null) ...[
+                                      const SizedBox(width: 12),
                                       Text(
                                         difference > 0
                                             ? '+${difference.toStringAsFixed(1)} кг'
@@ -187,36 +119,23 @@ class WeightHistoryPage extends StatelessWidget {
                                               : difference < 0
                                               ? AppColor.green
                                               : AppColor.greyText,
-                                          fontSize: 12,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
-                                  ),
-                                ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
 
-                                // Заметка, если есть
-                                if (metric.note != null &&
-                                    metric.note!.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: AppColor.greyText.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      metric.note!,
-                                      style: TextStyle(
-                                        color: AppColor.greyText,
-                                        fontSize: 12,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
+                                // Дата и время
+                                Text(
+                                  '${_formatDate(metric.timestamp)} в ${_formatTime(metric.timestamp)}',
+                                  style: TextStyle(
+                                    color: AppColor.greyText,
+                                    fontSize: 14,
                                   ),
-                                ],
+                                ),
                               ],
                             ),
                           ),
