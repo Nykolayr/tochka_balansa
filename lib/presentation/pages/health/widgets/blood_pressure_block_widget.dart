@@ -15,44 +15,41 @@ class BloodPressureBlockWidget extends StatelessWidget {
     return BlocBuilder<HealthBloc, HealthState>(
       bloc: Get.find<HealthBloc>(),
       builder: (context, state) {
-        // Получаем данные о давлении и пульсе
-        final pressureMetrics = state.healthData.metrics
-            .where((m) => m.type == HealthMetricType.bloodPressure)
-            .toList();
-        final pulseMetrics = state.healthData.metrics
-            .where((m) => m.type == HealthMetricType.pulse)
+        // Получаем данные о давлении и пульсе (теперь одна метрика)
+        final pressureAndPulseMetrics = state.healthData.metrics
+            .where((m) => m.type == HealthMetricType.bloodPressureAndPulse)
             .toList();
 
-        // Если нет ни давления, ни пульса - не показываем виджет
-        if (pressureMetrics.isEmpty && pulseMetrics.isEmpty) {
+        // Если нет данных - не показываем виджет
+        if (pressureAndPulseMetrics.isEmpty) {
           return const SizedBox.shrink();
         }
 
         // Сортируем по дате (новые сверху)
-        pressureMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        pulseMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        pressureAndPulseMetrics.sort(
+          (a, b) => b.timestamp.compareTo(a.timestamp),
+        );
 
         // Получаем последние значения
-        final lastPressure = pressureMetrics.isNotEmpty
-            ? pressureMetrics.first.value
-            : null;
-        final lastPulse = pulseMetrics.isNotEmpty
-            ? pulseMetrics.first.value
-            : null;
+        final lastMeasurement = pressureAndPulseMetrics.first.value;
 
-        // Разбираем давление на систолическое и диастолическое
+        // Разбираем значение в формате "систолическое/диастолическое/пульс"
         String systolic = '--';
         String diastolic = '--';
-        if (lastPressure != null && lastPressure.contains('/')) {
-          final parts = lastPressure.split('/');
-          if (parts.length == 2) {
+        String pulse = '--';
+
+        if (lastMeasurement.contains('/')) {
+          final parts = lastMeasurement.split('/');
+          if (parts.length == 3) {
             systolic = parts[0];
             diastolic = parts[1];
+            pulse = parts[2];
           }
         }
 
         return Card(
           elevation: 4,
+          margin: const EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -61,7 +58,7 @@ class BloodPressureBlockWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Заголовок "Мониторинг давления и пульса" по центру
+                // Заголовок по центру
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -169,7 +166,7 @@ class BloodPressureBlockWidget extends StatelessWidget {
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              lastPulse ?? '--',
+                              pulse,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -300,32 +297,18 @@ class BloodPressureBlockWidget extends StatelessWidget {
               if (systolic.isNotEmpty &&
                   diastolic.isNotEmpty &&
                   pulse.isNotEmpty) {
-                // Сохраняем давление
-                final pressureMetric = HealthMetric(
+                // Сохраняем одной метрикой в формате "систолическое/диастолическое/пульс"
+                final metric = HealthMetric(
                   id: const Uuid().v4(),
-                  type: HealthMetricType.bloodPressure,
-                  value: '$systolic/$diastolic',
+                  type: HealthMetricType.bloodPressureAndPulse,
+                  value: '$systolic/$diastolic/$pulse',
                   timestamp: DateTime.now(),
                   note: noteController.text.trim().isEmpty
                       ? null
                       : noteController.text.trim(),
                 );
 
-                // Сохраняем пульс
-                final pulseMetric = HealthMetric(
-                  id: const Uuid().v4(),
-                  type: HealthMetricType.pulse,
-                  value: pulse,
-                  timestamp: DateTime.now(),
-                  note: noteController.text.trim().isEmpty
-                      ? null
-                      : noteController.text.trim(),
-                );
-
-                Get.find<HealthBloc>().add(
-                  AddHealthMetricEvent(pressureMetric),
-                );
-                Get.find<HealthBloc>().add(AddHealthMetricEvent(pulseMetric));
+                Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
                 Navigator.pop(context);
               }
             },

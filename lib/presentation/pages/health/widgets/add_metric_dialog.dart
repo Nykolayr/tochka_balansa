@@ -10,7 +10,7 @@ class AddMetricDialog {
   static void show(BuildContext context) {
     final List<Map<String, dynamic>> availableMetrics = [
       {
-        'type': HealthMetricType.bloodPressure,
+        'type': HealthMetricType.bloodPressureAndPulse,
         'title': textLang('Давление и пульс'),
         'icon': Icons.favorite,
         'color': Colors.red,
@@ -66,7 +66,8 @@ class AddMetricDialog {
                 return GestureDetector(
                   onTap: () {
                     Navigator.pop(context);
-                    if (metric['type'] == HealthMetricType.bloodPressure) {
+                    if (metric['type'] ==
+                        HealthMetricType.bloodPressureAndPulse) {
                       _showBloodPressureAndPulseDialog(context);
                     } else {
                       _showSingleValueDialog(context, metric['type']);
@@ -169,32 +170,18 @@ class AddMetricDialog {
               if (systolic.isNotEmpty &&
                   diastolic.isNotEmpty &&
                   pulse.isNotEmpty) {
-                // Сохраняем давление
-                final pressureMetric = HealthMetric(
+                // Сохраняем одной метрикой в формате "систолическое/диастолическое/пульс"
+                final metric = HealthMetric(
                   id: const Uuid().v4(),
-                  type: HealthMetricType.bloodPressure,
-                  value: '$systolic/$diastolic',
+                  type: HealthMetricType.bloodPressureAndPulse,
+                  value: '$systolic/$diastolic/$pulse',
                   timestamp: DateTime.now(),
                   note: noteController.text.trim().isEmpty
                       ? null
                       : noteController.text.trim(),
                 );
 
-                // Сохраняем пульс
-                final pulseMetric = HealthMetric(
-                  id: const Uuid().v4(),
-                  type: HealthMetricType.pulse,
-                  value: pulse,
-                  timestamp: DateTime.now(),
-                  note: noteController.text.trim().isEmpty
-                      ? null
-                      : noteController.text.trim(),
-                );
-
-                Get.find<HealthBloc>().add(
-                  AddHealthMetricEvent(pressureMetric),
-                );
-                Get.find<HealthBloc>().add(AddHealthMetricEvent(pulseMetric));
+                Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
                 Navigator.pop(context);
               }
             },
