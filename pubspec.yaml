@@ -54,7 +54,7 @@ dependencies:
   permission_handler: ^11.3.1 #https://pub.dev/packages/permission_handler
   http: ^1.1.0 #https://pub.dev/packages/http
   uuid: ^4.3.3 #https://pub.dev/packages/uuid
-  
+  fl_chart: ^1.0.0 #https://pub.dev/packages/fl_chart
   
   
 dev_dependencies:

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_metric_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_weight_dialog.dart';
-import 'package:tochka_balansa/presentation/pages/health/widgets/metric_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/weight_block_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 
