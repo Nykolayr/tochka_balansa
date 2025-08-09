@@ -56,6 +56,26 @@ class BloodPressureChartWidget extends StatelessWidget {
   }
 
   Widget _buildChart() {
+    // Группируем измерения по дням и вычисляем среднее
+    final groupedMetrics = <DateTime, List<HealthMetric>>{};
+
+    for (final metric in metrics) {
+      final date = DateTime(
+        metric.timestamp.year,
+        metric.timestamp.month,
+        metric.timestamp.day,
+      );
+
+      if (!groupedMetrics.containsKey(date)) {
+        groupedMetrics[date] = [];
+      }
+      groupedMetrics[date]!.add(metric);
+    }
+
+    // Создаем список дней с усредненными значениями
+    final sortedDates = groupedMetrics.keys.toList()
+      ..sort((a, b) => a.compareTo(b));
+
     // Находим минимальное и максимальное значение для оси Y
     double minY = double.infinity;
     double maxY = 0;
@@ -65,32 +85,53 @@ class BloodPressureChartWidget extends StatelessWidget {
     List<FlSpot> diastolicSpots = [];
     List<FlSpot> pulseSpots = [];
 
-    for (int i = 0; i < metrics.length; i++) {
-      final metric = metrics[i];
-      final value = metric.value;
+    for (int i = 0; i < sortedDates.length; i++) {
+      final date = sortedDates[i];
+      final dayMetrics = groupedMetrics[date]!;
 
-      if (value.contains('/')) {
-        final parts = value.split('/');
-        if (parts.length == 3) {
-          final systolic = double.tryParse(parts[0]) ?? 0;
-          final diastolic = double.tryParse(parts[1]) ?? 0;
-          final pulse = double.tryParse(parts[2]) ?? 0;
+      // Вычисляем среднее значение для этого дня
+      double totalSystolic = 0;
+      double totalDiastolic = 0;
+      double totalPulse = 0;
+      int validCount = 0;
 
-          // Используем индекс как x-координату для равномерного распределения
-          final x = i.toDouble();
+      for (final metric in dayMetrics) {
+        if (metric.value.contains('/')) {
+          final parts = metric.value.split('/');
+          if (parts.length == 3) {
+            final systolic = double.tryParse(parts[0]);
+            final diastolic = double.tryParse(parts[1]);
+            final pulse = double.tryParse(parts[2]);
 
-          systolicSpots.add(FlSpot(x, systolic));
-          diastolicSpots.add(FlSpot(x, diastolic));
-          pulseSpots.add(FlSpot(x, pulse));
-
-          // Обновляем границы оси Y
-          if (systolic < minY) minY = systolic;
-          if (systolic > maxY) maxY = systolic;
-          if (diastolic < minY) minY = diastolic;
-          if (diastolic > maxY) maxY = diastolic;
-          if (pulse < minY) minY = pulse;
-          if (pulse > maxY) maxY = pulse;
+            if (systolic != null && diastolic != null && pulse != null) {
+              totalSystolic += systolic;
+              totalDiastolic += diastolic;
+              totalPulse += pulse;
+              validCount++;
+            }
+          }
         }
+      }
+
+      if (validCount > 0) {
+        final avgSystolic = totalSystolic / validCount;
+        final avgDiastolic = totalDiastolic / validCount;
+        final avgPulse = totalPulse / validCount;
+
+        // Используем дни от первого измерения как x-координату
+        final daysDiff = date.difference(sortedDates.first).inDays.toDouble();
+
+        systolicSpots.add(FlSpot(daysDiff, avgSystolic));
+        diastolicSpots.add(FlSpot(daysDiff, avgDiastolic));
+        pulseSpots.add(FlSpot(daysDiff, avgPulse));
+
+        // Обновляем границы оси Y
+        if (avgSystolic < minY) minY = avgSystolic;
+        if (avgSystolic > maxY) maxY = avgSystolic;
+        if (avgDiastolic < minY) minY = avgDiastolic;
+        if (avgDiastolic > maxY) maxY = avgDiastolic;
+        if (avgPulse < minY) minY = avgPulse;
+        if (avgPulse > maxY) maxY = avgPulse;
       }
     }
 
@@ -99,10 +140,11 @@ class BloodPressureChartWidget extends StatelessWidget {
     maxY = maxY + 20;
 
     // Определяем интервал для меток на оси X
-    int interval = 1;
-    if (metrics.length > 10) interval = 2;
-    if (metrics.length > 20) interval = 3;
-    if (metrics.length > 30) interval = 5;
+    final totalDays = sortedDates.last.difference(sortedDates.first).inDays;
+    int interval = 5;
+    if (totalDays > 60) interval = 10;
+    if (totalDays > 120) interval = 20;
+    if (totalDays > 240) interval = 30;
 
     return LineChart(
       LineChartData(
@@ -137,14 +179,13 @@ class BloodPressureChartWidget extends StatelessWidget {
               showTitles: true,
               reservedSize: 30,
               getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index < 0 ||
-                    index >= metrics.length ||
-                    index % interval != 0) {
+                if (value.toInt() % interval != 0) {
                   return const SizedBox.shrink();
                 }
 
-                final date = metrics[index].timestamp;
+                final date = sortedDates.first.add(
+                  Duration(days: value.toInt()),
+                );
                 return Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
@@ -171,31 +212,30 @@ class BloodPressureChartWidget extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         minX: 0,
-        maxX: (metrics.length - 1).toDouble(),
+        maxX: totalDays.toDouble(),
         minY: minY,
         maxY: maxY,
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                final index = spot.x.toInt();
-                if (index < 0 || index >= metrics.length) return null;
-
-                final date = metrics[index].timestamp;
-                final metric = metrics[index];
-                final parts = metric.value.split('/');
+                final date = sortedDates.first.add(
+                  Duration(days: spot.x.toInt()),
+                );
 
                 String label = '';
                 Color color = Colors.white;
 
                 if (spot.barIndex == 0) {
-                  label = 'Систолическое: ${parts[0]} мм рт.ст.';
+                  label =
+                      'Систолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
                   color = Colors.red;
                 } else if (spot.barIndex == 1) {
-                  label = 'Диастолическое: ${parts[1]} мм рт.ст.';
+                  label =
+                      'Диастолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
                   color = Colors.orange;
                 } else if (spot.barIndex == 2) {
-                  label = 'Пульс: ${parts[2]} уд/мин';
+                  label = 'Пульс: ${spot.y.toStringAsFixed(1)} уд/мин';
                   color = AppColor.green;
                 }
 
