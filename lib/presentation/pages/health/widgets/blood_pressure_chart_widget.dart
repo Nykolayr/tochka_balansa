@@ -146,167 +146,216 @@ class BloodPressureChartWidget extends StatelessWidget {
     if (totalDays > 120) interval = 20;
     if (totalDays > 240) interval = 30;
 
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: true,
-          drawHorizontalLine: true,
-          horizontalInterval: 20,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.white.withValues(alpha: 0.2),
-              strokeWidth: 1,
-            );
-          },
-          getDrawingVerticalLine: (value) {
-            return FlLine(
-              color: Colors.white.withValues(alpha: 0.2),
-              strokeWidth: 1,
-            );
-          },
-        ),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              getTitlesWidget: (value, meta) {
-                if (value.toInt() % interval != 0) {
-                  return const SizedBox.shrink();
-                }
+    return Column(
+      children: [
+        // График
+        Expanded(
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: true,
+                drawHorizontalLine: true,
+                horizontalInterval: 20,
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    strokeWidth: 1,
+                  );
+                },
+                getDrawingVerticalLine: (value) {
+                  return FlLine(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      if (value.toInt() % interval != 0) {
+                        return const SizedBox.shrink();
+                      }
 
-                final date = sortedDates.first.add(
-                  Duration(days: value.toInt()),
-                );
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                      final date = sortedDates.first.add(
+                        Duration(days: value.toInt()),
+                      );
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 20,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 10),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        minX: 0,
-        maxX: totalDays.toDouble(),
-        minY: minY,
-        maxY: maxY,
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (touchedSpots) {
-              return touchedSpots.map((spot) {
-                final date = sortedDates.first.add(
-                  Duration(days: spot.x.toInt()),
-                );
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 20,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              minX: 0,
+              maxX: totalDays.toDouble(),
+              minY: minY,
+              maxY: maxY,
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      final date = sortedDates.first.add(
+                        Duration(days: spot.x.toInt()),
+                      );
 
-                String label = '';
-                Color color = Colors.white;
+                      String label = '';
+                      Color color = Colors.white;
 
-                if (spot.barIndex == 0) {
-                  label =
-                      'Систолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
-                  color = Colors.red;
-                } else if (spot.barIndex == 1) {
-                  label =
-                      'Диастолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
-                  color = Colors.orange;
-                } else if (spot.barIndex == 2) {
-                  label = 'Пульс: ${spot.y.toStringAsFixed(1)} уд/мин';
-                  color = AppColor.green;
-                }
+                      if (spot.barIndex == 0) {
+                        label =
+                            'Систолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
+                        color = Colors.red;
+                      } else if (spot.barIndex == 1) {
+                        label =
+                            'Диастолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
+                        color = Colors.orange;
+                      } else if (spot.barIndex == 2) {
+                        label = 'Пульс: ${spot.y.toStringAsFixed(1)} уд/мин';
+                        color = AppColor.green;
+                      }
 
-                return LineTooltipItem(
-                  '$label\n${_formatDate(date)}',
-                  TextStyle(color: color),
-                );
-              }).toList();
-            },
-          ),
-        ),
-        lineBarsData: [
-          // Линия систолического давления (красная)
-          LineChartBarData(
-            spots: systolicSpots,
-            isCurved: true,
-            color: Colors.red,
-            barWidth: 3,
-            isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 4,
+                      return LineTooltipItem(
+                        '$label\n${_formatDate(date)}',
+                        TextStyle(color: color),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
+              lineBarsData: [
+                // Линия систолического давления (красная)
+                LineChartBarData(
+                  spots: systolicSpots,
+                  isCurved: true,
                   color: Colors.red,
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                );
-              },
-            ),
-          ),
-          // Линия диастолического давления (оранжевая)
-          LineChartBarData(
-            spots: diastolicSpots,
-            isCurved: true,
-            color: Colors.orange,
-            barWidth: 3,
-            isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 4,
+                  barWidth: 3,
+                  isStrokeCapRound: true,
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, barData, index) {
+                      return FlDotCirclePainter(
+                        radius: 4,
+                        color: Colors.red,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      );
+                    },
+                  ),
+                ),
+                // Линия диастолического давления (оранжевая)
+                LineChartBarData(
+                  spots: diastolicSpots,
+                  isCurved: true,
                   color: Colors.orange,
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                );
-              },
-            ),
-          ),
-          // Линия пульса (зеленая)
-          LineChartBarData(
-            spots: pulseSpots,
-            isCurved: true,
-            color: AppColor.green,
-            barWidth: 3,
-            isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 4,
+                  barWidth: 3,
+                  isStrokeCapRound: true,
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, barData, index) {
+                      return FlDotCirclePainter(
+                        radius: 4,
+                        color: Colors.orange,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      );
+                    },
+                  ),
+                ),
+                // Линия пульса (зеленая)
+                LineChartBarData(
+                  spots: pulseSpots,
+                  isCurved: true,
                   color: AppColor.green,
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                );
-              },
+                  barWidth: 3,
+                  isStrokeCapRound: true,
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, barData, index) {
+                      return FlDotCirclePainter(
+                        radius: 4,
+                        color: AppColor.green,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Легенда
+        const SizedBox(height: 16),
+        _buildLegend(),
+      ],
+    );
+  }
+
+  Widget _buildLegend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildLegendItem(color: Colors.red, label: textLang('Систолическое')),
+        _buildLegendItem(
+          color: Colors.orange,
+          label: textLang('Диастолическое'),
+        ),
+        _buildLegendItem(color: AppColor.green, label: textLang('Пульс')),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem({required Color color, required String label}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 3,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(1.5),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+      ],
     );
   }
 
