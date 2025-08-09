@@ -5,6 +5,7 @@ import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_pressure_dialog.dart';
 
 class AddMetricDialog {
   static void show(BuildContext context) {
@@ -68,7 +69,8 @@ class AddMetricDialog {
                     Navigator.pop(context);
                     if (metric['type'] ==
                         HealthMetricType.bloodPressureAndPulse) {
-                      _showBloodPressureAndPulseDialog(context);
+                      // Используем новый диалог для давления и пульса
+                      AddBloodPressureDialog.show(context);
                     } else {
                       _showSingleValueDialog(context, metric['type']);
                     }
@@ -104,90 +106,6 @@ class AddMetricDialog {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  static void _showBloodPressureAndPulseDialog(BuildContext context) {
-    final systolicController = TextEditingController();
-    final diastolicController = TextEditingController();
-    final pulseController = TextEditingController();
-    final noteController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(textLang('Давление и пульс')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: systolicController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Систолическое (верхнее)'),
-                suffixText: 'мм рт.ст.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: diastolicController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Диастолическое (нижнее)'),
-                suffixText: 'мм рт.ст.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pulseController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: textLang('Пульс'),
-                suffixText: 'уд/мин',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: noteController,
-              decoration: InputDecoration(
-                labelText: textLang('Заметка (необязательно)'),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(textLang('Отмена')),
-          ),
-          TextButton(
-            onPressed: () {
-              final systolic = systolicController.text.trim();
-              final diastolic = diastolicController.text.trim();
-              final pulse = pulseController.text.trim();
-
-              if (systolic.isNotEmpty &&
-                  diastolic.isNotEmpty &&
-                  pulse.isNotEmpty) {
-                // Сохраняем одной метрикой в формате "систолическое/диастолическое/пульс"
-                final metric = HealthMetric(
-                  id: const Uuid().v4(),
-                  type: HealthMetricType.bloodPressureAndPulse,
-                  value: '$systolic/$diastolic/$pulse',
-                  timestamp: DateTime.now(),
-                  note: noteController.text.trim().isEmpty
-                      ? null
-                      : noteController.text.trim(),
-                );
-
-                Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
-                Navigator.pop(context);
-              }
-            },
-            child: Text(textLang('Добавить')),
-          ),
-        ],
       ),
     );
   }
