@@ -15,25 +15,27 @@ class BloodPressureBlockWidget extends StatelessWidget {
     return BlocBuilder<HealthBloc, HealthState>(
       bloc: Get.find<HealthBloc>(),
       builder: (context, state) {
-        // Получаем данные о давлении и пульсе (теперь одна метрика)
         final pressureAndPulseMetrics = state.healthData.metrics
             .where((m) => m.type == HealthMetricType.bloodPressureAndPulse)
             .toList();
 
-        // Если нет данных - не показываем виджет
         if (pressureAndPulseMetrics.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        // Сортируем по дате (новые сверху)
         pressureAndPulseMetrics.sort(
           (a, b) => b.timestamp.compareTo(a.timestamp),
         );
 
-        // Получаем последние значения
         final lastMeasurement = pressureAndPulseMetrics.first.value;
 
-        // Разбираем значение в формате "систолическое/диастолическое/пульс"
+        // Получаем предыдущее измерение для сравнения
+        String? previousMeasurement;
+        if (pressureAndPulseMetrics.length > 1) {
+          previousMeasurement = pressureAndPulseMetrics[1].value;
+        }
+
+        // Разбираем текущие значения
         String systolic = '--';
         String diastolic = '--';
         String pulse = '--';
@@ -46,6 +48,25 @@ class BloodPressureBlockWidget extends StatelessWidget {
             pulse = parts[2];
           }
         }
+
+        // Разбираем предыдущие значения для сравнения
+        int? previousSystolic;
+        int? previousDiastolic;
+        int? previousPulse;
+
+        if (previousMeasurement != null && previousMeasurement.contains('/')) {
+          final parts = previousMeasurement.split('/');
+          if (parts.length == 3) {
+            previousSystolic = int.tryParse(parts[0]);
+            previousDiastolic = int.tryParse(parts[1]);
+            previousPulse = int.tryParse(parts[2]);
+          }
+        }
+
+        // Вычисляем изменения
+        final currentSystolic = int.tryParse(systolic);
+        final currentDiastolic = int.tryParse(diastolic);
+        final currentPulseValue = int.tryParse(pulse);
 
         return Card(
           elevation: 4,
@@ -79,111 +100,34 @@ class BloodPressureBlockWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Систолическое давление
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          textLang('Систолическое'),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.greyText.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              systolic,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              'мм рт.ст.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.greyText.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    _buildPressureColumn(
+                      label: textLang('Систолическое'),
+                      value: systolic,
+                      unit: 'мм рт.ст.',
+                      currentValue: currentSystolic,
+                      previousValue: previousSystolic,
+                      alignment: CrossAxisAlignment.start,
                     ),
 
                     // Диастолическое давление
-                    Column(
-                      children: [
-                        Text(
-                          textLang('Диастолическое'),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.greyText.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              diastolic,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              'мм рт.ст.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.greyText.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    _buildPressureColumn(
+                      label: textLang('Диастолическое'),
+                      value: diastolic,
+                      unit: 'мм рт.ст.',
+                      currentValue: currentDiastolic,
+                      previousValue: previousDiastolic,
+                      alignment: CrossAxisAlignment.center,
                     ),
 
                     // Пульс
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          textLang('Пульс'),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColor.greyText.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              pulse,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColor.darkBlue,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              'уд/мин',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColor.greyText.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    _buildPressureColumn(
+                      label: textLang('Пульс'),
+                      value: pulse,
+                      unit: 'уд/мин',
+                      currentValue: currentPulseValue,
+                      previousValue: previousPulse,
+                      alignment: CrossAxisAlignment.end,
+                      isPulse: true,
                     ),
                   ],
                 ),
@@ -232,6 +176,83 @@ class BloodPressureBlockWidget extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPressureColumn({
+    required String label,
+    required String value,
+    required String unit,
+    required int? currentValue,
+    required int? previousValue,
+    required CrossAxisAlignment alignment,
+    bool isPulse = false,
+  }) {
+    return Column(
+      crossAxisAlignment: alignment,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColor.greyText.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isPulse ? AppColor.darkBlue : null,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              unit,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColor.greyText.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+
+        // Стрелка изменения - показываем только если есть предыдущее измерение
+        if (currentValue != null &&
+            previousValue != null &&
+            currentValue != previousValue) ...[
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                currentValue > previousValue
+                    ? Icons.arrow_upward
+                    : Icons.arrow_downward,
+                color: currentValue > previousValue ? Colors.red : Colors.green,
+                size: 16,
+              ),
+              const SizedBox(width: 2),
+              Text(
+                (currentValue - previousValue).abs().toString(),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: currentValue > previousValue
+                      ? Colors.red
+                      : Colors.green,
+                ),
+              ),
+            ],
+          ),
+        ],
+        // Убрал else блок с пустым SizedBox - теперь просто ничего не показываем
+      ],
     );
   }
 
