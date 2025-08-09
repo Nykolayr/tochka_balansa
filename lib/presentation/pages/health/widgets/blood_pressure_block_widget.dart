@@ -5,8 +5,8 @@ import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
-import 'package:tochka_balansa/presentation/pages/health/blood_pressure_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_pressure_dialog.dart';
+import 'package:go_router/go_router.dart';
 
 class BloodPressureBlockWidget extends StatelessWidget {
   const BloodPressureBlockWidget({super.key});
@@ -155,11 +155,8 @@ class BloodPressureBlockWidget extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const BloodPressurePage(),
-                            ),
-                          );
+                          // Используем go_router вместо Navigator
+                          context.push('/main/health/pressure');
                         },
                         icon: const Icon(Icons.bar_chart, size: 18),
                         label: Text(textLang('Просмотр')),

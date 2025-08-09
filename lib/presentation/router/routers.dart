@@ -8,6 +8,7 @@ import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/health_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_history_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/blood_pressure_page.dart'; // добавил
 import 'package:tochka_balansa/presentation/pages/main/main_page.dart';
 import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
 import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
@@ -156,6 +157,40 @@ final GoRouter router = GoRouter(
                       context: context,
                       state: state,
                       child: WeightHistoryPage(key: ValueKey(languageState)),
+                    );
+                  },
+                ),
+              ],
+            ),
+            // Добавляю маршруты для давления
+            GoRoute(
+              name: 'давление',
+              path: 'pressure',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: BloodPressurePage(key: ValueKey(languageState)),
+                );
+              },
+              routes: [
+                GoRoute(
+                  name: 'история давления',
+                  path: 'history',
+                  pageBuilder: (context, state) {
+                    return buildPageWithDefaultTransition(
+                      type: PageTransitionType.rightToLeft,
+                      context: context,
+                      state: state,
+                      child: Container(
+                        // временно пустая страница
+                        color: Colors.white,
+                        child: const Center(
+                          child: Text('История давления - в разработке'),
+                        ),
+                      ),
                     );
                   },
                 ),
