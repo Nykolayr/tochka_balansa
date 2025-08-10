@@ -11,6 +11,7 @@ import 'package:tochka_balansa/presentation/pages/health/widgets/add_weight_dial
 import 'package:tochka_balansa/presentation/pages/health/widgets/weight_forecast_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/weight_chart_widget.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
+import 'package:tochka_balansa/core/constants/test_data.dart';
 
 class WeightPage extends StatefulWidget {
   const WeightPage({super.key});
@@ -23,6 +24,29 @@ class _WeightPageState extends State<WeightPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
+
+  // ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
+  List<HealthMetric> _generateTestWeightData() {
+    final now = DateTime.now();
+    final sixMonthsAgo = DateTime(now.year, now.month - 6, now.day);
+
+    // Создаем HealthMetric объекты
+    final testMetrics = <HealthMetric>[];
+
+    for (final data in TestData.weightData) {
+      final date = sixMonthsAgo.add(Duration(days: data['daysOffset'] as int));
+      final metric = HealthMetric(
+        id: 'test_${date.millisecondsSinceEpoch}',
+        type: HealthMetricType.weight,
+        value: data['weight'].toString(),
+        timestamp: date,
+        note: 'Тестовые данные',
+      );
+      testMetrics.add(metric);
+    }
+
+    return testMetrics;
+  }
 
   @override
   void initState() {
@@ -62,10 +86,11 @@ class _WeightPageState extends State<WeightPage>
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
         builder: (context, state) {
-          // Получаем все измерения веса
-          final weightMetrics = state.healthData.metrics
-              .where((m) => m.type == HealthMetricType.weight)
-              .toList();
+          // ВРЕМЕННО: используем тестовые данные вместо реальных
+          // final weightMetrics = state.healthData.metrics
+          //     .where((m) => m.type == HealthMetricType.weight)
+          //     .toList();
+          final weightMetrics = _generateTestWeightData();
 
           // Сортируем по дате (новые сверху для списка, старые сверху для графика)
           weightMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -121,8 +146,8 @@ class _WeightPageState extends State<WeightPage>
               )
               .toList();
 
-          // Сортируем для графика (старые сначала)
-          filteredMetrics.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          // Сортируем для графика (новые сначала для свайпа)
+          filteredMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
