@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
+import 'chart_utils.dart';
 
 class BloodPressureChartWidget extends StatelessWidget {
   final List<HealthMetric> metrics;
@@ -80,52 +80,16 @@ class BloodPressureChartWidget extends StatelessWidget {
   Widget _buildChart(BuildContext context) {
     // Получаем ширину экрана
     final screenWidth = MediaQuery.of(context).size.width;
-    final chartWidth = screenWidth - 32; // Учитываем padding
-
-    // Вычисляем оптимальное количество точек
-    // Предполагаем, что на каждую дату нужно минимум 60px
-    final minDateWidth = 60.0;
-    final maxPoints = (chartWidth / minDateWidth).floor();
-
-    // Ограничиваем от 5 до 10 точек
-    final optimalPoints = maxPoints.clamp(5, 10);
+    final optimalPoints = ChartUtils.calculateOptimalPoints(screenWidth);
 
     // Группируем измерения по дням и вычисляем среднее
-    final groupedMetrics = <DateTime, List<HealthMetric>>{};
-
-    for (final metric in metrics) {
-      final date = DateTime(
-        metric.timestamp.year,
-        metric.timestamp.month,
-        metric.timestamp.day,
-      );
-
-      if (!groupedMetrics.containsKey(date)) {
-        groupedMetrics[date] = [];
-      }
-      groupedMetrics[date]!.add(metric);
-    }
-
-    // Сортируем даты по возрастанию (старые сначала)
-    final sortedDates = groupedMetrics.keys.toList()
-      ..sort((a, b) => a.compareTo(b));
+    final groupedMetrics = ChartUtils.groupMetricsByDate(metrics);
+    final sortedDates = ChartUtils.sortDatesAscending(groupedMetrics);
 
     if (sortedDates.isEmpty) return const SizedBox.shrink();
 
     // Выбираем ключевые даты для отображения
-    final keyDates = <DateTime>[];
-    if (sortedDates.length <= optimalPoints) {
-      keyDates.addAll(sortedDates);
-    } else {
-      // Равномерно распределяем даты
-      final step = (sortedDates.length - 1) / (optimalPoints - 1);
-      for (int i = 0; i < optimalPoints; i++) {
-        final index = (i * step).round();
-        if (index < sortedDates.length) {
-          keyDates.add(sortedDates[index]);
-        }
-      }
-    }
+    final keyDates = ChartUtils.selectKeyDates(sortedDates, optimalPoints);
 
     // Создаем точки для каждого типа измерения
     final systolicPoints = <FlSpot>[];
@@ -200,71 +164,12 @@ class BloodPressureChartWidget extends StatelessWidget {
 
     return LineChart(
       LineChartData(
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: true,
-          horizontalInterval: 20,
-          verticalInterval: 1,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.white.withValues(alpha: 0.3),
-              strokeWidth: 1,
-            );
-          },
-          getDrawingVerticalLine: (value) {
-            return FlLine(
-              color: Colors.white.withValues(alpha: 0.3),
-              strokeWidth: 1,
-            );
-          },
+        gridData: ChartUtils.createGridData(),
+        titlesData: ChartUtils.createTitlesData(
+          keyDates,
+          ChartUtils.formatDateShort,
         ),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                if (value < 0 || value >= keyDates.length) {
-                  return const SizedBox.shrink();
-                }
-
-                final date = keyDates[value.toInt()];
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    DateFormat('dd.MM').format(date),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                );
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 20,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(
-          show: true,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-        ),
+        borderData: ChartUtils.createBorderData(),
         minX: 0,
         maxX: (keyDates.length - 1).toDouble(),
         minY: minY,
@@ -274,7 +179,7 @@ class BloodPressureChartWidget extends StatelessWidget {
           LineChartBarData(
             spots: systolicPoints,
             isCurved: true,
-            color: Colors.red[400]!, // Более яркий красный
+            color: Colors.red[400]!,
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -294,7 +199,7 @@ class BloodPressureChartWidget extends StatelessWidget {
           LineChartBarData(
             spots: diastolicPoints,
             isCurved: true,
-            color: Colors.blue[400]!, // Более яркий синий
+            color: Colors.blue[400]!,
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -314,7 +219,7 @@ class BloodPressureChartWidget extends StatelessWidget {
           LineChartBarData(
             spots: pulsePoints,
             isCurved: true,
-            color: Colors.green[400]!, // Более яркий зеленый
+            color: Colors.green[400]!,
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -347,7 +252,7 @@ class BloodPressureChartWidget extends StatelessWidget {
                 }
 
                 return LineTooltipItem(
-                  '$label\n${DateFormat('dd.MM.yyyy').format(date)}',
+                  '$label\n${ChartUtils.formatDateFull(date)}',
                   const TextStyle(color: Colors.white),
                 );
               }).toList();

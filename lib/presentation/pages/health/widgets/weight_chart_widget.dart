@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
+import 'chart_utils.dart';
 
 class WeightChartWidget extends StatelessWidget {
   final List<HealthMetric> metrics;
@@ -61,54 +62,16 @@ class WeightChartWidget extends StatelessWidget {
   Widget _buildChart(BuildContext context) {
     // Получаем ширину экрана
     final screenWidth = MediaQuery.of(context).size.width;
-    final chartWidth = screenWidth - 32; // Учитываем padding
-
-    // Вычисляем оптимальное количество точек
-    // Предполагаем, что на каждую дату нужно минимум 60px
-    final minDateWidth = 60.0;
-    final maxPoints = (chartWidth / minDateWidth).floor();
-
-    // Ограничиваем от 5 до 10 точек
-    final optimalPoints = maxPoints.clamp(5, 10);
+    final optimalPoints = ChartUtils.calculateOptimalPoints(screenWidth);
 
     // Группируем измерения по дням и вычисляем среднее
-    final groupedMetrics = <DateTime, List<HealthMetric>>{};
-
-    for (final metric in metrics) {
-      final date = DateTime(
-        metric.timestamp.year,
-        metric.timestamp.month,
-        metric.timestamp.day,
-      );
-
-      if (!groupedMetrics.containsKey(date)) {
-        groupedMetrics[date] = [];
-      }
-      groupedMetrics[date]!.add(metric);
-    }
-
-    // Сортируем даты по возрастанию (старые сначала)
-    final sortedDates = groupedMetrics.keys.toList()
-      ..sort((a, b) => a.compareTo(b));
+    final groupedMetrics = ChartUtils.groupMetricsByDate(metrics);
+    final sortedDates = ChartUtils.sortDatesAscending(groupedMetrics);
 
     if (sortedDates.isEmpty) return const SizedBox.shrink();
 
     // Выбираем ключевые даты для отображения
-    final keyDates = <DateTime>[];
-
-    if (sortedDates.length <= optimalPoints) {
-      // Если точек мало - показываем все
-      keyDates.addAll(sortedDates);
-    } else {
-      // Выбираем равномерно распределенные даты
-      final step = (sortedDates.length - 1) / (optimalPoints - 1);
-      for (int i = 0; i < optimalPoints; i++) {
-        final index = (i * step).round();
-        if (index < sortedDates.length) {
-          keyDates.add(sortedDates[index]);
-        }
-      }
-    }
+    final keyDates = ChartUtils.selectKeyDates(sortedDates, optimalPoints);
 
     // Создаем точки для графика только из ключевых дат
     List<FlSpot> weightSpots = [];
@@ -159,85 +122,16 @@ class WeightChartWidget extends StatelessWidget {
 
     return LineChart(
       LineChartData(
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: true,
-          drawHorizontalLine: true,
-          horizontalInterval: 5,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.white.withValues(alpha: 0.2),
-              strokeWidth: 1,
-            );
-          },
-          getDrawingVerticalLine: (value) {
-            return FlLine(
-              color: Colors.white.withValues(alpha: 0.2),
-              strokeWidth: 1,
-            );
-          },
+        gridData: ChartUtils.createGridData(),
+        titlesData: ChartUtils.createTitlesData(
+          keyDates,
+          ChartUtils.formatDateShort,
         ),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              interval: 1.0,
-              getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index >= 0 && index < keyDates.length) {
-                  final date = keyDates[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 5,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 10),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
+        borderData: ChartUtils.createBorderData(),
         minX: 0,
-        maxX: (weightSpots.length - 1).toDouble(),
+        maxX: (keyDates.length - 1).toDouble(),
         minY: minY,
         maxY: maxY,
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (touchedSpots) {
-              return touchedSpots.map((spot) {
-                final date = keyDates[spot.x.toInt()];
-                return LineTooltipItem(
-                  '${spot.y.toStringAsFixed(1)} кг\n${_formatDate(date)}',
-                  const TextStyle(color: Colors.white),
-                );
-              }).toList();
-            },
-          ),
-        ),
         lineBarsData: [
           LineChartBarData(
             spots: weightSpots,
@@ -271,11 +165,20 @@ class WeightChartWidget extends StatelessWidget {
             dashArray: [5, 5],
           ),
         ],
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((spot) {
+                final date = keyDates[spot.x.toInt()];
+                return LineTooltipItem(
+                  '${spot.y.toStringAsFixed(1)} кг\n${ChartUtils.formatDateFull(date)}',
+                  const TextStyle(color: Colors.white),
+                );
+              }).toList();
+            },
+          ),
+        ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
