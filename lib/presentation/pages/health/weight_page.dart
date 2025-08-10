@@ -141,7 +141,9 @@ class _WeightPageState extends State<WeightPage>
           final filteredMetrics = weightMetrics
               .where(
                 (metric) => metric.timestamp.isAfter(
-                  startDate.subtract(const Duration(days: 1)),
+                  DateTime.now().subtract(
+                    const Duration(days: 31),
+                  ), // 31 день назад (включая сегодня)
                 ),
               )
               .toList();

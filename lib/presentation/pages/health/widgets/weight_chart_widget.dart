@@ -79,6 +79,17 @@ class WeightChartWidget extends StatelessWidget {
     final sortedDates = groupedMetrics.keys.toList()
       ..sort((a, b) => a.compareTo(b));
 
+    // ОТЛАДКА: выводим что у нас получилось
+    print('=== ОТЛАДКА ГРАФИКА ===');
+    print('Всего уникальных дат: ${sortedDates.length}');
+    for (int i = 0; i < sortedDates.length; i++) {
+      final date = sortedDates[i];
+      final dayMetrics = groupedMetrics[date]!;
+      print(
+        'Дата $i: ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')} - измерений: ${dayMetrics.length}',
+      );
+    }
+
     if (sortedDates.isEmpty) return const SizedBox.shrink();
 
     // Находим минимальное и максимальное значение для оси Y
@@ -164,10 +175,13 @@ class WeightChartWidget extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
+              interval: 1.0, // Показываем подписи только для целых значений
               getTitlesWidget: (value, meta) {
-                // Показываем даты для каждой точки
+                // Показываем даты только для тех значений, где у нас есть точки
                 final index = value.toInt();
-                if (index >= 0 && index < sortedDates.length) {
+                if (index >= 0 &&
+                    index < sortedDates.length &&
+                    index < weightSpots.length) {
                   final date = sortedDates[index];
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
