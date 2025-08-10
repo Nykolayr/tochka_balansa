@@ -141,6 +141,7 @@ class BloodPressureChartWidget extends StatelessWidget {
 
     // Определяем интервал для меток на оси X
     final totalDays = sortedDates.last.difference(sortedDates.first).inDays;
+    // ignore: unused_local_variable
     int interval = 5;
     if (totalDays > 60) interval = 10;
     if (totalDays > 120) interval = 20;
@@ -183,23 +184,35 @@ class BloodPressureChartWidget extends StatelessWidget {
                     showTitles: true,
                     reservedSize: 30,
                     getTitlesWidget: (value, meta) {
-                      if (value.toInt() % interval != 0) {
-                        return const SizedBox.shrink();
-                      }
-
-                      final date = sortedDates.first.add(
-                        Duration(days: value.toInt()),
-                      );
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
+                      // Показываем даты для первой и последней точки
+                      if (value <= 0.1) {
+                        // Первая дата (индекс 0)
+                        final date = sortedDates[0];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else if (value >= 0.9) {
+                        // Последняя дата (индекс 1)
+                        final date = sortedDates[1];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
                     },
                   ),
                 ),
@@ -221,8 +234,9 @@ class BloodPressureChartWidget extends StatelessWidget {
                 ),
               ),
               borderData: FlBorderData(show: false),
-              minX: 0,
-              maxX: totalDays.toDouble(),
+              minX: 0, // Начинаем с 0
+              maxX: (sortedDates.length - 1)
+                  .toDouble(), // Заканчиваем на количестве дней с измерениями
               minY: minY,
               maxY: maxY,
               lineTouchData: LineTouchData(

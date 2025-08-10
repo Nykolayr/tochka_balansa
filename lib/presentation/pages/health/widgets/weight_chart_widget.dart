@@ -59,6 +59,26 @@ class WeightChartWidget extends StatelessWidget {
   }
 
   Widget _buildChart() {
+    // Группируем измерения по дням и вычисляем среднее
+    final groupedMetrics = <DateTime, List<HealthMetric>>{};
+
+    for (final metric in metrics) {
+      final date = DateTime(
+        metric.timestamp.year,
+        metric.timestamp.month,
+        metric.timestamp.day,
+      );
+
+      if (!groupedMetrics.containsKey(date)) {
+        groupedMetrics[date] = [];
+      }
+      groupedMetrics[date]!.add(metric);
+    }
+
+    // Создаем список дней с усредненными значениями
+    final sortedDates = groupedMetrics.keys.toList()
+      ..sort((a, b) => a.compareTo(b));
+
     // Находим минимальное и максимальное значение для оси Y
     double minY = double.infinity;
     double maxY = 0;
@@ -67,50 +87,48 @@ class WeightChartWidget extends StatelessWidget {
     if (targetWeight < minY) minY = targetWeight;
     if (targetWeight > maxY) maxY = targetWeight;
 
-    // Добавляем веса из измерений
-    for (final metric in metrics) {
-      final weight = double.tryParse(metric.value) ?? 0;
-      if (weight < minY) minY = weight;
-      if (weight > maxY) maxY = weight;
+    // Создаем списки точек для графика
+    List<FlSpot> weightSpots = [];
+
+    for (int i = 0; i < sortedDates.length; i++) {
+      final date = sortedDates[i];
+      final dayMetrics = groupedMetrics[date]!;
+
+      // Вычисляем среднее значение для этого дня
+      double totalWeight = 0;
+      int validCount = 0;
+
+      for (final metric in dayMetrics) {
+        final weight = double.tryParse(metric.value);
+        if (weight != null) {
+          totalWeight += weight;
+          validCount++;
+        }
+      }
+
+      if (validCount > 0) {
+        final avgWeight = totalWeight / validCount;
+
+        // Используем дни от первого измерения как x-координату
+        final daysDiff = date.difference(sortedDates.first).inDays.toDouble();
+
+        weightSpots.add(FlSpot(daysDiff, avgWeight));
+
+        // Обновляем границы оси Y
+        if (avgWeight < minY) minY = avgWeight;
+        if (avgWeight > maxY) maxY = avgWeight;
+      }
     }
 
     // Добавляем отступ для оси Y
     minY = (minY - 10).clamp(0, double.infinity);
     maxY = maxY + 10;
 
-    // Создаем точки для графика
-    final spots = metrics.map((metric) {
-      final weight = double.tryParse(metric.value) ?? 0;
-      // Используем timestamp как x-координату (в днях от начала периода)
-      final days = metric.timestamp
-          .difference(metrics.first.timestamp)
-          .inDays
-          .toDouble();
-      return FlSpot(days, weight);
-    }).toList();
-
     // Создаем горизонтальную линию для целевого веса
     final targetLine = [
       FlSpot(0, targetWeight),
-      FlSpot(
-        metrics.last.timestamp
-            .difference(metrics.first.timestamp)
-            .inDays
-            .toDouble(),
-        targetWeight,
-      ),
+      FlSpot((sortedDates.length - 1).toDouble(), targetWeight),
     ];
-
-    // Определяем даты для оси X
-    final firstDate = metrics.first.timestamp;
-    final lastDate = metrics.last.timestamp;
-    final daysDifference = lastDate.difference(firstDate).inDays;
-
-    // Определяем интервал для меток на оси X
-    int interval = 5;
-    if (daysDifference > 60) interval = 10;
-    if (daysDifference > 120) interval = 20;
-    if (daysDifference > 240) interval = 30;
 
     return LineChart(
       LineChartData(
@@ -145,19 +163,29 @@ class WeightChartWidget extends StatelessWidget {
               showTitles: true,
               reservedSize: 30,
               getTitlesWidget: (value, meta) {
-                // Показываем даты на оси X
-                if (value.toInt() % interval != 0) {
-                  return const SizedBox.shrink();
+                // Показываем даты для первой и последней точки
+                if (value <= 0.1) {
+                  // Первая дата (индекс 0)
+                  final date = sortedDates[0];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                    ),
+                  );
+                } else if (value >= 0.9) {
+                  // Последняя дата (индекс 1)
+                  final date = sortedDates[1];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                    ),
+                  );
                 }
-
-                final date = firstDate.add(Duration(days: value.toInt()));
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                );
+                return const SizedBox.shrink();
               },
             ),
           ),
@@ -177,14 +205,16 @@ class WeightChartWidget extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         minX: 0,
-        maxX: daysDifference.toDouble(),
+        maxX: (sortedDates.length - 1).toDouble(),
         minY: minY,
         maxY: maxY,
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                final date = firstDate.add(Duration(days: spot.x.toInt()));
+                final date = sortedDates.first.add(
+                  Duration(days: spot.x.toInt()),
+                );
                 return LineTooltipItem(
                   '${spot.y.toStringAsFixed(1)} кг\n${_formatDate(date)}',
                   const TextStyle(color: Colors.white),
@@ -196,7 +226,7 @@ class WeightChartWidget extends StatelessWidget {
         lineBarsData: [
           // Линия веса
           LineChartBarData(
-            spots: spots,
+            spots: weightSpots,
             isCurved: true,
             color: Colors.white,
             barWidth: 3,

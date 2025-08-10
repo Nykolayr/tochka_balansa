@@ -86,22 +86,22 @@ class _WeightPageState extends State<WeightPage>
               ? '+${weightDifference.toStringAsFixed(1)}'
               : weightDifference.toStringAsFixed(1);
 
-          // Определяем период для отображения (30 дней, 12 недель, 12 месяцев)
+          // Определяем период для отображения (всегда фиксированный)
           DateTime startDate;
-          String periodText;
+          String periodText = '';
 
           switch (_selectedTabIndex) {
-            case 0:
+            case 0: // ПО ДНЯМ
               startDate = DateTime.now().subtract(const Duration(days: 30));
               periodText = textLang('За последние 30 дней');
               break;
-            case 1:
+            case 1: // ПО НЕДЕЛЯМ
               startDate = DateTime.now().subtract(
                 const Duration(days: 84),
               ); // 12 недель
               periodText = textLang('За последние 12 недель');
               break;
-            case 2:
+            case 2: // ПО МЕСЯЦАМ
               startDate = DateTime.now().subtract(
                 const Duration(days: 365),
               ); // 12 месяцев
@@ -114,7 +114,11 @@ class _WeightPageState extends State<WeightPage>
 
           // Фильтруем измерения по выбранному периоду
           final filteredMetrics = weightMetrics
-              .where((metric) => metric.timestamp.isAfter(startDate))
+              .where(
+                (metric) => metric.timestamp.isAfter(
+                  startDate.subtract(const Duration(days: 1)),
+                ),
+              )
               .toList();
 
           // Сортируем для графика (старые сначала)

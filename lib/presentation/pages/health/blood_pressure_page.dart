@@ -90,21 +90,25 @@ class _BloodPressurePageState extends State<BloodPressurePage>
             }
           }
 
-          // Определяем период для отображения
+          // Определяем период для отображения (всегда фиксированный)
           DateTime startDate;
-          String periodText;
+          String periodText = '';
 
           switch (_selectedTabIndex) {
-            case 0:
+            case 0: // ПО ДНЯМ
               startDate = DateTime.now().subtract(const Duration(days: 30));
               periodText = textLang('За последние 30 дней');
               break;
-            case 1:
-              startDate = DateTime.now().subtract(const Duration(days: 84));
+            case 1: // ПО НЕДЕЛЯМ
+              startDate = DateTime.now().subtract(
+                const Duration(days: 84),
+              ); // 12 недель
               periodText = textLang('За последние 12 недель');
               break;
-            case 2:
-              startDate = DateTime.now().subtract(const Duration(days: 365));
+            case 2: // ПО МЕСЯЦАМ
+              startDate = DateTime.now().subtract(
+                const Duration(days: 365),
+              ); // 12 месяцев
               periodText = textLang('За последние 12 месяцев');
               break;
             default:
@@ -114,7 +118,11 @@ class _BloodPressurePageState extends State<BloodPressurePage>
 
           // Фильтруем измерения по выбранному периоду
           final filteredMetrics = pressureMetrics
-              .where((metric) => metric.timestamp.isAfter(startDate))
+              .where(
+                (metric) => metric.timestamp.isAfter(
+                  startDate.subtract(const Duration(days: 1)),
+                ),
+              )
               .toList();
 
           // Сортируем для графика (старые сначала)
