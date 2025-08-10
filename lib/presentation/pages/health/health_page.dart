@@ -9,6 +9,7 @@ import 'package:tochka_balansa/presentation/pages/health/widgets/add_metric_dial
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_weight_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/weight_block_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/blood_pressure_block_widget.dart';
+import 'package:tochka_balansa/presentation/pages/health/widgets/blood_sugar_block_widget.dart';
 
 import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 
@@ -56,6 +57,9 @@ class _HealthPageState extends State<HealthPage> {
 
                 // Блок давления и пульса (показывается при наличии данных)
                 const BloodPressureBlockWidget(),
+
+                // Блок сахара в крови (показывается при наличии данных)
+                const BloodSugarBlockWidget(),
 
                 // Подсказка о добавлении новых показателей
                 const SizedBox(height: 24),

@@ -24,16 +24,17 @@ class AddAdditionalGoalPage extends StatelessWidget {
             // Если один из них "Своя цель" (id == 'custom'), он идет в конец
             if (a.id == 'custom') return 1;
             if (b.id == 'custom') return -1;
-            
+
             // Если оба пользовательские шаблоны (начинаются с 'template_'), сортируем по дате создания
             if (a.id.startsWith('template_') && b.id.startsWith('template_')) {
               return b.createdAt.compareTo(a.createdAt); // Новые шаблоны сверху
             }
-            
+
             // Если один пользовательский, а другой стандартный
-            if (a.id.startsWith('template_')) return 1; // Пользовательские после стандартных
+            if (a.id.startsWith('template_'))
+              return 1; // Пользовательские после стандартных
             if (b.id.startsWith('template_')) return -1;
-            
+
             return 0; // Стандартные шаблоны остаются в исходном порядке
           });
 
