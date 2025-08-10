@@ -27,7 +27,7 @@ class _BloodPressurePageState extends State<BloodPressurePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this); // Изменил с 3 на 4
     _tabController.addListener(() {
       setState(() {
         _selectedTabIndex = _tabController.index;
@@ -101,25 +101,29 @@ class _BloodPressurePageState extends State<BloodPressurePage>
           String periodText = '';
 
           switch (_selectedTabIndex) {
-            case 0: // ПО ДНЯМ
+            case 0: // 7 ДНЕЙ
+              startDate = DateTime.now().subtract(const Duration(days: 7));
+              periodText = textLang('За последние 7 дней');
+              break;
+            case 1: // ПО ДНЯМ
               startDate = DateTime.now().subtract(const Duration(days: 30));
               periodText = textLang('За последние 30 дней');
               break;
-            case 1: // ПО НЕДЕЛЯМ
+            case 2: // ПО НЕДЕЛЯМ
               startDate = DateTime.now().subtract(
                 const Duration(days: 84),
               ); // 12 недель
               periodText = textLang('За последние 12 недель');
               break;
-            case 2: // ПО МЕСЯЦАМ
+            case 3: // ПО МЕСЯЦАМ
               startDate = DateTime.now().subtract(
                 const Duration(days: 180),
               ); // 6 месяцев
               periodText = textLang('За последние 6 месяцев');
               break;
             default:
-              startDate = DateTime.now().subtract(const Duration(days: 30));
-              periodText = textLang('За последние 30 дней');
+              startDate = DateTime.now().subtract(const Duration(days: 7));
+              periodText = textLang('За последние 7 дней');
           }
 
           // Фильтруем измерения по выбранному периоду
@@ -145,7 +149,12 @@ class _BloodPressurePageState extends State<BloodPressurePage>
                   labelColor: AppColor.darkBlue,
                   unselectedLabelColor: AppColor.greyText,
                   indicatorColor: AppColor.darkBlue,
+                  labelStyle: const TextStyle(fontSize: 10), // Уменьшил шрифт
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 10,
+                  ), // Уменьшил шрифт
                   tabs: [
+                    Tab(text: textLang('7 ДНЕЙ')),
                     Tab(text: textLang('ПО ДНЯМ')),
                     Tab(text: textLang('ПО НЕДЕЛЯМ')),
                     Tab(text: textLang('ПО МЕСЯЦАМ')),
