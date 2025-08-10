@@ -21,7 +21,7 @@ class BloodPressureChartWidget extends StatelessWidget {
     }
 
     return Container(
-      height: 300,
+      height: 350, // Увеличил высоту для легенды
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColor.darkBlue,
@@ -34,7 +34,46 @@ class BloodPressureChartWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: _buildChart(context),
+      child: Column(
+        children: [
+          Expanded(child: _buildChart(context)),
+          const SizedBox(height: 16),
+          _buildLegend(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildLegendItem('Систолическое', Colors.red[400]!),
+        _buildLegendItem('Диастолическое', Colors.blue[400]!),
+        _buildLegendItem('Пульс', Colors.green[400]!),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ],
     );
   }
 
@@ -231,11 +270,11 @@ class BloodPressureChartWidget extends StatelessWidget {
         minY: minY,
         maxY: maxY,
         lineBarsData: [
-          // Систолическое давление (красная линия)
+          // Систолическое давление (ярко-красная линия)
           LineChartBarData(
             spots: systolicPoints,
             isCurved: true,
-            color: Colors.red,
+            color: Colors.red[400]!, // Более яркий красный
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -243,7 +282,7 @@ class BloodPressureChartWidget extends StatelessWidget {
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: Colors.red,
+                  color: Colors.red[400]!,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
@@ -251,11 +290,11 @@ class BloodPressureChartWidget extends StatelessWidget {
             ),
             belowBarData: BarAreaData(show: false),
           ),
-          // Диастолическое давление (синяя линия)
+          // Диастолическое давление (ярко-синяя линия)
           LineChartBarData(
             spots: diastolicPoints,
             isCurved: true,
-            color: Colors.red,
+            color: Colors.blue[400]!, // Более яркий синий
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -263,7 +302,7 @@ class BloodPressureChartWidget extends StatelessWidget {
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: Colors.blue,
+                  color: Colors.blue[400]!,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
@@ -271,11 +310,11 @@ class BloodPressureChartWidget extends StatelessWidget {
             ),
             belowBarData: BarAreaData(show: false),
           ),
-          // Пульс (зеленая линия)
+          // Пульс (ярко-зеленая линия)
           LineChartBarData(
             spots: pulsePoints,
             isCurved: true,
-            color: Colors.green,
+            color: Colors.green[400]!, // Более яркий зеленый
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -283,7 +322,7 @@ class BloodPressureChartWidget extends StatelessWidget {
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: Colors.green,
+                  color: Colors.green[400]!,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
