@@ -25,7 +25,7 @@ class _WeightPageState extends State<WeightPage>
   late TabController _tabController;
   int _selectedTabIndex = 0;
 
-  // ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
+  // TODO: ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
   List<HealthMetric> generateTestWeightData() {
     final now = DateTime.now();
 

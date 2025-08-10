@@ -66,13 +66,10 @@ class _BloodPressurePageState extends State<BloodPressurePage>
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
         builder: (context, state) {
-          // ВРЕМЕННО: используем тестовые данные вместо реальных
-          // final bloodPressureMetrics = state.healthData.metrics
-          //     .where((m) => m.type == HealthMetricType.bloodPressureSystolic ||
-          //                    m.type == HealthMetricType.bloodPressureDiastolic ||
-          //                    m.type == HealthMetricType.heartRate)
-          //     .toList();
-          final bloodPressureMetrics = _generateTestBloodPressureData();
+          // Используем реальные данные из HealthBloc
+          final bloodPressureMetrics = state.healthData.metrics
+              .where((m) => m.type == HealthMetricType.bloodPressureAndPulse)
+              .toList();
 
           // Сортируем по дате (новые сверху)
           bloodPressureMetrics.sort(
@@ -668,8 +665,8 @@ class _BloodPressurePageState extends State<BloodPressurePage>
     }
   }
 
-  // ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
-  List<HealthMetric> _generateTestBloodPressureData() {
+  // TODO: ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
+  List<HealthMetric> generateTestBloodPressureData() {
     final now = DateTime.now();
 
     // Создаем HealthMetric объекты
