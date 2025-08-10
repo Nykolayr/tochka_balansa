@@ -10,6 +10,7 @@ import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/blood_pressure_chart_widget.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_pressure_dialog.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
+import 'package:tochka_balansa/core/constants/test_data.dart';
 
 class BloodPressurePage extends StatefulWidget {
   const BloodPressurePage({super.key});
@@ -65,21 +66,26 @@ class _BloodPressurePageState extends State<BloodPressurePage>
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
         builder: (context, state) {
-          // Получаем все измерения давления и пульса
-          final pressureMetrics = state.healthData.metrics
-              .where((m) => m.type == HealthMetricType.bloodPressureAndPulse)
-              .toList();
+          // ВРЕМЕННО: используем тестовые данные вместо реальных
+          // final bloodPressureMetrics = state.healthData.metrics
+          //     .where((m) => m.type == HealthMetricType.bloodPressureSystolic ||
+          //                    m.type == HealthMetricType.bloodPressureDiastolic ||
+          //                    m.type == HealthMetricType.heartRate)
+          //     .toList();
+          final bloodPressureMetrics = _generateTestBloodPressureData();
 
           // Сортируем по дате (новые сверху)
-          pressureMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          bloodPressureMetrics.sort(
+            (a, b) => b.timestamp.compareTo(a.timestamp),
+          );
 
           // Получаем последние значения
           String currentSystolic = '--';
           String currentDiastolic = '--';
           String currentPulse = '--';
 
-          if (pressureMetrics.isNotEmpty) {
-            final lastMeasurement = pressureMetrics.first.value;
+          if (bloodPressureMetrics.isNotEmpty) {
+            final lastMeasurement = bloodPressureMetrics.first.value;
             if (lastMeasurement.contains('/')) {
               final parts = lastMeasurement.split('/');
               if (parts.length == 3) {
@@ -107,9 +113,9 @@ class _BloodPressurePageState extends State<BloodPressurePage>
               break;
             case 2: // ПО МЕСЯЦАМ
               startDate = DateTime.now().subtract(
-                const Duration(days: 365),
-              ); // 12 месяцев
-              periodText = textLang('За последние 12 месяцев');
+                const Duration(days: 180),
+              ); // 6 месяцев
+              periodText = textLang('За последние 6 месяцев');
               break;
             default:
               startDate = DateTime.now().subtract(const Duration(days: 30));
@@ -117,7 +123,7 @@ class _BloodPressurePageState extends State<BloodPressurePage>
           }
 
           // Фильтруем измерения по выбранному периоду
-          final filteredMetrics = pressureMetrics
+          final filteredMetrics = bloodPressureMetrics
               .where(
                 (metric) => metric.timestamp.isAfter(
                   startDate.subtract(const Duration(days: 1)),
@@ -180,7 +186,7 @@ class _BloodPressurePageState extends State<BloodPressurePage>
                     const SizedBox(height: 4),
 
                     // Цифры текущих значений
-                    if (pressureMetrics.isNotEmpty)
+                    if (bloodPressureMetrics.isNotEmpty)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -291,7 +297,10 @@ class _BloodPressurePageState extends State<BloodPressurePage>
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: BloodPressureChartWidget(metrics: filteredMetrics),
+                  child: BloodPressureChartWidget(
+                    metrics: filteredMetrics,
+                    selectedTabIndex: _selectedTabIndex,
+                  ),
                 ),
               ),
             ],
@@ -648,5 +657,30 @@ class _BloodPressurePageState extends State<BloodPressurePage>
     } else {
       return textLang('измерений');
     }
+  }
+
+  // ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
+  List<HealthMetric> _generateTestBloodPressureData() {
+    final now = DateTime.now();
+
+    // Создаем HealthMetric объекты
+    final testMetrics = <HealthMetric>[];
+
+    for (final data in TestData.bloodPressureData) {
+      final date = now.subtract(Duration(days: data['daysOffset'] as int));
+
+      // Давление и пульс в одном значении: "систолическое/диастолическое/пульс"
+      testMetrics.add(
+        HealthMetric(
+          id: 'test_bp_${date.millisecondsSinceEpoch}',
+          type: HealthMetricType.bloodPressureAndPulse,
+          value: '${data['systolic']}/${data['diastolic']}/${data['pulse']}',
+          timestamp: date,
+          note: 'Тестовые данные',
+        ),
+      );
+    }
+
+    return testMetrics;
   }
 }

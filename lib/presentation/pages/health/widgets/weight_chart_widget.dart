@@ -71,12 +71,6 @@ class WeightChartWidget extends StatelessWidget {
     // Ограничиваем от 5 до 10 точек
     final optimalPoints = maxPoints.clamp(5, 10);
 
-    print('=== ОТЛАДКА ТОЧЕК ===');
-    print('Ширина экрана: $screenWidth');
-    print('Ширина графика: $chartWidth');
-    print('Максимум точек: $maxPoints');
-    print('Оптимальное количество: $optimalPoints');
-
     // Группируем измерения по дням и вычисляем среднее
     final groupedMetrics = <DateTime, List<HealthMetric>>{};
 
@@ -115,9 +109,6 @@ class WeightChartWidget extends StatelessWidget {
         }
       }
     }
-
-    print('Всего дат: ${sortedDates.length}');
-    print('Показано дат: ${keyDates.length}');
 
     // Создаем точки для графика только из ключевых дат
     List<FlSpot> weightSpots = [];

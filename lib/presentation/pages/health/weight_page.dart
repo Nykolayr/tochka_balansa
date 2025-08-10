@@ -26,7 +26,7 @@ class _WeightPageState extends State<WeightPage>
   int _selectedTabIndex = 0;
 
   // ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
-  List<HealthMetric> _generateTestWeightData() {
+  List<HealthMetric> generateTestWeightData() {
     final now = DateTime.now();
 
     // Создаем HealthMetric объекты
@@ -87,11 +87,10 @@ class _WeightPageState extends State<WeightPage>
       body: BlocBuilder<HealthBloc, HealthState>(
         bloc: Get.find<HealthBloc>(),
         builder: (context, state) {
-          // ВРЕМЕННО: используем тестовые данные вместо реальных
-          // final weightMetrics = state.healthData.metrics
-          //     .where((m) => m.type == HealthMetricType.weight)
-          //     .toList();
-          final weightMetrics = _generateTestWeightData();
+          // Убираем тестовые данные, используем реальные
+          final weightMetrics = state.healthData.metrics
+              .where((m) => m.type == HealthMetricType.weight)
+              .toList();
 
           // Сортируем по дате (новые сверху для списка, старые сверху для графика)
           weightMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));

@@ -1,18 +1,28 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 
 class BloodPressureChartWidget extends StatelessWidget {
   final List<HealthMetric> metrics;
+  final int selectedTabIndex;
 
-  const BloodPressureChartWidget({super.key, required this.metrics});
+  const BloodPressureChartWidget({
+    super.key,
+    required this.metrics,
+    required this.selectedTabIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (metrics.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      height: 300,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColor.darkBlue,
         borderRadius: BorderRadius.circular(8),
@@ -24,38 +34,23 @@ class BloodPressureChartWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: metrics.isEmpty ? _buildEmptyState() : _buildChart(),
+      child: _buildChart(context),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.favorite, size: 64, color: Colors.white),
-          const SizedBox(height: 16),
-          Text(
-            textLang('Нет данных для отображения графика'),
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            textLang(
-              'Добавьте измерения давления и пульса для просмотра динамики',
-            ),
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 14,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildChart(BuildContext context) {
+    // Получаем ширину экрана
+    final screenWidth = MediaQuery.of(context).size.width;
+    final chartWidth = screenWidth - 32; // Учитываем padding
 
-  Widget _buildChart() {
+    // Вычисляем оптимальное количество точек
+    // Предполагаем, что на каждую дату нужно минимум 60px
+    final minDateWidth = 60.0;
+    final maxPoints = (chartWidth / minDateWidth).floor();
+
+    // Ограничиваем от 5 до 10 точек
+    final optimalPoints = maxPoints.clamp(5, 10);
+
     // Группируем измерения по дням и вычисляем среднее
     final groupedMetrics = <DateTime, List<HealthMetric>>{};
 
@@ -72,308 +67,255 @@ class BloodPressureChartWidget extends StatelessWidget {
       groupedMetrics[date]!.add(metric);
     }
 
-    // Создаем список дней с усредненными значениями
+    // Сортируем даты по возрастанию (старые сначала)
     final sortedDates = groupedMetrics.keys.toList()
       ..sort((a, b) => a.compareTo(b));
 
-    // Находим минимальное и максимальное значение для оси Y
-    double minY = double.infinity;
-    double maxY = 0;
+    if (sortedDates.isEmpty) return const SizedBox.shrink();
 
-    // Создаем списки точек для каждой линии
-    List<FlSpot> systolicSpots = [];
-    List<FlSpot> diastolicSpots = [];
-    List<FlSpot> pulseSpots = [];
+    // Выбираем ключевые даты для отображения
+    final keyDates = <DateTime>[];
+    if (sortedDates.length <= optimalPoints) {
+      keyDates.addAll(sortedDates);
+    } else {
+      // Равномерно распределяем даты
+      final step = (sortedDates.length - 1) / (optimalPoints - 1);
+      for (int i = 0; i < optimalPoints; i++) {
+        final index = (i * step).round();
+        if (index < sortedDates.length) {
+          keyDates.add(sortedDates[index]);
+        }
+      }
+    }
 
-    for (int i = 0; i < sortedDates.length; i++) {
-      final date = sortedDates[i];
-      final dayMetrics = groupedMetrics[date]!;
+    // Создаем точки для каждого типа измерения
+    final systolicPoints = <FlSpot>[];
+    final diastolicPoints = <FlSpot>[];
+    final pulsePoints = <FlSpot>[];
 
-      // Вычисляем среднее значение для этого дня
-      double totalSystolic = 0;
-      double totalDiastolic = 0;
-      double totalPulse = 0;
-      int validCount = 0;
+    for (int i = 0; i < keyDates.length; i++) {
+      final date = keyDates[i];
+      final dateMetrics = groupedMetrics[date]!;
 
-      for (final metric in dayMetrics) {
-        if (metric.value.contains('/')) {
+      // Вычисляем средние значения для каждого типа
+      final systolicValues = <double>[];
+      final diastolicValues = <double>[];
+      final pulseValues = <double>[];
+
+      for (final metric in dateMetrics) {
+        if (metric.type == HealthMetricType.bloodPressureAndPulse) {
           final parts = metric.value.split('/');
           if (parts.length == 3) {
-            final systolic = double.tryParse(parts[0]);
-            final diastolic = double.tryParse(parts[1]);
-            final pulse = double.tryParse(parts[2]);
+            final systolic = double.tryParse(parts[0]) ?? 0;
+            final diastolic = double.tryParse(parts[1]) ?? 0;
+            final pulse = double.tryParse(parts[2]) ?? 0;
 
-            if (systolic != null && diastolic != null && pulse != null) {
-              totalSystolic += systolic;
-              totalDiastolic += diastolic;
-              totalPulse += pulse;
-              validCount++;
-            }
+            if (systolic > 0) systolicValues.add(systolic);
+            if (diastolic > 0) diastolicValues.add(diastolic);
+            if (pulse > 0) pulseValues.add(pulse);
           }
         }
       }
 
-      if (validCount > 0) {
-        final avgSystolic = totalSystolic / validCount;
-        final avgDiastolic = totalDiastolic / validCount;
-        final avgPulse = totalPulse / validCount;
+      if (systolicValues.isNotEmpty) {
+        systolicPoints.add(
+          FlSpot(
+            i.toDouble(),
+            systolicValues.reduce((a, b) => a + b) / systolicValues.length,
+          ),
+        );
+      }
 
-        // Используем дни от первого измерения как x-координату
-        final daysDiff = date.difference(sortedDates.first).inDays.toDouble();
+      if (diastolicValues.isNotEmpty) {
+        diastolicPoints.add(
+          FlSpot(
+            i.toDouble(),
+            diastolicValues.reduce((a, b) => a + b) / diastolicValues.length,
+          ),
+        );
+      }
 
-        systolicSpots.add(FlSpot(daysDiff, avgSystolic));
-        diastolicSpots.add(FlSpot(daysDiff, avgDiastolic));
-        pulseSpots.add(FlSpot(daysDiff, avgPulse));
-
-        // Обновляем границы оси Y
-        if (avgSystolic < minY) minY = avgSystolic;
-        if (avgSystolic > maxY) maxY = avgSystolic;
-        if (avgDiastolic < minY) minY = avgDiastolic;
-        if (avgDiastolic > maxY) maxY = avgDiastolic;
-        if (avgPulse < minY) minY = avgPulse;
-        if (avgPulse > maxY) maxY = avgPulse;
+      if (pulseValues.isNotEmpty) {
+        pulsePoints.add(
+          FlSpot(
+            i.toDouble(),
+            pulseValues.reduce((a, b) => a + b) / pulseValues.length,
+          ),
+        );
       }
     }
 
-    // Добавляем отступ для оси Y
-    minY = (minY - 20).clamp(0, double.infinity);
-    maxY = maxY + 20;
+    // Определяем диапазон значений для Y оси
+    final allValues = [
+      ...systolicPoints.map((p) => p.y),
+      ...diastolicPoints.map((p) => p.y),
+      ...pulsePoints.map((p) => p.y),
+    ];
 
-    // Определяем интервал для меток на оси X
-    final totalDays = sortedDates.last.difference(sortedDates.first).inDays;
-    // ignore: unused_local_variable
-    int interval = 5;
-    if (totalDays > 60) interval = 10;
-    if (totalDays > 120) interval = 20;
-    if (totalDays > 240) interval = 30;
+    if (allValues.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    return Column(
-      children: [
-        // График
-        Expanded(
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: true,
-                drawHorizontalLine: true,
-                horizontalInterval: 20,
-                getDrawingHorizontalLine: (value) {
-                  return FlLine(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    strokeWidth: 1,
-                  );
-                },
-                getDrawingVerticalLine: (value) {
-                  return FlLine(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    strokeWidth: 1,
-                  );
-                },
-              ),
-              titlesData: FlTitlesData(
-                show: true,
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 30,
-                    getTitlesWidget: (value, meta) {
-                      // Показываем даты для первой и последней точки
-                      if (value <= 0.1) {
-                        // Первая дата (индекс 0)
-                        final date = sortedDates[0];
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                            ),
-                          ),
-                        );
-                      } else if (value >= 0.9) {
-                        // Последняя дата (индекс 1)
-                        final date = sortedDates[1];
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                            ),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 20,
-                    reservedSize: 40,
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              borderData: FlBorderData(show: false),
-              minX: 0, // Начинаем с 0
-              maxX: (sortedDates.length - 1)
-                  .toDouble(), // Заканчиваем на количестве дней с измерениями
-              minY: minY,
-              maxY: maxY,
-              lineTouchData: LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipItems: (touchedSpots) {
-                    return touchedSpots.map((spot) {
-                      final date = sortedDates.first.add(
-                        Duration(days: spot.x.toInt()),
-                      );
+    final minY = allValues.reduce((a, b) => a < b ? a : b) - 10;
+    final maxY = allValues.reduce((a, b) => a > b ? a : b) + 10;
 
-                      String label = '';
-                      Color color = Colors.white;
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: true,
+          horizontalInterval: 20,
+          verticalInterval: 1,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.white.withValues(alpha: 0.3),
+              strokeWidth: 1,
+            );
+          },
+          getDrawingVerticalLine: (value) {
+            return FlLine(
+              color: Colors.white.withValues(alpha: 0.3),
+              strokeWidth: 1,
+            );
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              interval: 1,
+              getTitlesWidget: (value, meta) {
+                if (value < 0 || value >= keyDates.length) {
+                  return const SizedBox.shrink();
+                }
 
-                      if (spot.barIndex == 0) {
-                        label =
-                            'Систолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
-                        color = Colors.red;
-                      } else if (spot.barIndex == 1) {
-                        label =
-                            'Диастолическое: ${spot.y.toStringAsFixed(1)} мм рт.ст.';
-                        color = Colors.orange;
-                      } else if (spot.barIndex == 2) {
-                        label = 'Пульс: ${spot.y.toStringAsFixed(1)} уд/мин';
-                        color = AppColor.green;
-                      }
-
-                      return LineTooltipItem(
-                        '$label\n${_formatDate(date)}',
-                        TextStyle(color: color),
-                      );
-                    }).toList();
-                  },
-                ),
-              ),
-              lineBarsData: [
-                // Линия систолического давления (красная)
-                LineChartBarData(
-                  spots: systolicSpots,
-                  isCurved: true,
-                  color: Colors.red,
-                  barWidth: 3,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 4,
-                        color: Colors.red,
-                        strokeWidth: 2,
-                        strokeColor: Colors.white,
-                      );
-                    },
+                final date = keyDates[value.toInt()];
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    DateFormat('dd.MM').format(date),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
-                ),
-                // Линия диастолического давления (оранжевая)
-                LineChartBarData(
-                  spots: diastolicSpots,
-                  isCurved: true,
-                  color: Colors.orange,
-                  barWidth: 3,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 4,
-                        color: Colors.orange,
-                        strokeWidth: 2,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
-                ),
-                // Линия пульса (зеленая)
-                LineChartBarData(
-                  spots: pulseSpots,
-                  isCurved: true,
-                  color: AppColor.green,
-                  barWidth: 3,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 4,
-                        color: AppColor.green,
-                        strokeWidth: 2,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
-                ),
-              ],
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 20,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  value.toInt().toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                );
+              },
             ),
           ),
         ),
-
-        // Легенда
-        const SizedBox(height: 16),
-        _buildLegend(),
-      ],
-    );
-  }
-
-  Widget _buildLegend() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildLegendItem(color: Colors.red, label: textLang('Систолическое')),
-        _buildLegendItem(
-          color: Colors.orange,
-          label: textLang('Диастолическое'),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
         ),
-        _buildLegendItem(color: AppColor.green, label: textLang('Пульс')),
-      ],
-    );
-  }
+        minX: 0,
+        maxX: (keyDates.length - 1).toDouble(),
+        minY: minY,
+        maxY: maxY,
+        lineBarsData: [
+          // Систолическое давление (красная линия)
+          LineChartBarData(
+            spots: systolicPoints,
+            isCurved: true,
+            color: Colors.red,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.red,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                );
+              },
+            ),
+            belowBarData: BarAreaData(show: false),
+          ),
+          // Диастолическое давление (синяя линия)
+          LineChartBarData(
+            spots: diastolicPoints,
+            isCurved: true,
+            color: Colors.red,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.blue,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                );
+              },
+            ),
+            belowBarData: BarAreaData(show: false),
+          ),
+          // Пульс (зеленая линия)
+          LineChartBarData(
+            spots: pulsePoints,
+            isCurved: true,
+            color: Colors.green,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.green,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                );
+              },
+            ),
+            belowBarData: BarAreaData(show: false),
+          ),
+        ],
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((touchedSpot) {
+                final date = keyDates[touchedSpot.x.toInt()];
+                String label = '';
 
-  Widget _buildLegendItem({required Color color, required String label}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 3,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(1.5),
+                if (touchedSpot.barIndex == 0) {
+                  label = 'Систолическое: ${touchedSpot.y.toInt()}';
+                } else if (touchedSpot.barIndex == 1) {
+                  label = 'Диастолическое: ${touchedSpot.y.toInt()}';
+                } else if (touchedSpot.barIndex == 2) {
+                  label = 'Пульс: ${touchedSpot.y.toInt()}';
+                }
+
+                return LineTooltipItem(
+                  '$label\n${DateFormat('dd.MM.yyyy').format(date)}',
+                  const TextStyle(color: Colors.white),
+                );
+              }).toList();
+            },
           ),
         ),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
-      ],
+      ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
