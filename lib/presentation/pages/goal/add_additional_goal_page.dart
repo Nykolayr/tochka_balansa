@@ -31,8 +31,9 @@ class AddAdditionalGoalPage extends StatelessWidget {
             }
 
             // Если один пользовательский, а другой стандартный
-            if (a.id.startsWith('template_'))
+            if (a.id.startsWith('template_')) {
               return 1; // Пользовательские после стандартных
+            }
             if (b.id.startsWith('template_')) return -1;
 
             return 0; // Стандартные шаблоны остаются в исходном порядке

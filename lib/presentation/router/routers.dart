@@ -19,6 +19,8 @@ import 'package:tochka_balansa/presentation/pages/goal/add_additional_goal_page.
 import 'package:tochka_balansa/presentation/pages/goal/additional_goal_detail_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/archive_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/blood_sugar_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/blood_sugar_history_page.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
@@ -189,6 +191,36 @@ final GoRouter router = GoRouter(
                       child: BloodPressureHistoryPage(
                         key: ValueKey(languageState),
                       ), // обновил
+                    );
+                  },
+                ),
+              ],
+            ),
+            GoRoute(
+              name: 'сахар',
+              path: 'blood-sugar',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: BloodSugarPage(key: ValueKey(languageState)),
+                );
+              },
+              routes: [
+                GoRoute(
+                  name: 'история сахара',
+                  path: 'history',
+                  pageBuilder: (context, state) {
+                    final languageState = Get.find<LanguageBloc>().state;
+                    return buildPageWithDefaultTransition(
+                      type: PageTransitionType.rightToLeft,
+                      context: context,
+                      state: state,
+                      child: BloodSugarHistoryPage(
+                        key: ValueKey(languageState),
+                      ),
                     );
                   },
                 ),
