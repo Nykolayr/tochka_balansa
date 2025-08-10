@@ -1,6 +1,6 @@
 class TestData {
   static const List<Map<String, dynamic>> weightData = [
-    {'daysOffset': 180, 'weight': 75.5},  // 180 дней назад (самая старая дата)
+    {'daysOffset': 180, 'weight': 75.5}, // 180 дней назад (самая старая дата)
     {'daysOffset': 170, 'weight': 76.0},
     {'daysOffset': 160, 'weight': 76.5},
     {'daysOffset': 150, 'weight': 77.0},
@@ -21,6 +21,6 @@ class TestData {
     {'daysOffset': 5, 'weight': 84.5},
     {'daysOffset': 2, 'weight': 84.8},
     {'daysOffset': 1, 'weight': 84.9},
-    {'daysOffset': 0, 'weight': 85.0},   // Сегодня (самая новая дата)
+    {'daysOffset': 0, 'weight': 85.0},
   ];
 }

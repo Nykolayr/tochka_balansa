@@ -28,13 +28,14 @@ class _WeightPageState extends State<WeightPage>
   // ВРЕМЕННАЯ ФУНКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ - УБРАТЬ ПОСЛЕ ПРОВЕРКИ!
   List<HealthMetric> _generateTestWeightData() {
     final now = DateTime.now();
-    final sixMonthsAgo = DateTime(now.year, now.month - 6, now.day);
 
     // Создаем HealthMetric объекты
     final testMetrics = <HealthMetric>[];
 
     for (final data in TestData.weightData) {
-      final date = sixMonthsAgo.add(Duration(days: data['daysOffset'] as int));
+      final date = now.subtract(
+        Duration(days: data['daysOffset'] as int),
+      ); // ИСПРАВЛЕНО: отнимаем дни
       final metric = HealthMetric(
         id: 'test_${date.millisecondsSinceEpoch}',
         type: HealthMetricType.weight,
@@ -137,16 +138,25 @@ class _WeightPageState extends State<WeightPage>
               periodText = textLang('За последние 30 дней');
           }
 
-          // Фильтруем измерения по выбранному периоду
+          // ВРЕМЕННО: добавляем отладку
+          print('=== ОТЛАДКА WEIGHT PAGE ===');
+          print('Всего измерений: ${weightMetrics.length}');
+          for (int i = 0; i < weightMetrics.length; i++) {
+            final metric = weightMetrics[i];
+            print(
+              'Измерение $i: ${metric.timestamp.day.toString().padLeft(2, '0')}.${metric.timestamp.month.toString().padLeft(2, '0')} - вес: ${metric.value}',
+            );
+          }
+
           final filteredMetrics = weightMetrics
               .where(
                 (metric) => metric.timestamp.isAfter(
-                  DateTime.now().subtract(
-                    const Duration(days: 31),
-                  ), // 31 день назад (включая сегодня)
+                  DateTime.now().subtract(const Duration(days: 31)),
                 ),
               )
               .toList();
+
+          print('После фильтрации: ${filteredMetrics.length}');
 
           // Сортируем для графика (новые сначала для свайпа)
           filteredMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
