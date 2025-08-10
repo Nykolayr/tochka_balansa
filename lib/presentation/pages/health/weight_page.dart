@@ -129,34 +129,23 @@ class _WeightPageState extends State<WeightPage>
               break;
             case 2: // ПО МЕСЯЦАМ
               startDate = DateTime.now().subtract(
-                const Duration(days: 365),
-              ); // 12 месяцев
-              periodText = textLang('За последние 12 месяцев');
+                const Duration(days: 180),
+              ); // 6 месяцев
+              periodText = textLang('За последние 6 месяцев');
               break;
             default:
               startDate = DateTime.now().subtract(const Duration(days: 30));
               periodText = textLang('За последние 30 дней');
           }
 
-          // ВРЕМЕННО: добавляем отладку
-          print('=== ОТЛАДКА WEIGHT PAGE ===');
-          print('Всего измерений: ${weightMetrics.length}');
-          for (int i = 0; i < weightMetrics.length; i++) {
-            final metric = weightMetrics[i];
-            print(
-              'Измерение $i: ${metric.timestamp.day.toString().padLeft(2, '0')}.${metric.timestamp.month.toString().padLeft(2, '0')} - вес: ${metric.value}',
-            );
-          }
-
+          // Фильтруем измерения по выбранному периоду
           final filteredMetrics = weightMetrics
               .where(
                 (metric) => metric.timestamp.isAfter(
-                  DateTime.now().subtract(const Duration(days: 31)),
+                  startDate.subtract(const Duration(days: 1)),
                 ),
               )
               .toList();
-
-          print('После фильтрации: ${filteredMetrics.length}');
 
           // Сортируем для графика (новые сначала для свайпа)
           filteredMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));

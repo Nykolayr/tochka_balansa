@@ -36,5 +36,10 @@ class TestData {
     {'daysOffset': 2, 'weight': 78.3},
     {'daysOffset': 1, 'weight': 78.4},
     {'daysOffset': 0, 'weight': 78.5}, // Сегодня
+    // ДОБАВЛЯЕМ НОВЫЕ ЗНАЧЕНИЯ ДЛЯ 6 МЕСЯЦЕВ
+    {'daysOffset': 90, 'weight': 74.5}, // 3 месяца назад
+    {'daysOffset': 120, 'weight': 74.0}, // 4 месяца назад
+    {'daysOffset': 150, 'weight': 73.5}, // 5 месяцев назад
+    {'daysOffset': 180, 'weight': 73.0}, // 6 месяцев назад
   ];
 }
