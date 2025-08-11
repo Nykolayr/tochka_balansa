@@ -40,7 +40,6 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
         right: widget.isVessel ? 10 : 0,
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             text,
@@ -60,47 +59,49 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
             ),
           ),
           const Gap(8),
-          Container(
-            width: double.infinity,
-
-            decoration: BoxDecoration(
-              border: Border.all(color: color, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 250 * 0.6,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(6),
-                        bottomRight: Radius.circular(6),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 0,
-                  right: 0,
-                  child: Center(
+          // УБРАЛ mainAxisSize: MainAxisSize.min и добавил Expanded
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      height: 250 * 0.6,
                       decoration: BoxDecoration(
-                        color: AppColor.white,
-                        shape: BoxShape.circle,
+                        color: color,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(6),
+                          bottomRight: Radius.circular(6),
+                        ),
                       ),
-                      child: Icon(Icons.add, color: color, size: 24),
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    bottom: 8,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColor.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.add, color: color, size: 24),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
