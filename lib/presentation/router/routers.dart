@@ -24,6 +24,8 @@ import 'package:tochka_balansa/presentation/pages/health/blood_sugar_history_pag
 import 'package:get/get.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/presentation/pages/health/steps_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/steps_history_page.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -191,6 +193,34 @@ final GoRouter router = GoRouter(
                       child: BloodPressureHistoryPage(
                         key: ValueKey(languageState),
                       ), // обновил
+                    );
+                  },
+                ),
+              ],
+            ),
+            GoRoute(
+              name: 'шаги',
+              path: 'steps',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: StepsPage(key: ValueKey(languageState)),
+                );
+              },
+              routes: [
+                GoRoute(
+                  name: 'история шагов',
+                  path: 'history',
+                  pageBuilder: (context, state) {
+                    final languageState = Get.find<LanguageBloc>().state;
+                    return buildPageWithDefaultTransition(
+                      type: PageTransitionType.rightToLeft,
+                      context: context,
+                      state: state,
+                      child: StepsHistoryPage(key: ValueKey(languageState)),
                     );
                   },
                 ),
