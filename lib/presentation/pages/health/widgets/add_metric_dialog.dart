@@ -7,6 +7,7 @@ import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_pressure_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/health/widgets/add_blood_sugar_dialog.dart'; // добавил
+import 'package:tochka_balansa/presentation/pages/health/widgets/add_steps_dialog.dart'; // добавил
 
 class AddMetricDialog {
   static void show(BuildContext context) {
@@ -75,6 +76,9 @@ class AddMetricDialog {
                     } else if (metric['type'] == HealthMetricType.bloodSugar) {
                       // Используем специальный диалог для сахара в крови
                       AddBloodSugarDialog.show(context);
+                    } else if (metric['type'] == HealthMetricType.steps) {
+                      // Используем специальный диалог для шагов
+                      AddStepsDialog.show(context);
                     } else {
                       _showSingleValueDialog(context, metric['type']);
                     }
