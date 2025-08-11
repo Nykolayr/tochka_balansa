@@ -153,10 +153,10 @@ class BodyOutlineWidget extends StatelessWidget {
                     color: bmiCategory.color,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   bmiCategory.title,
-                  style: const TextStyle(fontSize: 11, color: Colors.black),
+                  style: const TextStyle(fontSize: 12, color: Colors.black),
                   textAlign: TextAlign.center,
                 ),
               ],
