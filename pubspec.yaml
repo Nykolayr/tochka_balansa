@@ -39,7 +39,7 @@ dependencies:
   gap: ^3.0.1
   intl: ^0.20.2
   flutter_easylogger: ^2.3.3
-  flutter_svg: ^2.1.0
+  flutter_svg: ^2.0.9
   package_info_plus: ^8.3.0
   device_info_plus: ^11.4.0
   crypto: ^3.0.6

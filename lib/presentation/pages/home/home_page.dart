@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/set_first_goal_widget.dart';
+import 'package:tochka_balansa/presentation/pages/home/widgets/body_outline_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -43,26 +44,34 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMainContent(GoalState state) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            textLang('Главная'),
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return const Center(child: BodyOutlineWidget());
+  }
+
+  Widget buildGoalInfo({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 14, color: AppColor.greyText),
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Главная цель: ${state.mainGoal.goalType.title}',
-            style: const TextStyle(fontSize: 16),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: color,
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Дополнительных целей: ${state.additionalGoals.length}',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

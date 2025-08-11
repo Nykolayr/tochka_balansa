@@ -16,4 +16,10 @@ class AppColor {
   static const Color yellow = Color(0xFFFFFF00);
   static const Color green = Color(0xFF08BB81);
   static const Color darkBlue = Color(0xFF253E58);
+  static const Color vesselBlue = Color(
+    0xFF1A237E,
+  ); // Темно-синий для границ и текста
+  static const Color vesselFillBlue = Color(
+    0xFF283593,
+  ); // Синий для заполнения сосуда
 }
