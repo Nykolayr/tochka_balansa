@@ -79,6 +79,9 @@ class AddMetricDialog {
                     } else if (metric['type'] == HealthMetricType.steps) {
                       // Используем специальный диалог для шагов
                       AddStepsDialog.show(context);
+                    } else if (metric['type'] == HealthMetricType.custom) {
+                      // Показываем окно "В разработке"
+                      _showInDevelopmentDialog(context);
                     } else {
                       _showSingleValueDialog(context, metric['type']);
                     }
@@ -189,6 +192,35 @@ class AddMetricDialog {
               }
             },
             child: Text(textLang('Добавить')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static void _showInDevelopmentDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.construction,
+              color: AppColor.darkBlue,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(textLang('В разработке')),
+          ],
+        ),
+        content: Text(
+          textLang('Функция "Свой показатель" находится в разработке и будет доступна в следующих обновлениях приложения.'),
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(textLang('Понятно')),
           ),
         ],
       ),
