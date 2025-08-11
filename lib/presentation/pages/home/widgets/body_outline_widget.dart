@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
@@ -55,11 +56,9 @@ class BodyOutlineWidget extends StatelessWidget {
                       onTap: (value) {},
                     ),
                   ),
-
-                  const SizedBox(width: 10),
-
                   // Виджет 2: Центральный с человеком и ИМТ (ширина на основе коэффициента ИМТ)
                   SizedBox(
+                    height: 370,
                     width:
                         MediaQuery.of(context).size.width *
                         0.6 *
@@ -72,8 +71,6 @@ class BodyOutlineWidget extends StatelessWidget {
                       bmiCategory: bmiCategory,
                     ),
                   ),
-
-                  const SizedBox(width: 10),
 
                   // Виджет 3: Сосуд "Сожжено"
                   Expanded(
@@ -117,7 +114,7 @@ class BodyOutlineWidget extends StatelessWidget {
           children: [
             SvgPicture.asset(
               bodyOutlineAsset,
-              height: 250,
+              height: 270,
               colorFilter: ColorFilter.mode(
                 bmiCategory?.color ?? AppColor.greyText,
                 BlendMode.srcIn,
