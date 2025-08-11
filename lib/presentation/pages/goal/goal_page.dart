@@ -6,6 +6,7 @@ import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
+import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
 
 class GoalPage extends StatelessWidget {
   const GoalPage({super.key});
@@ -35,7 +36,14 @@ class GoalPage extends StatelessWidget {
                   goal: state.mainGoal,
                   isMainGoal: true,
                   onTap: () {
-                    // Навигация к редактированию главной цели
+                    // Показываем модальное окно редактирования главной цели
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) =>
+                          GoalEditModal(currentGoal: state.mainGoal),
+                    );
                   },
                 ),
                 const SizedBox(height: 24),

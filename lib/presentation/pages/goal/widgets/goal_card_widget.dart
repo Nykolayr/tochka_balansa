@@ -6,6 +6,7 @@ import 'package:tochka_balansa/data/models/goal/user_goal.dart';
 import 'package:tochka_balansa/data/models/goal/enums_goal.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
 
 class GoalCardWidget extends StatelessWidget {
   final dynamic goal; // UserGoal или AdditionalGoal
@@ -153,6 +154,18 @@ class GoalCardWidget extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Кнопка редактирования для главной цели
+                  if (isMainGoal)
+                    IconButton(
+                      onPressed: () => _showEditMainGoalDialog(context),
+                      icon: const Icon(
+                        Icons.edit,
+                        color: AppColor.darkBlue,
+                        size: 20,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                   // Кнопка удаления только для дополнительных целей
                   if (!isMainGoal && goal is AdditionalGoal)
                     IconButton(
@@ -246,5 +259,14 @@ class GoalCardWidget extends StatelessWidget {
       final goalBloc = Get.find<GoalBloc>();
       goalBloc.add(RemoveAdditionalGoalEvent(additionalGoal.id));
     }
+  }
+
+  void _showEditMainGoalDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GoalEditModal(currentGoal: goal as UserGoal),
+    );
   }
 }
