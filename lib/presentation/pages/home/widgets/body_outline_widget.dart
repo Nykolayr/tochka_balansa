@@ -9,6 +9,7 @@ import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tochka_balansa/presentation/pages/home/widgets/consumed_vessel_widget.dart';
 
 class BodyOutlineWidget extends StatelessWidget {
   const BodyOutlineWidget({super.key});
@@ -42,7 +43,13 @@ class BodyOutlineWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end, // Выравнивание по низу
             children: [
               // Виджет 1: Сосуд "Съедено"
-              Expanded(child: _buildConsumedVessel()),
+              Expanded(
+                child: ConsumedVesselWidget(
+                  isVessel: true,
+                  value: 100,
+                  onTap: (value) {},
+                ),
+              ),
 
               const SizedBox(width: 10),
 
@@ -64,80 +71,17 @@ class BodyOutlineWidget extends StatelessWidget {
               const SizedBox(width: 10),
 
               // Виджет 3: Сосуд "Сожжено"
-              Expanded(child: _buildBurnedVessel()),
+              Expanded(
+                child: ConsumedVesselWidget(
+                  isVessel: false,
+                  value: 200,
+                  onTap: (value) {},
+                ),
+              ),
             ],
           ),
         );
       },
-    );
-  }
-
-  // Виджет 1: Сосуд "Съедено"
-  Widget _buildConsumedVessel() {
-    return Column(
-      children: [
-        Text(
-          textLang('съедено'),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColor.vesselBlue,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '3004',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppColor.vesselBlue,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          height: 270,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColor.vesselBlue, width: 2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 250 * 0.6,
-                  decoration: BoxDecoration(
-                    color: AppColor.vesselFillBlue,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(6),
-                      bottomRight: Radius.circular(6),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColor.vesselBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 24),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -212,75 +156,6 @@ class BodyOutlineWidget extends StatelessWidget {
               ],
             ),
           ),
-      ],
-    );
-  }
-
-  // Виджет 3: Сосуд "Сожжено"
-  Widget _buildBurnedVessel() {
-    return Column(
-      children: [
-        Text(
-          textLang('сожжено'),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.green,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '2000',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.green,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          height: 270,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.green, width: 2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 250 * 0.8,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(6),
-                      bottomRight: Radius.circular(6),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 24),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
