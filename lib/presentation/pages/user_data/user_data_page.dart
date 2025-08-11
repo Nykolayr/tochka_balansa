@@ -3,6 +3,7 @@ import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
+import 'package:tochka_balansa/data/models/health/activity_level.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/auth/bloc/auth_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
@@ -33,6 +34,8 @@ class _UserDataPageState extends State<UserDataPage> {
   double selectedHeight = 165.0;
   DateTime selectedDate = DateTime(2000, 1, 1);
   Gender selectedGender = Gender.male;
+  ActivityLevel selectedActivityLevel =
+      ActivityLevel.sedentary; // По умолчанию сидячий
   final UserRepository _userRepository = Get.find<UserRepository>();
 
   @override
@@ -56,6 +59,7 @@ class _UserDataPageState extends State<UserDataPage> {
       selectedHeight = user.height > 0 ? user.height * 100 : 165.0;
       selectedDate = user.birthDate;
       selectedGender = user.gender;
+      selectedActivityLevel = user.activityLevel; // НОВОЕ поле
     }
   }
 
@@ -69,6 +73,7 @@ class _UserDataPageState extends State<UserDataPage> {
           height: selectedHeight,
           birthDate: selectedDate,
           gender: selectedGender,
+          activityLevel: selectedActivityLevel, // НОВОЕ поле
         ),
       );
       context.go('/main');
@@ -79,8 +84,10 @@ class _UserDataPageState extends State<UserDataPage> {
   Widget build(BuildContext context) {
     return Consumer<ScreenHeight>(
       builder: (context, res, child) {
-        final keyboardHeight = res.keyboardHeight > 0 ? res.keyboardHeight : 0.0;
-        
+        final keyboardHeight = res.keyboardHeight > 0
+            ? res.keyboardHeight
+            : 0.0;
+
         return Scaffold(
           appBar: AppBarWidget(title: textLang('Ваши данные'), isBack: false),
           body: SingleChildScrollView(
@@ -101,7 +108,8 @@ class _UserDataPageState extends State<UserDataPage> {
                   AppDateField(
                     label: textLang('Дата рождения'),
                     selectedDate: selectedDate,
-                    onDateSelected: (date) => setState(() => selectedDate = date),
+                    onDateSelected: (date) =>
+                        setState(() => selectedDate = date),
                   ),
                   const Gap(20),
 
@@ -123,15 +131,31 @@ class _UserDataPageState extends State<UserDataPage> {
                   WeightPickerWidget(
                     key: _weightKey,
                     value: selectedWeight,
-                    onChanged: (weight) => setState(() => selectedWeight = weight),
+                    onChanged: (weight) =>
+                        setState(() => selectedWeight = weight),
                     label: textLang('Вес'),
                   ),
                   const Gap(20),
                   HeightPickerWidget(
                     key: _heightKey,
                     value: selectedHeight,
-                    onChanged: (height) => setState(() => selectedHeight = height),
+                    onChanged: (height) =>
+                        setState(() => selectedHeight = height),
                     label: textLang('Рост'),
+                  ),
+
+                  const Gap(20),
+                  // НОВОЕ поле для выбора уровня активности
+                  AppDropdownField<ActivityLevel>(
+                    label: textLang('Уровень активности'),
+                    value: selectedActivityLevel,
+                    items: ActivityLevel.values,
+                    itemText: (level) => level.title,
+                    onChanged: (level) {
+                      if (level != null) {
+                        setState(() => selectedActivityLevel = level);
+                      }
+                    },
                   ),
 
                   const Gap(20),

@@ -108,7 +108,7 @@ class BodyOutlineWidget extends StatelessWidget {
             color: Colors.red,
           ),
         ),
-        const SizedBox(height: 16),
+        const Gap(16),
         Stack(
           alignment: Alignment.center,
           children: [
@@ -133,7 +133,7 @@ class BodyOutlineWidget extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const Gap(6),
         if (bmiCategory != null)
           Container(
             padding: const EdgeInsets.all(5),
@@ -153,7 +153,7 @@ class BodyOutlineWidget extends StatelessWidget {
                     color: bmiCategory.color,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const Gap(3),
                 Text(
                   bmiCategory.title,
                   style: const TextStyle(fontSize: 12, color: Colors.black),

@@ -7,6 +7,7 @@ import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/response_api.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
+import 'package:tochka_balansa/data/models/health/activity_level.dart';
 
 /// репо для юзера
 class UserRepository {
@@ -35,6 +36,7 @@ class UserRepository {
     double height,
     DateTime birthDate,
     Gender gender,
+    ActivityLevel activityLevel, // Теперь используем напрямую
   ) async {
     user = user.copyWith(
       name: name,
@@ -42,6 +44,7 @@ class UserRepository {
       height: height,
       birthDate: birthDate,
       gender: gender,
+      activityLevel: activityLevel,
     );
     await saveUserToLocal();
   }

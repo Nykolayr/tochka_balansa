@@ -4,6 +4,7 @@ import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 
 import 'package:tochka_balansa/data/models/goal/user_goal.dart';
+import 'package:tochka_balansa/data/models/health/activity_level.dart';
 
 /// Модель пользователя
 class User extends Equatable {
@@ -15,6 +16,7 @@ class User extends Equatable {
   final double initialWeight;
   final double height;
   final String language;
+  final ActivityLevel activityLevel; // НОВОЕ поле
   final List<AdditionalGoal> additionalGoals;
   final UserGoal mainGoal;
 
@@ -29,6 +31,7 @@ class User extends Equatable {
     required this.initialWeight,
     required this.height,
     required this.language,
+    required this.activityLevel, // НОВОЕ поле
     required this.additionalGoals,
     required this.mainGoal,
   });
@@ -42,6 +45,7 @@ class User extends Equatable {
     initialWeight: 0.0,
     height: 0.0,
     language: 'ru',
+    activityLevel: ActivityLevel.sedentary, // По умолчанию сидячий
     additionalGoals: const [],
     mainGoal: UserGoal.init(),
   );
@@ -80,6 +84,22 @@ class User extends Equatable {
       mainGoal = UserGoal.init();
     }
 
+    // Обрабатываем activityLevel
+    ActivityLevel activityLevel;
+    try {
+      final activityLevelStr = json['activityLevel'] as String?;
+      if (activityLevelStr != null) {
+        activityLevel = ActivityLevel.values.firstWhere(
+          (e) => e.name == activityLevelStr,
+        );
+      } else {
+        activityLevel = ActivityLevel.sedentary;
+      }
+    } catch (e) {
+      Logger.e('User.fromJson: Ошибка при создании activityLevel: $e');
+      activityLevel = ActivityLevel.sedentary;
+    }
+
     return User(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
@@ -91,6 +111,7 @@ class User extends Equatable {
       initialWeight: (json['initialWeight'] ?? 0.0).toDouble(),
       height: (json['height'] ?? 0.0).toDouble(),
       language: json['language'] ?? 'ru',
+      activityLevel: activityLevel, // НОВОЕ поле
       additionalGoals: additionalGoals,
       mainGoal: mainGoal,
     );
@@ -106,6 +127,7 @@ class User extends Equatable {
       'initialWeight': initialWeight,
       'height': height,
       'language': language,
+      'activityLevel': activityLevel.name, // НОВОЕ поле
       'additionalGoals': additionalGoals.map((goal) => goal.toJson()).toList(),
       'mainGoal': mainGoal.toJson(),
     };
@@ -120,6 +142,7 @@ class User extends Equatable {
     double? initialWeight,
     double? height,
     String? language,
+    ActivityLevel? activityLevel, // НОВОЕ поле
     List<AdditionalGoal>? additionalGoals,
     UserGoal? mainGoal,
   }) {
@@ -132,6 +155,7 @@ class User extends Equatable {
       initialWeight: initialWeight ?? this.initialWeight,
       height: height ?? this.height,
       language: language ?? this.language,
+      activityLevel: activityLevel ?? this.activityLevel, // НОВОЕ поле
       additionalGoals: additionalGoals ?? this.additionalGoals,
       mainGoal: mainGoal ?? this.mainGoal,
     );
@@ -161,6 +185,7 @@ class User extends Equatable {
     initialWeight,
     height,
     language,
+    activityLevel, // НОВОЕ поле
     additionalGoals,
     mainGoal,
   ];

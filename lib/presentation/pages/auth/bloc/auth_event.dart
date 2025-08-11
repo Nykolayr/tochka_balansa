@@ -39,11 +39,14 @@ class SaveUserDataEvent extends AuthEvent {
   final double height;
   final DateTime birthDate;
   final Gender gender;
+  final ActivityLevel activityLevel; // Теперь используем напрямую
+
   const SaveUserDataEvent({
     required this.name,
     required this.weight,
     required this.height,
     required this.birthDate,
     required this.gender,
+    required this.activityLevel,
   });
 }

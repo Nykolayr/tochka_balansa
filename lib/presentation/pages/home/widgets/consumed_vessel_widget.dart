@@ -94,6 +94,7 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
                         height: 40,
                         decoration: BoxDecoration(
                           color: AppColor.white,
+                          border: Border.all(color: color, width: 2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.add, color: color, size: 24),

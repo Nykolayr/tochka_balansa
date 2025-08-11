@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
+import 'package:tochka_balansa/data/models/health/activity_level.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
@@ -33,6 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       event.height,
       event.birthDate,
       event.gender,
+      event.activityLevel, // НОВОЕ поле
     );
   }
 
