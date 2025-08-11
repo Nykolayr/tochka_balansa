@@ -34,7 +34,7 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 300,
+      height: 350,
       margin: EdgeInsets.only(
         left: widget.isVessel ? 0 : 10,
         right: widget.isVessel ? 10 : 0,

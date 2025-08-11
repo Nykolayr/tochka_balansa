@@ -35,48 +35,55 @@ class BodyOutlineWidget extends StatelessWidget {
           bmiCategory = BmiCategory.fromValue(bmi);
         }
 
-        final bodyOutlineAsset = _getBodyOutlineAsset(user.gender, bmiCategory);
+        final bodyOutlineAsset =
+            bmiCategory?.getBodyOutlineAsset(user.gender) ??
+            'assets/svg/body_outline_${user.gender == Gender.male ? 'male' : 'female'}_normal.svg';
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end, // Выравнивание по низу
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
             children: [
-              // Виджет 1: Сосуд "Съедено"
-              Expanded(
-                child: ConsumedVesselWidget(
-                  isVessel: true,
-                  value: 100,
-                  onTap: (value) {},
-                ),
-              ),
+              Row(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Выравнивание по низу
+                children: [
+                  // Виджет 1: Сосуд "Съедено"
+                  Expanded(
+                    child: ConsumedVesselWidget(
+                      isVessel: true,
+                      value: 100,
+                      onTap: (value) {},
+                    ),
+                  ),
 
-              const SizedBox(width: 10),
+                  const SizedBox(width: 10),
 
-              // Виджет 2: Центральный с человеком и ИМТ (ширина на основе коэффициента ИМТ)
-              SizedBox(
-                width:
-                    MediaQuery.of(context).size.width *
-                    0.6 *
-                    (bmiCategory?.widthCoefficient ??
-                        0.6), // Ширина на основе коэффициента
-                child: _buildCenterWidget(
-                  bodyOutlineAsset: bodyOutlineAsset,
-                  currentWeight: currentWeight,
-                  bmi: bmi,
-                  bmiCategory: bmiCategory,
-                ),
-              ),
+                  // Виджет 2: Центральный с человеком и ИМТ (ширина на основе коэффициента ИМТ)
+                  SizedBox(
+                    width:
+                        MediaQuery.of(context).size.width *
+                        0.6 *
+                        (bmiCategory?.widthCoefficient ??
+                            0.6), // Ширина на основе коэффициента
+                    child: _buildCenterWidget(
+                      bodyOutlineAsset: bodyOutlineAsset,
+                      currentWeight: currentWeight,
+                      bmi: bmi,
+                      bmiCategory: bmiCategory,
+                    ),
+                  ),
 
-              const SizedBox(width: 10),
+                  const SizedBox(width: 10),
 
-              // Виджет 3: Сосуд "Сожжено"
-              Expanded(
-                child: ConsumedVesselWidget(
-                  isVessel: false,
-                  value: 200,
-                  onTap: (value) {},
-                ),
+                  // Виджет 3: Сосуд "Сожжено"
+                  Expanded(
+                    child: ConsumedVesselWidget(
+                      isVessel: false,
+                      value: 200,
+                      onTap: (value) {},
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -93,9 +100,11 @@ class BodyOutlineWidget extends StatelessWidget {
     required BmiCategory? bmiCategory,
   }) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           '${textLang('баланс')}: -1004',
+          textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -119,7 +128,7 @@ class BodyOutlineWidget extends StatelessWidget {
               child: Text(
                 '${currentWeight.toStringAsFixed(1)} кг',
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -127,11 +136,11 @@ class BodyOutlineWidget extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 6),
         if (bmiCategory != null)
           Container(
-            width: 200 * (bmiCategory.widthCoefficient),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.all(5),
+            width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.black, width: 1),
@@ -142,7 +151,7 @@ class BodyOutlineWidget extends StatelessWidget {
                 Text(
                   'ИМТ: ${bmi.toStringAsFixed(1)}',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: bmiCategory.color,
                   ),
@@ -150,7 +159,7 @@ class BodyOutlineWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   bmiCategory.title,
-                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                  style: const TextStyle(fontSize: 11, color: Colors.black),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -168,28 +177,5 @@ class BodyOutlineWidget extends StatelessWidget {
     if (weightMetrics.isEmpty) return null;
     weightMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return weightMetrics.first;
-  }
-
-  String _getBodyOutlineAsset(Gender gender, BmiCategory? bmiCategory) {
-    if (bmiCategory == null) {
-      return gender == Gender.male
-          ? 'assets/svg/body_outline_male_normal.svg'
-          : 'assets/svg/body_outline_female_normal.svg';
-    }
-    final genderSuffix = gender == Gender.male ? 'male' : 'female';
-    switch (bmiCategory) {
-      case BmiCategory.severeUnderweight:
-      case BmiCategory.underweight:
-        return 'assets/svg/body_outline_${genderSuffix}_underweight.svg';
-      case BmiCategory.normal:
-        return 'assets/svg/body_outline_${genderSuffix}_normal.svg';
-      case BmiCategory.overweight:
-        return 'assets/svg/body_outline_${genderSuffix}_overweight.svg';
-      case BmiCategory.obeseClass1:
-        return 'assets/svg/body_outline_${genderSuffix}_obese.svg';
-      case BmiCategory.obeseClass2:
-      case BmiCategory.obeseClass3:
-        return 'assets/svg/body_outline_${genderSuffix}_extremely_obese.svg';
-    }
   }
 }

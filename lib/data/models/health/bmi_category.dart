@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
+import 'package:tochka_balansa/data/models/gender.dart';
 
 enum BmiCategory {
   severeUnderweight,
@@ -101,11 +102,26 @@ enum BmiCategory {
   /// Коэффициент ширины для блока ИМТ (в процентах от ширины SVG)
   double get widthCoefficient => switch (this) {
     severeUnderweight => 0.5, // 50% от ширины SVG
-    underweight => 0.55,      // 55% от ширины SVG
-    normal => 0.6,            // 60% от ширины SVG
-    overweight => 0.65,       // 65% от ширины SVG
-    obeseClass1 => 0.7,       // 70% от ширины SVG
-    obeseClass2 => 0.75,      // 75% от ширины SVG
-    obeseClass3 => 0.8,       // 80% от ширины SVG
+    underweight => 0.55, // 55% от ширины SVG
+    normal => 0.6, // 60% от ширины SVG
+    overweight => 0.65, // 65% от ширины SVG
+    obeseClass1 => 0.7, // 70% от ширины SVG
+    obeseClass2 => 0.75, // 75% от ширины SVG
+    obeseClass3 => 0.8, // 80% от ширины SVG
   };
+
+  /// Получить SVG путь для контура тела в зависимости от пола
+  String getBodyOutlineAsset(Gender gender) {
+    final genderSuffix = gender == Gender.male ? 'male' : 'female';
+
+    return switch (this) {
+      severeUnderweight ||
+      underweight => 'assets/svg/body_outline_${genderSuffix}_underweight.svg',
+      normal => 'assets/svg/body_outline_${genderSuffix}_normal.svg',
+      overweight => 'assets/svg/body_outline_${genderSuffix}_overweight.svg',
+      obeseClass1 => 'assets/svg/body_outline_${genderSuffix}_obese.svg',
+      obeseClass2 || obeseClass3 =>
+        'assets/svg/body_outline_${genderSuffix}_extremely_obese.svg',
+    };
+  }
 }
