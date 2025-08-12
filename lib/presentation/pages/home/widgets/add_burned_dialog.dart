@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/core/theme/theme.dart';
-import 'package:tochka_balansa/data/models/exercise/exercise_record.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
-import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tochka_balansa/presentation/pages/health/widgets/add_steps_dialog.dart';
 
 class AddBurnedDialog extends StatelessWidget {
   const AddBurnedDialog({super.key});

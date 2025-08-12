@@ -8,8 +8,8 @@ import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/health_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_history_page.dart';
-import 'package:tochka_balansa/presentation/pages/health/blood_pressure_page.dart'; // добавил
-import 'package:tochka_balansa/presentation/pages/health/blood_pressure_history_page.dart'; // добавил
+import 'package:tochka_balansa/presentation/pages/health/blood_pressure_page.dart';
+import 'package:tochka_balansa/presentation/pages/health/blood_pressure_history_page.dart';
 import 'package:tochka_balansa/presentation/pages/main/main_page.dart';
 import 'package:tochka_balansa/presentation/pages/splash/splash_page.dart';
 import 'package:tochka_balansa/presentation/pages/user_data/user_data_page.dart';
@@ -132,10 +132,9 @@ final GoRouter router = GoRouter(
             );
           },
           routes: [
-            // ИСПРАВЛЕНО: убираю слеши из путей дочерних роутов
             GoRoute(
               name: 'breakfast',
-              path: 'breakfast', // БЕЗ слеша!
+              path: 'breakfast',
               pageBuilder: (context, state) {
                 final languageState = Get.find<LanguageBloc>().state;
                 return buildPageWithDefaultTransition(
@@ -148,7 +147,7 @@ final GoRouter router = GoRouter(
             ),
             GoRoute(
               name: 'lunch',
-              path: 'lunch', // БЕЗ слеша!
+              path: 'lunch',
               pageBuilder: (context, state) {
                 final languageState = Get.find<LanguageBloc>().state;
                 return buildPageWithDefaultTransition(
@@ -161,7 +160,7 @@ final GoRouter router = GoRouter(
             ),
             GoRoute(
               name: 'dinner',
-              path: 'dinner', // БЕЗ слеша!
+              path: 'dinner',
               pageBuilder: (context, state) {
                 final languageState = Get.find<LanguageBloc>().state;
                 return buildPageWithDefaultTransition(
@@ -174,7 +173,7 @@ final GoRouter router = GoRouter(
             ),
             GoRoute(
               name: 'snack',
-              path: 'snack', // БЕЗ слеша!
+              path: 'snack',
               pageBuilder: (context, state) {
                 final languageState = Get.find<LanguageBloc>().state;
                 return buildPageWithDefaultTransition(
@@ -182,6 +181,19 @@ final GoRouter router = GoRouter(
                   context: context,
                   state: state,
                   child: SnackPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'exercise',
+              path: 'exercise',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: ExercisePage(key: ValueKey(languageState)),
                 );
               },
             ),
@@ -228,7 +240,6 @@ final GoRouter router = GoRouter(
                 ),
               ],
             ),
-            // Добавляю маршруты для давления
             GoRoute(
               name: 'давление',
               path: 'pressure',
@@ -253,7 +264,7 @@ final GoRouter router = GoRouter(
                       state: state,
                       child: BloodPressureHistoryPage(
                         key: ValueKey(languageState),
-                      ), // обновил
+                      ),
                     );
                   },
                 ),
@@ -332,7 +343,6 @@ final GoRouter router = GoRouter(
             );
           },
           routes: [
-            // НОВЫЙ маршрут для настройки главной цели
             GoRoute(
               name: 'настройка цели',
               path: 'setup',
@@ -386,19 +396,6 @@ final GoRouter router = GoRouter(
                     key: ValueKey(languageState),
                     goal: goal,
                   ),
-                );
-              },
-            ),
-            GoRoute(
-              name: 'exercise',
-              path: 'exercise',
-              pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
-                return buildPageWithDefaultTransition(
-                  type: PageTransitionType.rightToLeft,
-                  context: context,
-                  state: state,
-                  child: ExercisePage(key: ValueKey(languageState)),
                 );
               },
             ),
