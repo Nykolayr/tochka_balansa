@@ -10,6 +10,7 @@ import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tochka_balansa/presentation/pages/home/widgets/add_food_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/consumed_vessel_widget.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
@@ -56,9 +57,11 @@ class BodyOutlineWidget extends StatelessWidget {
                         child: ConsumedVesselWidget(
                           isVessel: true,
                           value: mainState.consumedCalories,
-                          maxValue:
-                              mainState.maxCalories, // НОВОЕ: передаем максимум
-                          onTap: (value) {},
+                          maxValue: mainState.maxCalories,
+                          onTap: (value) {
+                            // НОВОЕ: показываем диалог добавления пищи
+                            AddFoodDialog.show(context);
+                          },
                         ),
                       ),
                       // Виджет 2: Центральный с человеком и ИМТ
@@ -84,9 +87,12 @@ class BodyOutlineWidget extends StatelessWidget {
                         child: ConsumedVesselWidget(
                           isVessel: false,
                           value: mainState.burnedCalories,
-                          maxValue:
-                              mainState.maxCalories, // НОВОЕ: передаем максимум
-                          onTap: (value) {},
+                          maxValue: mainState.maxCalories,
+                          onTap: (value) {
+                            // НОВОЕ: показываем диалог добавления сожженных калорий
+                            // TODO: создать AddBurnedCaloriesDialog
+                            print('Добавить сожженные калории: $value');
+                          },
                         ),
                       ),
                     ],

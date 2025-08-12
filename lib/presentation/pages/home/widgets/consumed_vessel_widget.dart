@@ -100,15 +100,20 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
                     left: 0,
                     right: 0,
                     child: Center(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColor.white,
-                          border: Border.all(color: color, width: 2),
-                          shape: BoxShape.circle,
+                      child: GestureDetector(
+                        // НОВОЕ: добавляю GestureDetector
+                        onTap: () =>
+                            widget.onTap(widget.value), // НОВОЕ: вызываю onTap
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColor.white,
+                            border: Border.all(color: color, width: 2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.add, color: color, size: 24),
                         ),
-                        child: Icon(Icons.add, color: color, size: 24),
                       ),
                     ),
                   ),
