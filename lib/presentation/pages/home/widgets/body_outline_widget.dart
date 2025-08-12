@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
@@ -14,6 +13,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/add_food_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/consumed_vessel_widget.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/home/widgets/add_burned_dialog.dart';
 
 class BodyOutlineWidget extends StatelessWidget {
   const BodyOutlineWidget({super.key});
@@ -97,9 +97,13 @@ class BodyOutlineWidget extends StatelessWidget {
                           value: mainState.burnedCalories,
                           maxValue: mainState.maxCalories,
                           onTap: (value) {
-                            // НОВОЕ: показываем диалог добавления сожженных калорий
-                            // TODO: создать AddBurnedCaloriesDialog
-                            Logger.i('Добавить сожженные калории: $value');
+                            // ИСПРАВЛЕНО: показываем модалку для сожжено
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => const AddBurnedDialog(),
+                            );
                           },
                         ),
                       ),
