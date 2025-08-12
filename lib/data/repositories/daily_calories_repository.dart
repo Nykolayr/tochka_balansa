@@ -1,5 +1,6 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/health/daily_calories_record.dart';
+import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:get/get.dart';
@@ -14,14 +15,90 @@ class DailyCaloriesRepository {
   DailyCaloriesRepository._internal();
 
   static const String _storageKey = 'daily_calories_records';
+  static const String _foodProductsKey = 'food_products';
   List<DailyCaloriesRecord> _records = [];
+  List<FoodProduct> _foodProducts = []; // НОВОЕ: список продуктов
 
   /// Получить все записи
   List<DailyCaloriesRecord> get records => List.unmodifiable(_records);
 
+  /// Получить все продукты
+  List<FoodProduct> get foodProducts => List.unmodifiable(_foodProducts);
+
+  /// Получить продукты по типу приема пищи
+  List<FoodProduct> getProductsByMealType(String mealType) {
+    return _foodProducts
+        .where((product) => product.mealType == mealType)
+        .toList();
+  }
+
+  /// Получить продукты по типу приема пищи с фильтрацией
+  List<FoodProduct> getFilteredProducts(String mealType, String searchQuery) {
+    final products = getProductsByMealType(mealType);
+    if (searchQuery.isEmpty) return products;
+
+    return products
+        .where(
+          (product) =>
+              product.name.toLowerCase().contains(searchQuery.toLowerCase()),
+        )
+        .toList();
+  }
+
+  /// Добавить продукт
+  Future<void> addFoodProduct(FoodProduct product) async {
+    _foodProducts.add(product);
+    await _saveFoodProductsToLocal();
+
+    // Обновляем калории в дневной записи
+    await _updateDailyCalories();
+  }
+
+  /// Удалить продукт
+  Future<void> removeFoodProduct(String productId) async {
+    _foodProducts.removeWhere((product) => product.id == productId);
+    await _saveFoodProductsToLocal();
+
+    // Обновляем калории в дневной записи
+    await _updateDailyCalories();
+  }
+
+  /// Обновить калории в дневной записи
+  Future<void> _updateDailyCalories() async {
+    final todayRecord = await getOrCreateTodayRecord();
+    final todayProducts = _foodProducts.where((product) {
+      final today = DateTime.now();
+      final todayDate = DateTime(today.year, today.month, today.day);
+      final productDate = DateTime(
+        product.timestamp.year,
+        product.timestamp.month,
+        product.timestamp.day,
+      );
+      return productDate.isAtSameMomentAs(todayDate);
+    }).toList();
+
+    final totalConsumedCalories = todayProducts.fold<int>(
+      0,
+      (sum, product) => sum + product.totalCalories,
+    );
+
+    final updatedRecord = todayRecord.copyWith(
+      consumedCalories: totalConsumedCalories,
+      updatedAt: DateTime.now(),
+    );
+
+    // Обновляем запись в списке
+    final index = _records.indexWhere((r) => r.id == todayRecord.id);
+    if (index != -1) {
+      _records[index] = updatedRecord;
+      await _saveToLocal();
+    }
+  }
+
   /// Инициализация - загрузка из локального хранилища
   Future<void> init() async {
     await _loadFromLocal();
+    await _loadFoodProductsFromLocal();
   }
 
   /// Получить или создать запись на сегодня
@@ -152,6 +229,34 @@ class DailyCaloriesRepository {
       await prefs.setStringList(_storageKey, recordsJson);
     } catch (e) {
       // Обработка ошибки сохранения
+    }
+  }
+
+  /// Загрузить продукты из локального хранилища
+  Future<void> _loadFoodProductsFromLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final productsJson = prefs.getStringList(_foodProductsKey) ?? [];
+
+      _foodProducts = productsJson
+          .map((json) => FoodProduct.fromJson(jsonDecode(json)))
+          .toList();
+    } catch (e) {
+      _foodProducts = [];
+    }
+  }
+
+  /// Сохранить продукты в локальное хранилище
+  Future<void> _saveFoodProductsToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final productsJson = _foodProducts
+          .map((product) => jsonEncode(product.toJson()))
+          .toList();
+
+      await prefs.setStringList(_foodProductsKey, productsJson);
+    } catch (e) {
+      Logger.e('Ошибка сохранения продуктов: $e');
     }
   }
 

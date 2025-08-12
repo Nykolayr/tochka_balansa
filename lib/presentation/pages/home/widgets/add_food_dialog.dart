@@ -1,127 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/core/theme/theme.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tochka_balansa/data/models/food/food_product.dart';
 
-class AddFoodDialog {
-  static void show(BuildContext context) {
-    final List<Map<String, dynamic>> mealTypes = [
-      {
-        'title': textLang('Завтрак'),
-        'icon': Icons.wb_sunny,
-        'color': Colors.orange,
-      },
-      {
-        'title': textLang('Обед'),
-        'icon': Icons.restaurant,
-        'color': Colors.red,
-      },
-      {
-        'title': textLang('Ужин'),
-        'icon': Icons.nights_stay,
-        'color': Colors.indigo,
-      },
-      {
-        'title': textLang('Перекус'),
-        'icon': Icons.coffee,
-        'color': Colors.brown,
-      },
-    ];
+class AddFoodDialog extends StatelessWidget {
+  const AddFoodDialog({super.key});
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              textLang('Выберите прием пищи'),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Заголовок с полоской
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
             ),
-            const SizedBox(height: 16),
-            GridView.builder(
+          ),
+          const SizedBox(height: 20),
+
+          // Заголовок
+          const Text(
+            'Добавить еду',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 20),
+
+          // Сетка кнопок
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
                 childAspectRatio: 1.2,
               ),
-              itemCount: mealTypes.length,
+              itemCount: 4,
               itemBuilder: (context, index) {
-                final meal = mealTypes[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Пока просто закрываем, потом добавим логику
-                    _showMealDialog(context, meal);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: meal['color'].withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: meal['color'].withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(meal['icon'], size: 32, color: meal['color']),
-                        const SizedBox(height: 8),
-                        Text(
-                          meal['title'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: meal['color'],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                final mealType = MealType.values[index];
+                return _buildMealButton(context, mealType);
               },
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 30),
+        ],
       ),
     );
   }
 
-  static void _showMealDialog(BuildContext context, Map<String, dynamic> meal) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(meal['icon'], color: meal['color'], size: 24),
-            const SizedBox(width: 8),
-            Text(meal['title']),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              textLang(
-                'Функция добавления ${meal['title'].toString().toLowerCase()} находится в разработке',
-              ),
-              style: const TextStyle(fontSize: 16),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(textLang('Понятно')),
+  Widget _buildMealButton(BuildContext context, MealType mealType) {
+    final iconData = switch (mealType) {
+      MealType.breakfast => Icons.wb_sunny,
+      MealType.lunch => Icons.restaurant,
+      MealType.dinner => Icons.nights_stay,
+      MealType.snack => Icons.coffee,
+    };
+
+    final color = switch (mealType) {
+      MealType.breakfast => Colors.orange,
+      MealType.lunch => Colors.green,
+      MealType.dinner => Colors.blue,
+      MealType.snack => Colors.purple,
+    };
+
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.of(context).pop(); // Закрываем sheet
+
+        // ИСПРАВЛЕНО: пути без слешей, так как это дочерние роуты к home
+        switch (mealType) {
+          case MealType.breakfast:
+            context.push('/main/home/breakfast'); // полный путь
+            break;
+          case MealType.lunch:
+            context.push('/main/home/lunch');
+            break;
+          case MealType.dinner:
+            context.push('/main/home/dinner');
+            break;
+          case MealType.snack:
+            context.push('/main/home/snack');
+            break;
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        padding: const EdgeInsets.all(16),
+        elevation: 2,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(iconData, size: 32),
+          const SizedBox(height: 8),
+          Text(
+            mealType.title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

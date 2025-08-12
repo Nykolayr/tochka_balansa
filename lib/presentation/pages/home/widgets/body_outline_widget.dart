@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
@@ -59,8 +60,12 @@ class BodyOutlineWidget extends StatelessWidget {
                           value: mainState.consumedCalories,
                           maxValue: mainState.maxCalories,
                           onTap: (value) {
-                            // НОВОЕ: показываем диалог добавления пищи
-                            AddFoodDialog.show(context);
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => const AddFoodDialog(),
+                            );
                           },
                         ),
                       ),
@@ -72,6 +77,9 @@ class BodyOutlineWidget extends StatelessWidget {
                             0.6 *
                             (bmiCategory?.widthCoefficient ?? 0.6),
                         child: _buildCenterWidget(
+                          context: context,
+                          mainState: mainState,
+                          healthState: healthState,
                           bodyOutlineAsset: bodyOutlineAsset,
                           currentWeight: currentWeight,
                           bmi: bmi,
@@ -91,7 +99,7 @@ class BodyOutlineWidget extends StatelessWidget {
                           onTap: (value) {
                             // НОВОЕ: показываем диалог добавления сожженных калорий
                             // TODO: создать AddBurnedCaloriesDialog
-                            print('Добавить сожженные калории: $value');
+                            Logger.i('Добавить сожженные калории: $value');
                           },
                         ),
                       ),
@@ -108,6 +116,9 @@ class BodyOutlineWidget extends StatelessWidget {
 
   // Обновляю _buildCenterWidget, чтобы он правильно показывал баланс
   Widget _buildCenterWidget({
+    required BuildContext context,
+    required MainState mainState,
+    required HealthState healthState,
     required String bodyOutlineAsset,
     required double currentWeight,
     required double bmi,

@@ -22,7 +22,7 @@ class GoToPageEvent extends MainEvent {
   const GoToPageEvent(this.pageIndex);
 }
 
-/// НОВОЕ: обновление данных о калориях
+/// обновление данных о калориях
 class UpdateCaloriesEvent extends MainEvent {
   final int consumedCalories;
   final int burnedCalories;
@@ -34,3 +34,18 @@ class UpdateCaloriesEvent extends MainEvent {
     required this.maxCalories,
   });
 }
+
+/// НОВОЕ: добавление продукта питания
+class AddFoodProductEvent extends MainEvent {
+  final FoodProduct product;
+  const AddFoodProductEvent(this.product);
+}
+
+/// НОВОЕ: удаление продукта питания
+class RemoveFoodProductEvent extends MainEvent {
+  final String productId;
+  const RemoveFoodProductEvent(this.productId);
+}
+
+/// НОВОЕ: загрузка продуктов питания
+class LoadFoodProductsEvent extends MainEvent {}

@@ -27,6 +27,10 @@ import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/presentation/pages/health/steps_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/steps_history_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/breakfast_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/lunch_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/dinner_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/snack_page.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -120,12 +124,67 @@ final GoRouter router = GoRouter(
           pageBuilder: (context, state) {
             final languageState = Get.find<LanguageBloc>().state;
             return buildPageWithDefaultTransition(
-              type: PageTransitionType.leftToRight,
+              type: PageTransitionType.fade,
               context: context,
               state: state,
               child: HomePage(key: ValueKey(languageState)),
             );
           },
+          routes: [
+            // ИСПРАВЛЕНО: убираю слеши из путей дочерних роутов
+            GoRoute(
+              name: 'breakfast',
+              path: 'breakfast', // БЕЗ слеша!
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: BreakfastPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'lunch',
+              path: 'lunch', // БЕЗ слеша!
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: LunchPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'dinner',
+              path: 'dinner', // БЕЗ слеша!
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: DinnerPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'snack',
+              path: 'snack', // БЕЗ слеша!
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: SnackPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
+          ],
         ),
         GoRoute(
           name: 'здоровье',

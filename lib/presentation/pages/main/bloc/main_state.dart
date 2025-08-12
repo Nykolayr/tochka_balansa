@@ -6,21 +6,23 @@ class MainState extends Equatable {
   final User user;
   final bool isListChange;
   final int selectedIndex;
-  final int consumedCalories; // НОВОЕ: съедено калорий
-  final int burnedCalories;   // НОВОЕ: сожжено калорий
-  final int maxCalories;      // НОВОЕ: максимальное количество калорий
+  final int consumedCalories;
+  final int burnedCalories;
+  final int maxCalories;
+  final List<FoodProduct> foodProducts; // НОВОЕ: список продуктов
 
   bool get isReg => user.name.isNotEmpty;
-  
+
   const MainState({
     required this.isLoading,
     required this.error,
     required this.user,
     required this.isListChange,
     required this.selectedIndex,
-    required this.consumedCalories, // НОВОЕ
-    required this.burnedCalories,   // НОВОЕ
-    required this.maxCalories,      // НОВОЕ
+    required this.consumedCalories,
+    required this.burnedCalories,
+    required this.maxCalories,
+    required this.foodProducts, // НОВОЕ
   });
 
   MainState copyWith({
@@ -28,9 +30,10 @@ class MainState extends Equatable {
     String? error,
     User? user,
     int? selectedIndex,
-    int? consumedCalories, // НОВОЕ
-    int? burnedCalories,   // НОВОЕ
-    int? maxCalories,      // НОВОЕ
+    int? consumedCalories,
+    int? burnedCalories,
+    int? maxCalories,
+    List<FoodProduct>? foodProducts, // НОВОЕ
   }) {
     final shouldToggleList = user != null;
 
@@ -38,11 +41,12 @@ class MainState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
-      isListChange: shouldToggleList ? !isListChange : isListChange,
+      isListChange: shouldToggleList ? !isListChange : this.isListChange,
       selectedIndex: selectedIndex ?? this.selectedIndex,
-      consumedCalories: consumedCalories ?? this.consumedCalories, // НОВОЕ
-      burnedCalories: burnedCalories ?? this.burnedCalories,       // НОВОЕ
-      maxCalories: maxCalories ?? this.maxCalories,               // НОВОЕ
+      consumedCalories: consumedCalories ?? this.consumedCalories,
+      burnedCalories: burnedCalories ?? this.burnedCalories,
+      maxCalories: maxCalories ?? this.maxCalories,
+      foodProducts: foodProducts ?? this.foodProducts, // НОВОЕ
     );
   }
 
@@ -52,9 +56,10 @@ class MainState extends Equatable {
     user: Get.find<UserRepository>().user,
     isListChange: false,
     selectedIndex: 0,
-    consumedCalories: 0,    // НОВОЕ: по умолчанию 0
-    burnedCalories: 0,      // НОВОЕ: по умолчанию 0
-    maxCalories: 2000,      // НОВОЕ: по умолчанию 2000
+    consumedCalories: 0,
+    burnedCalories: 0,
+    maxCalories: 2000,
+    foodProducts: [], // НОВОЕ
   );
 
   @override
@@ -64,8 +69,9 @@ class MainState extends Equatable {
     user,
     isListChange,
     selectedIndex,
-    consumedCalories, // НОВОЕ
-    burnedCalories,   // НОВОЕ
-    maxCalories,      // НОВОЕ
+    consumedCalories,
+    burnedCalories,
+    maxCalories,
+    foodProducts, // НОВОЕ
   ];
 }
