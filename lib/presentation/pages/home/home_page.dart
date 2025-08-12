@@ -27,18 +27,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeDailyCalories() async {
-    // При каждом заходе проверяем/создаем запись на сегодня
     final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+
+    // ИСПРАВЛЕНО: всегда получаем запись (не null)
     final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
 
-    // Обновляем MainBloc с данными о калориях
+    // Обновляем MainBloc
     final mainBloc = Get.find<MainBloc>();
     mainBloc.add(
       UpdateCaloriesEvent(
-        consumedCalories: todayRecord.consumedCalories, // 0 при первом входе
-        burnedCalories: todayRecord
-            .burnedCalories, // Рассчитанные калории (BMR + активность)
-        maxCalories: todayRecord.maxCalories, // Максимум для сосудов
+        consumedCalories: todayRecord.consumedCalories,
+        burnedCalories: todayRecord.burnedCalories,
+        maxCalories: todayRecord.maxCalories,
       ),
     );
   }

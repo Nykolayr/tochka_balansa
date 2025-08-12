@@ -41,7 +41,7 @@ class MainState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
-      isListChange: shouldToggleList ? !isListChange : this.isListChange,
+      isListChange: shouldToggleList ? !isListChange : isListChange,
       selectedIndex: selectedIndex ?? this.selectedIndex,
       consumedCalories: consumedCalories ?? this.consumedCalories,
       burnedCalories: burnedCalories ?? this.burnedCalories,

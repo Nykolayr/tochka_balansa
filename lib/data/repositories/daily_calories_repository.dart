@@ -65,7 +65,18 @@ class DailyCaloriesRepository {
 
   /// Обновить калории в дневной записи
   Future<void> _updateDailyCalories() async {
+    // ИСПРАВЛЕНО: проверяем данные пользователя ПЕРЕД обновлением
+    final userRepository = Get.find<UserRepository>();
+    final user = userRepository.user;
+
+    if (user.initialWeight <= 0 || user.height <= 0) {
+      Logger.i('Пользователь не ввел данные, пропускаем обновление калорий');
+      return; // НЕ обновляем если данных нет
+    }
+
     final todayRecord = await getOrCreateTodayRecord();
+
+    // Считаем калории от продуктов
     final todayProducts = _foodProducts.where((product) {
       final today = DateTime.now();
       final todayDate = DateTime(today.year, today.month, today.day);
@@ -82,6 +93,7 @@ class DailyCaloriesRepository {
       (sum, product) => sum + product.totalCalories,
     );
 
+    // Обновляем запись
     final updatedRecord = todayRecord.copyWith(
       consumedCalories: totalConsumedCalories,
       updatedAt: DateTime.now(),
@@ -106,6 +118,20 @@ class DailyCaloriesRepository {
     final userRepository = Get.find<UserRepository>();
     final user = userRepository.user;
 
+    // ИСПРАВЛЕНО: проверяем данные пользователя ДО всего остального
+    if (user.initialWeight <= 0 || user.height <= 0) {
+      Logger.i(
+        'Пользователь не ввел данные (вес=${user.initialWeight}, рост=${user.height}), запись НЕ создается',
+      );
+
+      // Возвращаем базовую запись с минимальными значениями
+      return DailyCaloriesRecord.create(
+        date: DateTime.now(),
+        burnedCalories: 2000, // Базовое значение
+        gender: user.gender.name,
+      );
+    }
+
     // Получаем сегодняшнюю дату (без времени)
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
@@ -114,7 +140,9 @@ class DailyCaloriesRepository {
     DailyCaloriesRecord? todayRecord = _getTodayRecord(todayDate);
 
     if (todayRecord == null) {
-      // Если записи нет, создаем новую с РАССЧИТАННЫМИ калориями
+      // ТОЛЬКО если данные валидны - создаем запись с расчетом
+      Logger.i('Данные пользователя валидны, рассчитываем калории');
+
       final bmr = CaloriesCalculatorService.calculateBMR(
         age: user.age,
         gender: user.gender.name,
@@ -122,7 +150,6 @@ class DailyCaloriesRepository {
         height: user.height,
       );
 
-      // Рассчитываем общий расход с учетом активности (БЕЗ физупражнений)
       final totalCalories = CaloriesCalculatorService.calculateTotalCalories(
         bmr: bmr,
         activityLevel: user.activityLevel,
@@ -132,23 +159,12 @@ class DailyCaloriesRepository {
         'Создаем запись на сегодня: BMR=$bmr, активность=${user.activityLevel.title}, итого=$totalCalories',
       );
 
-      // Проверяем, что калории не отрицательные
-      if (totalCalories <= 0) {
-        Logger.e('ОШИБКА: Рассчитанные калории <= 0: $totalCalories');
-        Logger.e(
-          'Данные пользователя: возраст=${user.age}, пол=${user.gender.name}, вес=${user.initialWeight}, рост=${user.height}',
-        );
-      }
-
       todayRecord = DailyCaloriesRecord.create(
         date: todayDate,
-        burnedCalories: totalCalories > 0
-            ? totalCalories
-            : 1500, // Защита от отрицательных значений
-        gender: user.gender.name, // НОВОЕ: передаем пол
+        burnedCalories: totalCalories,
+        gender: user.gender.name,
       );
 
-      // Добавляем запись в список и сохраняем
       _records.add(todayRecord);
       await _saveToLocal();
     }
