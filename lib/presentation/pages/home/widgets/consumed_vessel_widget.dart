@@ -7,11 +7,14 @@ class ConsumedVesselWidget extends StatefulWidget {
   final bool isVessel;
   final int value;
   final Function(int) onTap;
+  final int maxValue; // НОВОЕ: максимальное значение для расчета процента
+
   const ConsumedVesselWidget({
     super.key,
     required this.isVessel,
     required this.value,
     required this.onTap,
+    this.maxValue = 2000, // По умолчанию 2000
   });
 
   @override
@@ -33,6 +36,12 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Рассчитываем процент заполнения
+    final percentage = widget.maxValue > 0
+        ? widget.value / widget.maxValue
+        : 0.0;
+    final clampedPercentage = percentage.clamp(0.0, 1.0);
+
     return Container(
       height: 370,
       margin: EdgeInsets.only(
@@ -59,7 +68,6 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
             ),
           ),
           const Gap(8),
-          // УБРАЛ mainAxisSize: MainAxisSize.min и добавил Expanded
           Expanded(
             child: Container(
               width: double.infinity,
@@ -69,12 +77,13 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
               ),
               child: Stack(
                 children: [
+                  // НОВОЕ: высота рассчитывается на основе процента
                   Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
                     child: Container(
-                      height: 250 * 0.6,
+                      height: 250 * clampedPercentage, // Динамическая высота
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.only(

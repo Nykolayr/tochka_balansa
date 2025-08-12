@@ -1,3 +1,4 @@
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/health/daily_calories_record.dart';
 import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
@@ -36,7 +37,7 @@ class DailyCaloriesRepository {
     DailyCaloriesRecord? todayRecord = _getTodayRecord(todayDate);
 
     if (todayRecord == null) {
-      // Если записи нет, создаем новую
+      // Если записи нет, создаем новую с РАССЧИТАННЫМИ калориями
       final bmr = CaloriesCalculatorService.calculateBMR(
         age: user.age,
         gender: user.gender.name,
@@ -44,15 +45,19 @@ class DailyCaloriesRepository {
         height: user.height,
       );
 
-      // Рассчитываем общий расход с учетом активности
+      // Рассчитываем общий расход с учетом активности (БЕЗ физупражнений)
       final totalCalories = CaloriesCalculatorService.calculateTotalCalories(
         bmr: bmr,
         activityLevel: user.activityLevel,
       );
 
+      Logger.i(
+        'Создаем запись на сегодня: BMR=$bmr, активность=${user.activityLevel.title}, итого=$totalCalories',
+      );
+
       todayRecord = DailyCaloriesRecord.create(
         date: todayDate,
-        burnedCalories: totalCalories,
+        burnedCalories: totalCalories, // ВОТ ТУТ РАССЧИТАННЫЕ КАЛОРИИ!
       );
 
       // Добавляем запись в список и сохраняем

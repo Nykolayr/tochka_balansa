@@ -12,6 +12,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     on<SetErrorEvent>(_onSetErrorEvent);
     on<GetUserEvent>(_onGetUserEvent);
     on<GoToPageEvent>(_onGoToPageEvent);
+    on<UpdateCaloriesEvent>(_onUpdateCaloriesEvent); // НОВОЕ
   }
 
   /// переход на страницу
@@ -38,5 +39,19 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   /// установка ошибки
   void _onSetErrorEvent(SetErrorEvent event, Emitter<MainState> emit) async {
     emit(state.copyWith(error: event.error));
+  }
+
+  /// НОВОЕ: обновление данных о калориях
+  void _onUpdateCaloriesEvent(
+    UpdateCaloriesEvent event,
+    Emitter<MainState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        consumedCalories: event.consumedCalories,
+        burnedCalories: event.burnedCalories,
+        maxCalories: event.maxCalories,
+      ),
+    );
   }
 }

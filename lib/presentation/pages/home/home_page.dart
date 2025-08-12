@@ -6,6 +6,7 @@ import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/set_first_goal_widget.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/body_outline_widget.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,13 +22,25 @@ class _HomePageState extends State<HomePage> {
     // Загружаем цели при инициализации страницы
     Get.find<GoalBloc>().add(const LoadGoalsEvent());
 
-    // Инициализируем дневную запись калорий
+    // Инициализируем дневную запись калорий и обновляем MainBloc
     _initializeDailyCalories();
   }
 
   Future<void> _initializeDailyCalories() async {
     // При каждом заходе проверяем/создаем запись на сегодня
-    await DailyCaloriesRepository().getOrCreateTodayRecord();
+    final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+    final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
+
+    // Обновляем MainBloc с данными о калориях
+    final mainBloc = Get.find<MainBloc>();
+    mainBloc.add(
+      UpdateCaloriesEvent(
+        consumedCalories: todayRecord.consumedCalories, // 0 при первом входе
+        burnedCalories: todayRecord
+            .burnedCalories, // Рассчитанные калории (BMR + активность)
+        maxCalories: todayRecord.maxCalories, // Максимум для сосудов
+      ),
+    );
   }
 
   @override

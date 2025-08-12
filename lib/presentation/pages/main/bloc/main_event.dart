@@ -21,3 +21,16 @@ class GoToPageEvent extends MainEvent {
   final int pageIndex;
   const GoToPageEvent(this.pageIndex);
 }
+
+/// НОВОЕ: обновление данных о калориях
+class UpdateCaloriesEvent extends MainEvent {
+  final int consumedCalories;
+  final int burnedCalories;
+  final int maxCalories;
+  
+  const UpdateCaloriesEvent({
+    required this.consumedCalories,
+    required this.burnedCalories,
+    required this.maxCalories,
+  });
+}

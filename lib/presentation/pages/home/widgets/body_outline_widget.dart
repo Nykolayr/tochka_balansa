@@ -11,101 +11,113 @@ import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/consumed_vessel_widget.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 class BodyOutlineWidget extends StatelessWidget {
   const BodyOutlineWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HealthBloc, HealthState>(
-      bloc: Get.find<HealthBloc>(),
-      builder: (context, state) {
-        final userRepository = Get.find<UserRepository>();
-        final user = userRepository.user;
+    return BlocBuilder<MainBloc, MainState>(
+      bloc: Get.find<MainBloc>(),
+      builder: (context, mainState) {
+        return BlocBuilder<HealthBloc, HealthState>(
+          bloc: Get.find<HealthBloc>(),
+          builder: (context, healthState) {
+            final userRepository = Get.find<UserRepository>();
+            final user = userRepository.user;
 
-        final latestWeight = _getLatestWeight(state);
-        final currentWeight = latestWeight != null
-            ? double.tryParse(latestWeight.value) ?? user.initialWeight
-            : user.initialWeight;
+            final latestWeight = _getLatestWeight(healthState);
+            final currentWeight = latestWeight != null
+                ? double.tryParse(latestWeight.value) ?? user.initialWeight
+                : user.initialWeight;
 
-        double bmi = 0;
-        BmiCategory? bmiCategory;
+            double bmi = 0;
+            BmiCategory? bmiCategory;
 
-        if (user.height > 0 && currentWeight > 0) {
-          bmi = currentWeight / ((user.height / 100) * (user.height / 100));
-          bmiCategory = BmiCategory.fromValue(bmi);
-        }
+            if (user.height > 0 && currentWeight > 0) {
+              bmi = currentWeight / ((user.height / 100) * (user.height / 100));
+              bmiCategory = BmiCategory.fromValue(bmi);
+            }
 
-        final bodyOutlineAsset =
-            bmiCategory?.getBodyOutlineAsset(user.gender) ??
-            'assets/svg/body_outline_${user.gender == Gender.male ? 'male' : 'female'}_normal.svg';
+            final bodyOutlineAsset =
+                bmiCategory?.getBodyOutlineAsset(user.gender) ??
+                'assets/svg/body_outline_${user.gender == Gender.male ? 'male' : 'female'}_normal.svg';
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // Выравнивание по низу
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Column(
                 children: [
-                  // Виджет 1: Сосуд "Съедено"
-                  Expanded(
-                    child: ConsumedVesselWidget(
-                      isVessel: true,
-                      value: 100,
-                      onTap: (value) {},
-                    ),
-                  ),
-                  // Виджет 2: Центральный с человеком и ИМТ (ширина на основе коэффициента ИМТ)
-                  SizedBox(
-                    height: 370,
-                    width:
-                        MediaQuery.of(context).size.width *
-                        0.6 *
-                        (bmiCategory?.widthCoefficient ??
-                            0.6), // Ширина на основе коэффициента
-                    child: _buildCenterWidget(
-                      bodyOutlineAsset: bodyOutlineAsset,
-                      currentWeight: currentWeight,
-                      bmi: bmi,
-                      bmiCategory: bmiCategory,
-                    ),
-                  ),
-
-                  // Виджет 3: Сосуд "Сожжено"
-                  Expanded(
-                    child: ConsumedVesselWidget(
-                      isVessel: false,
-                      value: 200,
-                      onTap: (value) {},
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Виджет 1: Сосуд "Съедено"
+                      Expanded(
+                        child: ConsumedVesselWidget(
+                          isVessel: true,
+                          value: mainState
+                              .consumedCalories, // Используем данные из MainBloc
+                          onTap: (value) {},
+                        ),
+                      ),
+                      // Виджет 2: Центральный с человеком и ИМТ
+                      SizedBox(
+                        height: 370,
+                        width:
+                            MediaQuery.of(context).size.width *
+                            0.6 *
+                            (bmiCategory?.widthCoefficient ?? 0.6),
+                        child: _buildCenterWidget(
+                          bodyOutlineAsset: bodyOutlineAsset,
+                          currentWeight: currentWeight,
+                          bmi: bmi,
+                          bmiCategory: bmiCategory,
+                          balance:
+                              mainState.consumedCalories -
+                              mainState
+                                  .burnedCalories, // НОВОЕ: баланс из MainBloc
+                        ),
+                      ),
+                      // Виджет 3: Сосуд "Сожжено"
+                      Expanded(
+                        child: ConsumedVesselWidget(
+                          isVessel: false,
+                          value: mainState
+                              .burnedCalories, // Используем данные из MainBloc
+                          onTap: (value) {},
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  // Виджет 2: Центральный с человеком и ИМТ
+  // Обновляю _buildCenterWidget, чтобы он принимал баланс
   Widget _buildCenterWidget({
     required String bodyOutlineAsset,
     required double currentWeight,
     required double bmi,
     required BmiCategory? bmiCategory,
+    required int balance, // НОВОЕ: баланс калорий
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          '${textLang('баланс')}: -1004',
+          '${textLang('баланс')}: ${balance >= 0 ? '+' : ''}$balance', // НОВОЕ: динамический баланс
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.red,
+            color: balance >= 0
+                ? Colors.green
+                : Colors.red, // НОВОЕ: цвет в зависимости от баланса
           ),
         ),
         const Gap(16),
