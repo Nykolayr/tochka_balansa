@@ -122,6 +122,11 @@ Future<void> initMain() async {
     // Сразу создаем запись на сегодня с рассчитанными калориями
     final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
 
+    Logger.i('Создана запись на сегодня:');
+    Logger.i('- Съедено: ${todayRecord.consumedCalories}');
+    Logger.i('- Сожжено: ${todayRecord.burnedCalories}');
+    Logger.i('- Максимум: ${todayRecord.maxCalories}');
+
     // Получаем созданную запись и обновляем MainBloc
     final mainBloc = Get.find<MainBloc>();
     mainBloc.add(

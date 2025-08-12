@@ -55,8 +55,9 @@ class BodyOutlineWidget extends StatelessWidget {
                       Expanded(
                         child: ConsumedVesselWidget(
                           isVessel: true,
-                          value: mainState
-                              .consumedCalories, // Используем данные из MainBloc
+                          value: mainState.consumedCalories,
+                          maxValue:
+                              mainState.maxCalories, // НОВОЕ: передаем максимум
                           onTap: (value) {},
                         ),
                       ),
@@ -82,8 +83,9 @@ class BodyOutlineWidget extends StatelessWidget {
                       Expanded(
                         child: ConsumedVesselWidget(
                           isVessel: false,
-                          value: mainState
-                              .burnedCalories, // Используем данные из MainBloc
+                          value: mainState.burnedCalories,
+                          maxValue:
+                              mainState.maxCalories, // НОВОЕ: передаем максимум
                           onTap: (value) {},
                         ),
                       ),
@@ -98,26 +100,31 @@ class BodyOutlineWidget extends StatelessWidget {
     );
   }
 
-  // Обновляю _buildCenterWidget, чтобы он принимал баланс
+  // Обновляю _buildCenterWidget, чтобы он правильно показывал баланс
   Widget _buildCenterWidget({
     required String bodyOutlineAsset,
     required double currentWeight,
     required double bmi,
     required BmiCategory? bmiCategory,
-    required int balance, // НОВОЕ: баланс калорий
+    required int balance, // баланс калорий
   }) {
+    // Правильная логика: если сожгли больше чем съели = хорошо (зеленый, +)
+    final isPositive =
+        balance <=
+        0; // balance <= 0 означает сожгли больше или равно съеденному
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          '${textLang('баланс')}: ${balance >= 0 ? '+' : ''}$balance', // НОВОЕ: динамический баланс
+          '${textLang('баланс')}: ${isPositive ? '+' : ''}${balance.abs()}', // Показываем + если хорошо, - если плохо
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: balance >= 0
+            color: isPositive
                 ? Colors.green
-                : Colors.red, // НОВОЕ: цвет в зависимости от баланса
+                : Colors.red, // Зеленый если хорошо, красный если плохо
           ),
         ),
         const Gap(16),

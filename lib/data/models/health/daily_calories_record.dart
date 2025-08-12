@@ -8,6 +8,7 @@ class DailyCaloriesRecord extends Equatable {
   final int burnedCalories; // Сожжено калорий (базовый обмен)
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String gender; // НОВОЕ: добавляем пол для расчета maxValue
 
   const DailyCaloriesRecord({
     required this.id,
@@ -16,11 +17,13 @@ class DailyCaloriesRecord extends Equatable {
     required this.burnedCalories,
     required this.createdAt,
     required this.updatedAt,
+    required this.gender, // НОВОЕ
   });
 
   factory DailyCaloriesRecord.create({
     required DateTime date,
     required int burnedCalories,
+    required String gender, // НОВОЕ
   }) {
     final now = DateTime.now();
     return DailyCaloriesRecord(
@@ -30,6 +33,7 @@ class DailyCaloriesRecord extends Equatable {
       burnedCalories: burnedCalories,
       createdAt: now,
       updatedAt: now,
+      gender: gender, // НОВОЕ
     );
   }
 
@@ -40,6 +44,7 @@ class DailyCaloriesRecord extends Equatable {
     int? burnedCalories,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? gender, // НОВОЕ
   }) {
     return DailyCaloriesRecord(
       id: id ?? this.id,
@@ -48,6 +53,7 @@ class DailyCaloriesRecord extends Equatable {
       burnedCalories: burnedCalories ?? this.burnedCalories,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      gender: gender ?? this.gender, // НОВОЕ
     );
   }
 
@@ -71,8 +77,14 @@ class DailyCaloriesRecord extends Equatable {
   int get balance => consumedCalories - burnedCalories;
 
   /// Получить максимальное количество калорий для 100% заполнения сосуда
-  int get maxCalories =>
-      (burnedCalories * 1.2).round(); // 120% от базового обмена
+  /// Женщины: максимум 3500, мужчины: максимум 4000
+  int get maxCalories {
+    if (gender == 'female') {
+      return 3200; // Максимум для женщин
+    } else {
+      return 3800; // Максимум для мужчин
+    }
+  }
 
   /// Процент заполнения сосуда "Съедено"
   double get consumedPercentage => consumedCalories / maxCalories;
@@ -88,6 +100,7 @@ class DailyCaloriesRecord extends Equatable {
       'burnedCalories': burnedCalories,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'gender': gender, // НОВОЕ
     };
   }
 
@@ -99,6 +112,7 @@ class DailyCaloriesRecord extends Equatable {
       burnedCalories: json['burnedCalories'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      gender: json['gender'] as String? ?? 'male', // НОВОЕ: по умолчанию male
     );
   }
 
@@ -110,5 +124,6 @@ class DailyCaloriesRecord extends Equatable {
     burnedCalories,
     createdAt,
     updatedAt,
+    gender, // НОВОЕ
   ];
 }

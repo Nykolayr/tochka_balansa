@@ -55,9 +55,20 @@ class DailyCaloriesRepository {
         'Создаем запись на сегодня: BMR=$bmr, активность=${user.activityLevel.title}, итого=$totalCalories',
       );
 
+      // Проверяем, что калории не отрицательные
+      if (totalCalories <= 0) {
+        Logger.e('ОШИБКА: Рассчитанные калории <= 0: $totalCalories');
+        Logger.e(
+          'Данные пользователя: возраст=${user.age}, пол=${user.gender.name}, вес=${user.initialWeight}, рост=${user.height}',
+        );
+      }
+
       todayRecord = DailyCaloriesRecord.create(
         date: todayDate,
-        burnedCalories: totalCalories, // ВОТ ТУТ РАССЧИТАННЫЕ КАЛОРИИ!
+        burnedCalories: totalCalories > 0
+            ? totalCalories
+            : 1500, // Защита от отрицательных значений
+        gender: user.gender.name, // НОВОЕ: передаем пол
       );
 
       // Добавляем запись в список и сохраняем
