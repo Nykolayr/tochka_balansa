@@ -13,8 +13,6 @@ import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/di/locator.dart';
-import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
-import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool isMock = true;
@@ -72,7 +70,9 @@ class MyApp extends StatelessWidget {
                 seedColor: AppColor.primary,
                 surface: AppColor.white,
               ),
-              textTheme: GoogleFonts.robotoTextTheme(Theme.of(context).textTheme),
+              textTheme: GoogleFonts.robotoTextTheme(
+                Theme.of(context).textTheme,
+              ),
               pageTransitionsTheme: const PageTransitionsTheme(
                 builders: {
                   TargetPlatform.android: CupertinoPageTransitionsBuilder(),
