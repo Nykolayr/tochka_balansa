@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
+import 'package:tochka_balansa/data/services/steps_calories_calculator_service.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 class AddStepsDialog {
   static void show(BuildContext context) {
@@ -60,8 +66,52 @@ class AddStepsDialog {
               step: 1,
             ),
 
-            const SizedBox(height: 16),
+            const Gap(16),
 
+            // НОВОЕ: Показываем сколько калорий сожжем
+            ValueListenableBuilder<int>(
+              valueListenable: stepsValue,
+              builder: (context, steps, child) {
+                final userRepository = Get.find<UserRepository>();
+                final user = userRepository.user;
+
+                final calories =
+                    StepsCaloriesCalculatorService.calculateCaloriesFromSteps(
+                      weight: user.initialWeight,
+                      steps: steps,
+                    );
+
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.local_fire_department,
+                        color: Colors.green,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Сожжете: $calories ккал',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const Gap(16),
             // Заметка
             TextField(
               controller: noteController,
@@ -117,7 +167,7 @@ class AddStepsDialog {
             valueListenable: stepsValue,
             builder: (context, value, child) {
               return TextButton(
-                onPressed: () {
+                onPressed: () async {
                   if (existingMetricId != null) {
                     // Обновляем существующую запись
                     final existingMetric = todayStepsMetrics.first;
@@ -150,6 +200,39 @@ class AddStepsDialog {
                     Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
                   }
 
+                  // НОВОЕ: Добавляем калории от шагов в "Сожжено"
+                  try {
+                    final userRepository = Get.find<UserRepository>();
+                    final user = userRepository.user;
+
+                    final calories =
+                        StepsCaloriesCalculatorService.calculateCaloriesFromSteps(
+                          weight: user.initialWeight,
+                          steps: value,
+                        );
+
+                    if (calories > 0) {
+                      final dailyCaloriesRepo =
+                          Get.find<DailyCaloriesRepository>();
+                      await dailyCaloriesRepo.addBurnedCalories(calories);
+
+                      // Обновляем MainBloc
+                      final todayRecord = await dailyCaloriesRepo
+                          .getOrCreateTodayRecord();
+                      final mainBloc = Get.find<MainBloc>();
+                      mainBloc.add(
+                        UpdateCaloriesEvent(
+                          consumedCalories: todayRecord.consumedCalories,
+                          burnedCalories: todayRecord.burnedCalories,
+                          maxCalories: todayRecord.maxCalories,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    Logger.e('Ошибка добавления калорий от шагов: $e');
+                  }
+
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 },
                 child: Text(
@@ -224,9 +307,7 @@ class AddStepsDialog {
                     controller: controller,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(fontSize: 14),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
