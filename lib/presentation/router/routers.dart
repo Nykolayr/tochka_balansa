@@ -26,6 +26,7 @@ import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/presentation/pages/health/steps_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/steps_history_page.dart';
+import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -271,6 +272,20 @@ final GoRouter router = GoRouter(
             );
           },
           routes: [
+            // НОВЫЙ маршрут для настройки главной цели
+            GoRoute(
+              name: 'настройка цели',
+              path: 'setup',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: GoalSetupPage(key: ValueKey(languageState)),
+                );
+              },
+            ),
             GoRoute(
               name: 'добавить дополнительную цель',
               path: 'add-additional',
