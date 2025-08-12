@@ -119,10 +119,13 @@ Future<void> initMain() async {
     final dailyCaloriesRepo = DailyCaloriesRepository();
     Get.put(dailyCaloriesRepo);
 
-    // Сразу создаем запись на сегодня с рассчитанными калориями
+    // ИСПРАВЛЕНО: сначала инициализируем (загружаем данные)
+    await dailyCaloriesRepo.init();
+
+    // Теперь получаем запись на сегодня (с загруженными данными)
     final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
 
-    Logger.i('Создана запись на сегодня:');
+    Logger.i('Загружена/создана запись на сегодня:');
     Logger.i('- Съедено: ${todayRecord.consumedCalories}');
     Logger.i('- Сожжено: ${todayRecord.burnedCalories}');
     Logger.i('- Максимум: ${todayRecord.maxCalories}');
@@ -131,15 +134,14 @@ Future<void> initMain() async {
     final mainBloc = Get.find<MainBloc>();
     mainBloc.add(
       UpdateCaloriesEvent(
-        consumedCalories: todayRecord.consumedCalories, // 0
+        consumedCalories: todayRecord.consumedCalories,
         burnedCalories: todayRecord
-            .burnedCalories, // Рассчитанные калории (BMR + активность)
-        maxCalories: todayRecord.maxCalories, // Максимум для сосудов
+            .burnedCalories, // Теперь с загруженными калориями от шагов!
+        maxCalories: todayRecord.maxCalories,
       ),
     );
   } catch (e) {
     Logger.e('DailyCaloriesRepository error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   await Future.delayed(Duration(seconds: 2));

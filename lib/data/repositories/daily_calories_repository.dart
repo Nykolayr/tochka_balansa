@@ -190,7 +190,7 @@ class DailyCaloriesRepository {
   }
 
   /// Добавить калории к сожженным (например, от шагов)
-  Future<void> addBurnedCalories(int calories) async {
+  Future<DailyCaloriesRecord> addBurnedCalories(int calories) async {
     final todayRecord = await getOrCreateTodayRecord();
     final updatedRecord = todayRecord.addBurnedCalories(calories);
 
@@ -200,6 +200,9 @@ class DailyCaloriesRepository {
       _records[index] = updatedRecord;
       await _saveToLocal();
     }
+
+    // ИСПРАВЛЕНО: возвращаем обновленную запись
+    return updatedRecord;
   }
 
   /// Загрузить записи из локального хранилища

@@ -214,17 +214,18 @@ class AddStepsDialog {
                     if (calories > 0) {
                       final dailyCaloriesRepo =
                           Get.find<DailyCaloriesRepository>();
-                      await dailyCaloriesRepo.addBurnedCalories(calories);
 
-                      // Обновляем MainBloc
-                      final todayRecord = await dailyCaloriesRepo
-                          .getOrCreateTodayRecord();
+                      // ИСПРАВЛЕНО: получаем обновленную запись
+                      final updatedRecord = await dailyCaloriesRepo
+                          .addBurnedCalories(calories);
+
+                      // Обновляем MainBloc с обновленными данными
                       final mainBloc = Get.find<MainBloc>();
                       mainBloc.add(
                         UpdateCaloriesEvent(
-                          consumedCalories: todayRecord.consumedCalories,
-                          burnedCalories: todayRecord.burnedCalories,
-                          maxCalories: todayRecord.maxCalories,
+                          consumedCalories: updatedRecord.consumedCalories,
+                          burnedCalories: updatedRecord.burnedCalories,
+                          maxCalories: updatedRecord.maxCalories,
                         ),
                       );
                     }
