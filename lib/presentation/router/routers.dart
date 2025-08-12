@@ -31,6 +31,7 @@ import 'package:tochka_balansa/presentation/pages/food/breakfast_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/lunch_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/dinner_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/snack_page.dart';
+import 'package:tochka_balansa/presentation/pages/exercise/exercise_page.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -385,6 +386,19 @@ final GoRouter router = GoRouter(
                     key: ValueKey(languageState),
                     goal: goal,
                   ),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'exercise',
+              path: 'exercise',
+              pageBuilder: (context, state) {
+                final languageState = Get.find<LanguageBloc>().state;
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: ExercisePage(key: ValueKey(languageState)),
                 );
               },
             ),
