@@ -12,13 +12,13 @@ class CaloriesCalculatorService {
   }) {
     // Формула Миффлина-Сан Жеора (более точная чем Харриса-Бенедикта)
     double bmr;
-    
+
     if (gender == 'male') {
       bmr = 10 * weight + 6.25 * height - 5 * age + 5;
     } else {
       bmr = 10 * weight + 6.25 * height - 5 * age - 161;
     }
-    
+
     return bmr.round();
   }
 
@@ -34,4 +34,4 @@ class CaloriesCalculatorService {
   static ActivityLevel getDefaultActivityLevel() {
     return ActivityLevel.sedentary; // По умолчанию сидячий
   }
-} 
+}

@@ -5,6 +5,7 @@ import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/set_first_goal_widget.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/body_outline_widget.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +20,14 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     // Загружаем цели при инициализации страницы
     Get.find<GoalBloc>().add(const LoadGoalsEvent());
+
+    // Инициализируем дневную запись калорий
+    _initializeDailyCalories();
+  }
+
+  Future<void> _initializeDailyCalories() async {
+    // При каждом заходе проверяем/создаем запись на сегодня
+    await DailyCaloriesRepository().getOrCreateTodayRecord();
   }
 
   @override

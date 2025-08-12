@@ -14,6 +14,7 @@ import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/di/locator.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool isMock = true;
@@ -26,9 +27,6 @@ void main() async {
 
   // Инициализируем все зависимости
   await initMain();
-
-  // Загружаем цели и проверяем их
-  Get.find<GoalBloc>().add(const LoadGoalsEvent());
 
   runApp(const MyApp());
 }
