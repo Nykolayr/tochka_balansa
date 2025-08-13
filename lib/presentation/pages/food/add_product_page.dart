@@ -485,7 +485,7 @@ class _AddProductPageState extends State<AddProductPage> {
     );
   }
 
-  /// Добавить продукт
+  /// Добавить продукт из API
   void _addProduct(FoodApiProduct apiProduct, double amount, String unit) {
     // Создаем FoodProduct
     final foodProduct = FoodProduct.create(
@@ -498,6 +498,18 @@ class _AddProductPageState extends State<AddProductPage> {
 
     // Добавляем через блок
     Get.find<MainBloc>().add(AddFoodProductEvent(foodProduct));
+
+    // Закрываем модальное окно
+    Get.back();
+
+    // Возвращаемся назад
+    Get.back();
+  }
+
+  /// Добавить наш продукт
+  void _addOurProduct(FoodProduct product) {
+    // Добавляем через блок
+    Get.find<MainBloc>().add(AddFoodProductEvent(product));
 
     // Закрываем модальное окно
     Get.back();
@@ -586,7 +598,7 @@ class _AddProductPageState extends State<AddProductPage> {
                 );
 
                 Navigator.of(context).pop();
-                _addProduct(product);
+                _addOurProduct(product);
               }
             },
             child: Text('Добавить'),
