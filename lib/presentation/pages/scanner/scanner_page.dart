@@ -62,7 +62,7 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   void _onScanned(String code, Barcode barcode) async {
-    if (!_mounted) return; // Проверяем, что виджет все еще активен
+    if (!_mounted) return;
 
     controller.stop();
 
@@ -71,14 +71,14 @@ class _ScannerPageState extends State<ScannerPage> {
       code,
     );
 
-    if (!_mounted) return; // Проверяем еще раз после асинхронной операции
+    if (!_mounted) return;
 
     if (product != null) {
       // Продукт найден в базе
       _showProductFoundDialog(product);
     } else {
-      // Продукт не найден, предлагаем добавить
-      _showAddProductDialog(code);
+      // Продукт не найден, возвращаем штрих-код
+      Navigator.of(context).pop({'barcode': code});
     }
   }
 
@@ -143,7 +143,7 @@ class _ScannerPageState extends State<ScannerPage> {
     );
   }
 
-  void _showAddProductDialog(String barcode) {
+  void showAddProductDialog(String barcode) {
     if (!_mounted) return;
 
     // Сохраняем контекст заранее

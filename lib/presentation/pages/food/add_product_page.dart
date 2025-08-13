@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/app_bar_widget.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/scanner/scanner_page.dart';
 
 class AddProductPage extends StatefulWidget {
   const AddProductPage({super.key});
@@ -244,13 +246,41 @@ class _AddProductPageState extends State<AddProductPage> {
 
   /// Сканирование штрих-кода
   Future<void> _scanBarcode() async {
-    // TODO: Интеграция со сканером штрих-кода
-    // Пока что просто показываем сообщение
-    Get.snackbar(
-      'Сканер',
-      'Функция сканирования будет добавлена позже',
-      snackPosition: SnackPosition.BOTTOM,
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (context) => const ScannerPage()),
     );
+
+    if (result != null && mounted) {
+      Logger.d('Сканер вернул результат: $result');
+
+      // Получаем штрих-код из результата
+      final barcode = result['barcode'] as String?;
+      if (barcode != null) {
+        Logger.d('Получен штрих-код от сканера: $barcode');
+        Logger.d('Тип штрих-кода: ${barcode.runtimeType}');
+        Logger.d('Длина штрих-кода: ${barcode.length}');
+
+        // Ищем продукт по штрих-коду через API
+        final apiProduct = await FoodApiService.getProductByBarcode(barcode);
+        if (apiProduct != null) {
+          Logger.d('Продукт найден в API: ${apiProduct.displayName}');
+          _showProductDetailsModal(apiProduct);
+        } else {
+          Logger.d('Продукт не найден в API для штрих-кода: $barcode');
+          // Продукт не найден в API - предлагаем ввести вручную
+          if (mounted) {
+            _showManualInputDialog(barcode);
+          }
+        }
+      } else {
+        Logger.e('Штрих-код не найден в результате сканера');
+        Logger.d('Ключи в результате: ${result.keys.toList()}');
+        Logger.d('Тип результата: ${result.runtimeType}');
+      }
+    } else {
+      Logger.d('Сканер не вернул результат или страница закрыта');
+    }
   }
 
   /// Выбор продукта
@@ -474,5 +504,95 @@ class _AddProductPageState extends State<AddProductPage> {
 
     // Возвращаемся назад
     Get.back();
+  }
+
+  /// Показать диалог для ручного ввода продукта
+  void _showManualInputDialog(String barcode) {
+    final nameController = TextEditingController();
+    final amountController = TextEditingController(text: '100');
+    final unitController = TextEditingController(text: 'г');
+    final caloriesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Продукт не найден'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Продукт с штрих-кодом $barcode не найден в базе данных.'),
+            SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Название продукта',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Количество',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: unitController,
+                    decoration: InputDecoration(
+                      labelText: 'Единица',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: caloriesController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Калории на 100г/100мл',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.isNotEmpty &&
+                  caloriesController.text.isNotEmpty) {
+                final amount = double.tryParse(amountController.text) ?? 100.0;
+                final calories = int.tryParse(caloriesController.text) ?? 0;
+
+                final product = FoodProduct.create(
+                  name: nameController.text,
+                  barcode: barcode,
+                  amount: amount,
+                  unit: unitController.text,
+                  caloriesPer100: calories,
+                );
+
+                Navigator.of(context).pop();
+                _addProduct(product);
+              }
+            },
+            child: Text('Добавить'),
+          ),
+        ],
+      ),
+    );
   }
 }

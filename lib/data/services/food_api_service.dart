@@ -42,15 +42,34 @@ class FoodApiService {
       Logger.d('Ищем продукт по штрих-коду: $barcode');
 
       final url = Uri.parse('$_baseUrl/api/v0/product/$barcode.json');
+      Logger.d('URL запроса: $url');
 
       final response = await http.get(url);
+      Logger.d('Статус ответа: ${response.statusCode}');
+      Logger.d('Размер ответа: ${response.body.length} байт');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
+        // Безопасное логирование ответа
+        final responseStr = data.toString();
+        final logLength = responseStr.length > 200 ? 200 : responseStr.length;
+        Logger.d('Ответ API: ${responseStr.substring(0, logLength)}...');
+
         if (data['status'] == 1 && data['product'] != null) {
+          Logger.d('Продукт найден в API');
           return FoodApiProduct.fromJson(data['product']);
+        } else {
+          Logger.d('Продукт не найден в API. Статус: ${data['status']}');
+          if (data['status_verbose'] != null) {
+            Logger.d('Статус verbose: ${data['status_verbose']}');
+          }
+          // Логируем полный ответ для отладки
+          Logger.d('Полный ответ API: $responseStr');
         }
+      } else {
+        Logger.e('Ошибка HTTP: ${response.statusCode}');
+        Logger.e('Тело ответа: ${response.body}');
       }
 
       return null;
