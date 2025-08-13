@@ -25,26 +25,6 @@ class DailyCaloriesRepository {
   /// Получить все продукты
   List<FoodProduct> get foodProducts => List.unmodifiable(_foodProducts);
 
-  /// Получить продукты по типу приема пищи
-  List<FoodProduct> getProductsByMealType(String mealType) {
-    return _foodProducts
-        .where((product) => product.mealType == mealType)
-        .toList();
-  }
-
-  /// Получить продукты по типу приема пищи с фильтрацией
-  List<FoodProduct> getFilteredProducts(String mealType, String searchQuery) {
-    final products = getProductsByMealType(mealType);
-    if (searchQuery.isEmpty) return products;
-
-    return products
-        .where(
-          (product) =>
-              product.name.toLowerCase().contains(searchQuery.toLowerCase()),
-        )
-        .toList();
-  }
-
   /// Добавить продукт
   Future<void> addFoodProduct(FoodProduct product) async {
     _foodProducts.add(product);
@@ -281,5 +261,17 @@ class DailyCaloriesRepository {
   Future<void> clearAll() async {
     _records.clear();
     await _saveToLocal();
+  }
+
+  /// Переключить избранное продукта
+  Future<void> toggleProductFavorite(String productId) async {
+    final index = _foodProducts.indexWhere((p) => p.id == productId);
+    if (index != -1) {
+      final product = _foodProducts[index];
+      final updatedProduct = product.toggleFavorite();
+
+      _foodProducts[index] = updatedProduct;
+      await _saveFoodProductsToLocal();
+    }
   }
 }

@@ -6,7 +6,6 @@ import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
-import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 class MealPage extends StatefulWidget {
   final MealType mealType;
@@ -25,7 +24,6 @@ class _MealPageState extends State<MealPage> {
   void initState() {
     super.initState();
     // Загружаем продукты при инициализации
-    Get.find<MainBloc>().add(LoadFoodProductsEvent());
   }
 
   @override
@@ -93,11 +91,7 @@ class _MealPageState extends State<MealPage> {
   }
 
   Widget _buildProductsList(MainState state) {
-    final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-    final products = dailyCaloriesRepo.getFilteredProducts(
-      widget.mealType.value,
-      _searchQuery,
-    );
+    final products = [];
 
     if (products.isEmpty) {
       return Center(

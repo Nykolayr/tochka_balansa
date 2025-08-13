@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
@@ -14,19 +13,32 @@ class BreakfastPage extends StatefulWidget {
   State<BreakfastPage> createState() => _BreakfastPageState();
 }
 
-class _BreakfastPageState extends State<BreakfastPage> {
+class _BreakfastPageState extends State<BreakfastPage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  String searchQuery = '';
+  late TabController _tabController;
+
+  // Текущий выбранный таб
+  int currentTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    Get.find<MainBloc>().add(LoadFoodProductsEvent());
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        currentTabIndex = _tabController.index;
+      });
+    });
+
+    // УБИРАЮ: Get.find<MainBloc>().add(LoadFoodProductsEvent());
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -48,65 +60,83 @@ class _BreakfastPageState extends State<BreakfastPage> {
                 color: AppColor.darkBlue,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
-                size: 24,
-              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 24),
             ),
           ),
         ],
       ),
-      body: BlocBuilder<MainBloc, MainState>(
-        bloc: Get.find<MainBloc>(),
-        builder: (context, state) {
-          return Column(
-            children: [
-              // Поиск (убираю кнопку + отсюда)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: textLang('Поиск продуктов...'),
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
+      body: Column(
+        children: [
+          // Поиск
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: textLang('Поиск продуктов...'),
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              
-              // Список продуктов
-              Expanded(
-                child: _buildProductsList(state),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
+
+          // Табы
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.grey[600],
+              indicator: BoxDecoration(
+                color: AppColor.darkBlue,
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
-          );
-        },
+              tabs: const [
+                Tab(text: 'Частые'),
+                Tab(text: 'Недавние'),
+                Tab(text: 'Избранные'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Список продуктов по табам
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildProductsList(ProductTabType.frequent),
+                _buildProductsList(ProductTabType.recent),
+                _buildProductsList(ProductTabType.favorite),
+              ],
+            ),
+          ),
+        ],
       ),
+      bottomNavigationBar: _buildBreakfastBlock(),
     );
   }
 
-  Widget _buildProductsList(MainState state) {
-    // ИСПРАВЛЕНО: получаем продукты через блок, а не репозиторий
-    final mainBloc = Get.find<MainBloc>();
-    final products = mainBloc.getFilteredProducts(
-      MealType.breakfast.value,
-      _searchQuery,
-    );
+  Widget _buildProductsList(ProductTabType tabType) {
+    // TODO: получать продукты по типу таба
+    final products = <FoodProduct>[];
 
     if (products.isEmpty) {
       return Center(
         child: Text(
-          _searchQuery.isEmpty 
-            ? textLang('Нет добавленных продуктов')
-            : textLang('Продукты не найдены'),
+          'Нет продуктов в ${tabType.title}',
           style: TextStyle(
             fontSize: 16,
             color: AppColor.greyText.withValues(alpha: 0.7),
@@ -123,25 +153,177 @@ class _BreakfastPageState extends State<BreakfastPage> {
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
+            // НОВОЕ: звездочка избранного в начале
+            leading: IconButton(
+              onPressed: () {
+                // ИСПРАВЛЕНО: вызываем событие через блок
+                Get.find<MainBloc>().add(
+                  ToggleProductFavoriteEvent(product.id),
+                );
+              },
+              icon: Icon(
+                product.isFavorite ? Icons.star : Icons.star_border,
+                color: product.isFavorite ? Colors.amber : Colors.grey,
+                size: 24,
+              ),
+            ),
             title: Text(
               product.name,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
-              '${product.displayAmount} • ${product.displayCalories}',
-              style: TextStyle(
-                color: AppColor.greyText.withValues(alpha: 0.7),
-              ),
+              product.displayAmount,
+              style: TextStyle(color: AppColor.greyText.withValues(alpha: 0.7)),
             ),
-            trailing: IconButton(
-              onPressed: () {
-                // TODO: показать диалог редактирования/удаления
-              },
-              icon: const Icon(Icons.more_vert),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  product.displayCalories,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    // TODO: добавить продукт в завтрак
+                  },
+                  icon: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColor.darkBlue,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 16),
+                  ),
+                ),
+              ],
             ),
           ),
         );
       },
     );
   }
+
+  Widget _buildBreakfastBlock() {
+    // TODO: получать текущий завтрак
+    final breakfastProducts = <FoodProduct>[];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.wb_sunny, color: Colors.orange),
+              const SizedBox(width: 8),
+              const Text(
+                'Завтрак',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              if (breakfastProducts.isNotEmpty)
+                Text(
+                  '${breakfastProducts.fold<int>(0, (sum, p) => sum + p.totalCalories)} ккал',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          if (breakfastProducts.isEmpty)
+            const Text(
+              'Добавьте продукты из списка или добавьте продукт через кнопку +',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+              textAlign: TextAlign.center,
+            )
+          else
+            Column(
+              children: breakfastProducts
+                  .map((product) => _buildBreakfastProductItem(product))
+                  .toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBreakfastProductItem(FoodProduct product) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  product.displayAmount,
+                  style: TextStyle(
+                    color: AppColor.greyText.withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            product.displayCalories,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              // TODO: удалить продукт из завтрака
+            },
+            icon: const Icon(Icons.remove_circle, color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Типы табов для продуктов
+enum ProductTabType {
+  frequent, // Частые
+  recent, // Недавние
+  favorite; // Избранные
+
+  String get title => switch (this) {
+    frequent => 'Частых',
+    recent => 'Недавних',
+    favorite => 'Избранных',
+  };
 }

@@ -296,14 +296,14 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
     if (widget.template.id == 'custom') {
       _showCreateTemplateDialog(context, goal);
     } else {
-      Navigator.pop(context);
-      Navigator.pop(context);
-    }
+    Navigator.pop(context);
+    Navigator.pop(context);
   }
+}
 
   void _showCreateTemplateDialog(BuildContext context, AdditionalGoal goal) {
     showModalBottomSheet(
-      context: context,
+                                        context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Padding(
@@ -318,8 +318,8 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
         final goalBloc = Get.find<GoalBloc>();
         goalBloc.add(AddGoalTemplateEvent(goal));
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
             content: Text(textLang('Шаблон создан')),
             backgroundColor: AppColor.green,
           ),
@@ -327,7 +327,7 @@ class _AdditionalGoalSetupPageState extends State<AdditionalGoalSetupPage> {
       }
 
       Navigator.pop(context);
-      Navigator.pop(context);
+    Navigator.pop(context);
     });
   }
 }

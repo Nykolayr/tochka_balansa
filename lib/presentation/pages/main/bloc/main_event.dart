@@ -27,7 +27,7 @@ class UpdateCaloriesEvent extends MainEvent {
   final int consumedCalories;
   final int burnedCalories;
   final int maxCalories;
-  
+
   const UpdateCaloriesEvent({
     required this.consumedCalories,
     required this.burnedCalories,
@@ -47,5 +47,8 @@ class RemoveFoodProductEvent extends MainEvent {
   const RemoveFoodProductEvent(this.productId);
 }
 
-/// НОВОЕ: загрузка продуктов питания
-class LoadFoodProductsEvent extends MainEvent {}
+/// НОВОЕ: переключить избранное продукта
+class ToggleProductFavoriteEvent extends MainEvent {
+  final String productId;
+  const ToggleProductFavoriteEvent(this.productId);
+}

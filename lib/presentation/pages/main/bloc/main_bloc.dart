@@ -17,7 +17,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     on<UpdateCaloriesEvent>(_onUpdateCaloriesEvent);
     on<AddFoodProductEvent>(_onAddFoodProductEvent);
     on<RemoveFoodProductEvent>(_onRemoveFoodProductEvent);
-    on<LoadFoodProductsEvent>(_onLoadFoodProductsEvent);
+    on<ToggleProductFavoriteEvent>(_onToggleProductFavoriteEvent);
   }
 
   /// переход на страницу
@@ -60,60 +60,63 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     );
   }
 
-  /// Получить отфильтрованные продукты по типу приема пищи
-  List<FoodProduct> getFilteredProducts(String mealType, String searchQuery) {
-    final products = state.foodProducts.where((product) => 
-      product.mealType == mealType
-    ).toList();
-    
-    if (searchQuery.isEmpty) return products;
-    
-    return products.where((product) => 
-      product.name.toLowerCase().contains(searchQuery.toLowerCase())
-    ).toList();
-  }
-
   /// НОВОЕ: добавление продукта питания
-  Future<void> _onAddFoodProductEvent(AddFoodProductEvent event, Emitter<MainState> emit) async {
+  Future<void> _onAddFoodProductEvent(
+    AddFoodProductEvent event,
+    Emitter<MainState> emit,
+  ) async {
     try {
       final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
       await dailyCaloriesRepo.addFoodProduct(event.product);
-      
+
       // Обновляем состояние
       final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
-      emit(state.copyWith(
-        consumedCalories: todayRecord.consumedCalories,
-        foodProducts: dailyCaloriesRepo.foodProducts,
-      ));
+      emit(
+        state.copyWith(
+          consumedCalories: todayRecord.consumedCalories,
+          foodProducts: dailyCaloriesRepo.foodProducts,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(error: 'Ошибка добавления продукта: $e'));
     }
   }
 
   /// НОВОЕ: удаление продукта питания
-  Future<void> _onRemoveFoodProductEvent(RemoveFoodProductEvent event, Emitter<MainState> emit) async {
+  Future<void> _onRemoveFoodProductEvent(
+    RemoveFoodProductEvent event,
+    Emitter<MainState> emit,
+  ) async {
     try {
       final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
       await dailyCaloriesRepo.removeFoodProduct(event.productId);
-      
+
       // Обновляем состояние
       final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
-      emit(state.copyWith(
-        consumedCalories: todayRecord.consumedCalories,
-        foodProducts: dailyCaloriesRepo.foodProducts,
-      ));
+      emit(
+        state.copyWith(
+          consumedCalories: todayRecord.consumedCalories,
+          foodProducts: dailyCaloriesRepo.foodProducts,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(error: 'Ошибка удаления продукта: $e'));
     }
   }
 
-  /// НОВОЕ: загрузка продуктов питания
-  Future<void> _onLoadFoodProductsEvent(LoadFoodProductsEvent event, Emitter<MainState> emit) async {
+  /// НОВОЕ: переключить избранное продукта
+  Future<void> _onToggleProductFavoriteEvent(
+    ToggleProductFavoriteEvent event,
+    Emitter<MainState> emit,
+  ) async {
     try {
       final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+      await dailyCaloriesRepo.toggleProductFavorite(event.productId);
+
+      // Обновляем состояние
       emit(state.copyWith(foodProducts: dailyCaloriesRepo.foodProducts));
     } catch (e) {
-      emit(state.copyWith(error: 'Ошибка загрузки продуктов: $e'));
+      emit(state.copyWith(error: 'Ошибка переключения избранного: $e'));
     }
   }
 }

@@ -8,8 +8,10 @@ class FoodProduct extends Equatable {
   final double amount; // Количество в граммах или миллилитрах
   final String unit; // Единица измерения (г, мл)
   final int caloriesPer100; // Калории на 100г/100мл
-  final DateTime timestamp;
-  final String mealType; // Тип приема пищи (breakfast, lunch, dinner, snack)
+  final DateTime timestamp; // Время добавления в прием пищи
+  final int usageCount; // Счетчик сколько раз добавляли продукт
+  final DateTime createdAt; // Дата создания продукта
+  final bool isFavorite; // НОВОЕ: избранный продукт
 
   const FoodProduct({
     required this.id,
@@ -19,7 +21,9 @@ class FoodProduct extends Equatable {
     required this.unit,
     required this.caloriesPer100,
     required this.timestamp,
-    required this.mealType,
+    required this.usageCount,
+    required this.createdAt,
+    required this.isFavorite, // НОВОЕ
   });
 
   factory FoodProduct.create({
@@ -28,17 +32,19 @@ class FoodProduct extends Equatable {
     required double amount,
     required String unit,
     required int caloriesPer100,
-    required String mealType,
   }) {
+    final now = DateTime.now();
     return FoodProduct(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: now.millisecondsSinceEpoch.toString(),
       name: name,
       barcode: barcode,
       amount: amount,
       unit: unit,
       caloriesPer100: caloriesPer100,
-      timestamp: DateTime.now(),
-      mealType: mealType,
+      timestamp: now,
+      usageCount: 1,
+      createdAt: now,
+      isFavorite: false, // НОВОЕ: по умолчанию не избранный
     );
   }
 
@@ -51,6 +57,19 @@ class FoodProduct extends Equatable {
   /// Получить отображаемые калории
   String get displayCalories => '$totalCalories ккал';
 
+  /// Увеличить счетчик использования
+  FoodProduct incrementUsage() {
+    return copyWith(usageCount: usageCount + 1, timestamp: DateTime.now());
+  }
+
+  /// Переключить избранное
+  FoodProduct toggleFavorite() {
+    return copyWith(isFavorite: !isFavorite);
+  }
+
+  /// Получить отображаемый счетчик использования
+  String get displayUsageCount => 'Использован $usageCount раз';
+
   FoodProduct copyWith({
     String? id,
     String? name,
@@ -59,7 +78,9 @@ class FoodProduct extends Equatable {
     String? unit,
     int? caloriesPer100,
     DateTime? timestamp,
-    String? mealType,
+    int? usageCount,
+    DateTime? createdAt,
+    bool? isFavorite, // НОВОЕ
   }) {
     return FoodProduct(
       id: id ?? this.id,
@@ -69,7 +90,9 @@ class FoodProduct extends Equatable {
       unit: unit ?? this.unit,
       caloriesPer100: caloriesPer100 ?? this.caloriesPer100,
       timestamp: timestamp ?? this.timestamp,
-      mealType: mealType ?? this.mealType,
+      usageCount: usageCount ?? this.usageCount,
+      createdAt: createdAt ?? this.createdAt,
+      isFavorite: isFavorite ?? this.isFavorite, // НОВОЕ
     );
   }
 
@@ -82,7 +105,9 @@ class FoodProduct extends Equatable {
       'unit': unit,
       'caloriesPer100': caloriesPer100,
       'timestamp': timestamp.toIso8601String(),
-      'mealType': mealType,
+      'usageCount': usageCount,
+      'createdAt': createdAt.toIso8601String(),
+      'isFavorite': isFavorite, // НОВОЕ
     };
   }
 
@@ -95,7 +120,11 @@ class FoodProduct extends Equatable {
       unit: json['unit'] as String,
       caloriesPer100: json['caloriesPer100'] as int,
       timestamp: DateTime.parse(json['timestamp'] as String),
-      mealType: json['mealType'] as String,
+      usageCount: json['usageCount'] as int? ?? 1,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+      isFavorite: json['isFavorite'] as bool? ?? false, // НОВОЕ
     );
   }
 
@@ -108,16 +137,18 @@ class FoodProduct extends Equatable {
     unit,
     caloriesPer100,
     timestamp,
-    mealType,
+    usageCount,
+    createdAt,
+    isFavorite, // НОВОЕ
   ];
 }
 
 /// Типы приемов пищи
 enum MealType {
   breakfast, // Завтрак
-  lunch,     // Обед
-  dinner,    // Ужин
-  snack;     // Перекус
+  lunch, // Обед
+  dinner, // Ужин
+  snack; // Перекус
 
   String get title => switch (this) {
     breakfast => 'Завтрак',
@@ -132,4 +163,4 @@ enum MealType {
     dinner => 'dinner',
     snack => 'snack',
   };
-} 
+}

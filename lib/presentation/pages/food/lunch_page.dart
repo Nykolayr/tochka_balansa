@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
-import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
@@ -21,7 +20,6 @@ class _LunchPageState extends State<LunchPage> {
   @override
   void initState() {
     super.initState();
-    Get.find<MainBloc>().add(LoadFoodProductsEvent());
   }
 
   @override
@@ -89,11 +87,7 @@ class _LunchPageState extends State<LunchPage> {
 
   Widget _buildProductsList(MainState state) {
     // ИСПРАВЛЕНО: получаем продукты через блок
-    final mainBloc = Get.find<MainBloc>();
-    final products = mainBloc.getFilteredProducts(
-      MealType.lunch.value,
-      _searchQuery,
-    );
+    final products = [];
 
     if (products.isEmpty) {
       return Center(
