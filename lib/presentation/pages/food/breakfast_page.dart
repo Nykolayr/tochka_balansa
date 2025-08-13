@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
@@ -51,7 +52,7 @@ class _BreakfastPageState extends State<BreakfastPage>
         actions: [
           IconButton(
             onPressed: () {
-              // TODO: показать диалог добавления продукта
+              context.push('/main/home/add-product');
             },
             icon: Container(
               width: 40,
