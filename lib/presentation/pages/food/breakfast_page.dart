@@ -88,26 +88,21 @@ class _BreakfastPageState extends State<BreakfastPage>
           ),
 
           // Табы
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.grey[600],
-              indicator: BoxDecoration(
-                color: AppColor.darkBlue,
-                borderRadius: BorderRadius.circular(8),
+          TabBar(
+            indicatorSize: TabBarIndicatorSize.tab,
+            controller: _tabController,
+            labelColor: AppColor.green,
+            unselectedLabelColor: Colors.black,
+            indicator: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(width: 2.0, color: AppColor.green),
               ),
-              tabs: const [
-                Tab(text: 'Частые'),
-                Tab(text: 'Недавние'),
-                Tab(text: 'Избранные'),
-              ],
             ),
+            tabs: const [
+              Tab(text: 'ЧАСТЫЕ'),
+              Tab(text: 'НЕДАВНИЕ'),
+              Tab(text: 'ИЗБРАННЫЕ'),
+            ],
           ),
 
           const SizedBox(height: 16),
