@@ -85,7 +85,6 @@ class _AddProductPageState extends State<AddProductPage> {
                     itemBuilder: (context, index) {
                       final product = _searchResults[index];
                       return ListTile(
-                        // Добавляем изображение
                         leading: product.imageUrl != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(8.0),
@@ -120,13 +119,39 @@ class _AddProductPageState extends State<AddProductPage> {
                                 ),
                               ),
                         title: Text(product.name),
-                        subtitle: Text(
-                          '${product.caloriesPer100} ккал на 100${product.unit}',
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${product.caloriesPer100} ккал на 100${product.unit}',
+                            ),
+                            if (product.proteinsPer100 != null ||
+                                product.fatPer100 != null ||
+                                product.carbsPer100 != null)
+                              Text(
+                                'Б: ${product.proteinsPer100?.toStringAsFixed(1) ?? "?"} · '
+                                'Ж: ${product.fatPer100?.toStringAsFixed(1) ?? "?"} · '
+                                'У: ${product.carbsPer100?.toStringAsFixed(1) ?? "?"} г',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            if (product.totalWeight != null)
+                              Text(
+                                'Вес упаковки: ${product.totalWeight} ${product.unit}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                          ],
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: () => _addProductToMeal(product),
                         ),
+                        isThreeLine: true,
                       );
                     },
                   ),

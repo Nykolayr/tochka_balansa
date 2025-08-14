@@ -11,8 +11,16 @@ class FoodProduct extends Equatable {
   final DateTime timestamp; // Время добавления в прием пищи
   final int usageCount; // Счетчик сколько раз добавляли продукт
   final DateTime createdAt; // Дата создания продукта
-  final bool isFavorite; // НОВОЕ: избранный продукт
-  final String? imageUrl; // НОВОЕ: URL изображения продукта
+  final bool isFavorite; // Избранный продукт
+  final String? imageUrl; // URL изображения продукта
+  final double? totalWeight; // Общий вес продукта в упаковке
+  
+  // Нутриенты на 100г
+  final double? proteinsPer100; // Белки на 100г
+  final double? fatPer100; // Жиры на 100г
+  final double? carbsPer100; // Углеводы на 100г
+  final double? fiberPer100; // Клетчатка на 100г
+  final double? saturatedFatPer100; // Насыщенные жиры на 100г
 
   const FoodProduct({
     required this.id,
@@ -25,7 +33,13 @@ class FoodProduct extends Equatable {
     required this.usageCount,
     required this.createdAt,
     required this.isFavorite,
-    this.imageUrl, // НОВОЕ
+    this.imageUrl,
+    this.totalWeight,
+    this.proteinsPer100,
+    this.fatPer100,
+    this.carbsPer100,
+    this.fiberPer100,
+    this.saturatedFatPer100,
   });
 
   factory FoodProduct.create({
@@ -34,7 +48,13 @@ class FoodProduct extends Equatable {
     required double amount,
     required String unit,
     required int caloriesPer100,
-    String? imageUrl, // НОВОЕ
+    String? imageUrl,
+    double? totalWeight,
+    double? proteinsPer100,
+    double? fatPer100,
+    double? carbsPer100,
+    double? fiberPer100,
+    double? saturatedFatPer100,
   }) {
     final now = DateTime.now();
     return FoodProduct(
@@ -48,7 +68,13 @@ class FoodProduct extends Equatable {
       usageCount: 1,
       createdAt: now,
       isFavorite: false,
-      imageUrl: imageUrl, // НОВОЕ
+      imageUrl: imageUrl,
+      totalWeight: totalWeight,
+      proteinsPer100: proteinsPer100,
+      fatPer100: fatPer100,
+      carbsPer100: carbsPer100,
+      fiberPer100: fiberPer100,
+      saturatedFatPer100: saturatedFatPer100,
     );
   }
 
@@ -85,7 +111,13 @@ class FoodProduct extends Equatable {
     int? usageCount,
     DateTime? createdAt,
     bool? isFavorite,
-    String? imageUrl, // НОВОЕ
+    String? imageUrl,
+    double? totalWeight,
+    double? proteinsPer100,
+    double? fatPer100,
+    double? carbsPer100,
+    double? fiberPer100,
+    double? saturatedFatPer100,
   }) {
     return FoodProduct(
       id: id ?? this.id,
@@ -98,7 +130,13 @@ class FoodProduct extends Equatable {
       usageCount: usageCount ?? this.usageCount,
       createdAt: createdAt ?? this.createdAt,
       isFavorite: isFavorite ?? this.isFavorite,
-      imageUrl: imageUrl ?? this.imageUrl, // НОВОЕ
+      imageUrl: imageUrl ?? this.imageUrl,
+      totalWeight: totalWeight ?? this.totalWeight,
+      proteinsPer100: proteinsPer100 ?? this.proteinsPer100,
+      fatPer100: fatPer100 ?? this.fatPer100,
+      carbsPer100: carbsPer100 ?? this.carbsPer100,
+      fiberPer100: fiberPer100 ?? this.fiberPer100,
+      saturatedFatPer100: saturatedFatPer100 ?? this.saturatedFatPer100,
     );
   }
 
@@ -114,7 +152,13 @@ class FoodProduct extends Equatable {
       'usageCount': usageCount,
       'createdAt': createdAt.toIso8601String(),
       'isFavorite': isFavorite,
-      'imageUrl': imageUrl, // НОВОЕ
+      'imageUrl': imageUrl,
+      'totalWeight': totalWeight,
+      'proteinsPer100': proteinsPer100,
+      'fatPer100': fatPer100,
+      'carbsPer100': carbsPer100,
+      'fiberPer100': fiberPer100,
+      'saturatedFatPer100': saturatedFatPer100,
     };
   }
 
@@ -132,7 +176,13 @@ class FoodProduct extends Equatable {
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
       isFavorite: json['isFavorite'] as bool? ?? false,
-      imageUrl: json['imageUrl'] as String?, // НОВОЕ
+      imageUrl: json['imageUrl'] as String?,
+      totalWeight: json['totalWeight']?.toDouble(),
+      proteinsPer100: json['proteinsPer100']?.toDouble(),
+      fatPer100: json['fatPer100']?.toDouble(),
+      carbsPer100: json['carbsPer100']?.toDouble(),
+      fiberPer100: json['fiberPer100']?.toDouble(),
+      saturatedFatPer100: json['saturatedFatPer100']?.toDouble(),
     );
   }
 
@@ -148,7 +198,13 @@ class FoodProduct extends Equatable {
     usageCount,
     createdAt,
     isFavorite,
-    imageUrl, // НОВОЕ
+    imageUrl,
+    totalWeight,
+    proteinsPer100,
+    fatPer100,
+    carbsPer100,
+    fiberPer100,
+    saturatedFatPer100,
   ];
 }
 

@@ -44,10 +44,16 @@ class FoodApiService {
         final product = result.product!;
         Logger.d('Продукт найден: ${product.productName}');
 
-        // Получаем калории из нутриентов
+        // Получаем калории и нутриенты
         int caloriesPer100 = 0;
+        double? proteinsPer100;
+        double? fatPer100;
+        double? carbsPer100;
+        double? fiberPer100;
+        double? saturatedFatPer100;
+
         if (product.nutriments != null) {
-          // Используем правильный метод getValue с правильными параметрами
+          // Калории
           final energyKcal = product.nutriments!.getValue(
             Nutrient.energyKCal,
             PerSize.oneHundredGrams,
@@ -65,15 +71,62 @@ class FoodApiService {
                   .round(); // примерное преобразование кДж в ккал
             }
           }
+
+          // Нутриенты
+          proteinsPer100 = product.nutriments!.getValue(
+            Nutrient.proteins,
+            PerSize.oneHundredGrams,
+          );
+          fatPer100 = product.nutriments!.getValue(
+            Nutrient.fat,
+            PerSize.oneHundredGrams,
+          );
+          carbsPer100 = product.nutriments!.getValue(
+            Nutrient.carbohydrates,
+            PerSize.oneHundredGrams,
+          );
+          fiberPer100 = product.nutriments!.getValue(
+            Nutrient.fiber,
+            PerSize.oneHundredGrams,
+          );
+          saturatedFatPer100 = product.nutriments!.getValue(
+            Nutrient.saturatedFat,
+            PerSize.oneHundredGrams,
+          );
+        }
+
+        // Получаем единицу измерения и общий вес
+        String unit = 'г';
+        double? totalWeight;
+
+        if (product.quantity != null) {
+          final String quantity = product.quantity!;
+          // Парсим строку вида "470г"
+          final RegExp regExp = RegExp(r'(\d+\.?\d*)(\D+)');
+          final match = regExp.firstMatch(quantity);
+          if (match != null) {
+            totalWeight = double.tryParse(match.group(1)!);
+            unit = match.group(2)!;
+          }
+        } else if (product.packagingQuantity != null) {
+          totalWeight = product.packagingQuantity;
         }
 
         return FoodProduct.create(
           name: product.productName ?? 'Неизвестно',
           barcode: barcode,
-          amount: 100.0,
-          unit: 'г',
+          amount: 100.0, // По умолчанию 100г/мл
+          unit: unit,
           caloriesPer100: caloriesPer100,
-          imageUrl: product.imageFrontUrl, // Добавляем URL изображения
+          imageUrl:
+              product.imageFrontSmallUrl ??
+              product.imageFrontUrl, // Предпочитаем small URL
+          totalWeight: totalWeight,
+          proteinsPer100: proteinsPer100,
+          fatPer100: fatPer100,
+          carbsPer100: carbsPer100,
+          fiberPer100: fiberPer100,
+          saturatedFatPer100: saturatedFatPer100,
         );
       } else {
         Logger.d(
@@ -114,10 +167,16 @@ class FoodApiService {
         Logger.d('Найдено продуктов: ${result.products!.length}');
 
         return result.products!.map((product) {
-          // Получаем калории из нутриентов
+          // Получаем калории и нутриенты
           int caloriesPer100 = 0;
+          double? proteinsPer100;
+          double? fatPer100;
+          double? carbsPer100;
+          double? fiberPer100;
+          double? saturatedFatPer100;
+
           if (product.nutriments != null) {
-            // Используем правильный метод getValue с правильными параметрами
+            // Калории
             final energyKcal = product.nutriments!.getValue(
               Nutrient.energyKCal,
               PerSize.oneHundredGrams,
@@ -135,15 +194,62 @@ class FoodApiService {
                     .round(); // примерное преобразование кДж в ккал
               }
             }
+
+            // Нутриенты
+            proteinsPer100 = product.nutriments!.getValue(
+              Nutrient.proteins,
+              PerSize.oneHundredGrams,
+            );
+            fatPer100 = product.nutriments!.getValue(
+              Nutrient.fat,
+              PerSize.oneHundredGrams,
+            );
+            carbsPer100 = product.nutriments!.getValue(
+              Nutrient.carbohydrates,
+              PerSize.oneHundredGrams,
+            );
+            fiberPer100 = product.nutriments!.getValue(
+              Nutrient.fiber,
+              PerSize.oneHundredGrams,
+            );
+            saturatedFatPer100 = product.nutriments!.getValue(
+              Nutrient.saturatedFat,
+              PerSize.oneHundredGrams,
+            );
+          }
+
+          // Получаем единицу измерения и общий вес
+          String unit = 'г';
+          double? totalWeight;
+
+          if (product.quantity != null) {
+            final String quantity = product.quantity!;
+            // Парсим строку вида "470г"
+            final RegExp regExp = RegExp(r'(\d+\.?\d*)(\D+)');
+            final match = regExp.firstMatch(quantity);
+            if (match != null) {
+              totalWeight = double.tryParse(match.group(1)!);
+              unit = match.group(2)!;
+            }
+          } else if (product.packagingQuantity != null) {
+            totalWeight = product.packagingQuantity;
           }
 
           return FoodProduct.create(
             name: product.productName ?? 'Неизвестно',
             barcode: product.barcode,
-            amount: 100.0,
-            unit: 'г',
+            amount: 100.0, // По умолчанию 100г/мл
+            unit: unit,
             caloriesPer100: caloriesPer100,
-            imageUrl: product.imageFrontUrl, // Добавляем URL изображения
+            imageUrl:
+                product.imageFrontSmallUrl ??
+                product.imageFrontUrl, // Предпочитаем small URL
+            totalWeight: totalWeight,
+            proteinsPer100: proteinsPer100,
+            fatPer100: fatPer100,
+            carbsPer100: carbsPer100,
+            fiberPer100: fiberPer100,
+            saturatedFatPer100: saturatedFatPer100,
           );
         }).toList();
       } else {
