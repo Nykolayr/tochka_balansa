@@ -150,7 +150,6 @@ class _BreakfastPageState extends State<BreakfastPage>
             // НОВОЕ: звездочка избранного в начале
             leading: IconButton(
               onPressed: () {
-                // ИСПРАВЛЕНО: вызываем событие через блок
                 Get.find<MainBloc>().add(
                   ToggleProductFavoriteEvent(product.id),
                 );
