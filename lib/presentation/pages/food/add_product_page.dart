@@ -126,6 +126,10 @@ class _AddProductPageState extends State<AddProductPage> {
   }
 
   Future<void> _searchByBarcode(String barcode) async {
+    if (!mounted) return;
+
+    Logger.d('Начинаем поиск по штрих-коду: $barcode');
+
     try {
       setState(() {
         _isLoading = true;
@@ -133,26 +137,58 @@ class _AddProductPageState extends State<AddProductPage> {
       });
 
       final product = await FoodApiService.getProductByBarcode(barcode);
+      Logger.d('Результат поиска: ${product?.name ?? "null"}');
 
       if (product != null) {
+        Logger.d('Продукт найден, добавляем в результаты');
         setState(() {
           _searchResults = [product];
           _isLoading = false;
         });
       } else {
+        Logger.d('Продукт не найден, показываем SnackBar');
         setState(() {
           _searchResults = [];
           _isLoading = false;
         });
 
-        // Показываем диалог для ручного ввода
-        _showManualInputDialog(barcode);
+        // Показываем сообщение, что продукт не найден
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Продукт со штрих-кодом $barcode не найден в базе данных',
+              ),
+              backgroundColor: AppColor.darkBlue,
+              duration: const Duration(seconds: 3),
+              action: SnackBarAction(
+                label: 'Ввести вручную',
+                textColor: Colors.white,
+                onPressed: () => _showManualInputDialog(barcode),
+              ),
+            ),
+          );
+        }
+
+        // Убираем автоматический вызов диалога - теперь он вызывается только по кнопке
+        // _showManualInputDialog(barcode);
       }
     } catch (e) {
       Logger.e('Ошибка поиска по штрих-коду: $e');
       setState(() {
         _isLoading = false;
       });
+
+      // Показываем сообщение об ошибке
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка поиска продукта: ${e.toString()}'),
+            backgroundColor: AppColor.darkBlue,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -189,7 +225,94 @@ class _AddProductPageState extends State<AddProductPage> {
   }
 
   void _showManualInputDialog(String barcode) {
-    // TODO: Показать диалог для ручного ввода
-    Logger.d('Показываем диалог для ручного ввода штрих-кода: $barcode');
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController nameController = TextEditingController();
+        final TextEditingController caloriesController =
+            TextEditingController();
+        final TextEditingController weightController = TextEditingController();
+
+        return AlertDialog(
+          title: const Text('Продукт не найден'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Штрих-код $barcode не найден в базе данных.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Название продукта',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: caloriesController,
+                decoration: const InputDecoration(
+                  labelText: 'Калории на 100г',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: weightController,
+                decoration: const InputDecoration(
+                  labelText: 'Вес упаковки (г)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Отмена'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final productName = nameController.text.trim();
+                Logger.d('Попытка создать продукт с названием: "$productName"');
+
+                if (productName.isNotEmpty) {
+                  // Создаем продукт с ручными данными
+                  final manualProduct = FoodProduct.create(
+                    name: productName,
+                    barcode: barcode,
+                    amount: 100.0,
+                    unit: 'г',
+                    caloriesPer100: int.tryParse(caloriesController.text) ?? 0,
+                    totalWeight: double.tryParse(weightController.text),
+                  );
+
+                  Logger.d('Создан ручной продукт: ${manualProduct.name}');
+
+                  // Добавляем в результаты поиска
+                  setState(() {
+                    _searchResults = [manualProduct];
+                  });
+
+                  Navigator.of(context).pop();
+                } else {
+                  Logger.d('Название продукта пустое, показываем ошибку');
+                  // Показываем ошибку, если название пустое
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Введите название продукта'),
+                      backgroundColor: AppColor.darkBlue,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Добавить'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

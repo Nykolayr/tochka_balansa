@@ -39,8 +39,22 @@ class FoodApiService {
         configuration,
       );
 
+      Logger.d('API вернул статус: ${result.status}');
+      Logger.d(
+        'API вернул product: ${result.product != null ? "не null" : "null"}',
+      );
+      if (result.product != null) {
+        Logger.d('productName: ${result.product!.productName}');
+        Logger.d('productName == null: ${result.product!.productName == null}');
+        Logger.d(
+          'productName.isEmpty: ${result.product!.productName?.isEmpty ?? true}',
+        );
+      }
+
       if (result.status == ProductResultV3.statusSuccess &&
-          result.product != null) {
+          result.product != null &&
+          result.product!.productName != null &&
+          result.product!.productName!.isNotEmpty) {
         final product = result.product!;
         Logger.d('Продукт найден: ${product.productName}');
 
@@ -132,6 +146,16 @@ class FoodApiService {
         Logger.d(
           'Продукт не найден в Open Food Facts. Статус: ${result.status}',
         );
+        if (result.status != ProductResultV3.statusSuccess) {
+          Logger.d('Причина: API вернул статус ${result.status}');
+        }
+        if (result.product == null) {
+          Logger.d('Причина: product == null');
+        } else if (result.product!.productName == null) {
+          Logger.d('Причина: product.productName == null');
+        } else if (result.product!.productName!.isEmpty) {
+          Logger.d('Причина: product.productName пустая строка');
+        }
         return null;
       }
     } catch (e) {

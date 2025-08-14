@@ -182,6 +182,7 @@ class _BreakfastPageState extends State<BreakfastPage>
                 IconButton(
                   onPressed: () {
                     // TODO: добавить продукт в завтрак
+                    // TODO: добавить продукт в завtрак
                   },
                   icon: Container(
                     width: 32,
@@ -208,7 +209,7 @@ class _BreakfastPageState extends State<BreakfastPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.darkBlue,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -226,7 +227,11 @@ class _BreakfastPageState extends State<BreakfastPage>
               const SizedBox(width: 8),
               const Text(
                 'Завтрак',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
               const Spacer(),
               if (breakfastProducts.isNotEmpty)
@@ -235,7 +240,7 @@ class _BreakfastPageState extends State<BreakfastPage>
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.green,
+                    color: Colors.white,
                   ),
                 ),
             ],
@@ -246,7 +251,7 @@ class _BreakfastPageState extends State<BreakfastPage>
           if (breakfastProducts.isEmpty)
             const Text(
               'Добавьте продукты из списка или добавьте продукт через кнопку +',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: Colors.white, fontSize: 14),
               textAlign: TextAlign.center,
             )
           else
@@ -265,7 +270,7 @@ class _BreakfastPageState extends State<BreakfastPage>
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppColor.darkBlue,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -276,12 +281,15 @@ class _BreakfastPageState extends State<BreakfastPage>
               children: [
                 Text(
                   product.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
                 Text(
                   product.displayAmount,
                   style: TextStyle(
-                    color: AppColor.greyText.withValues(alpha: 0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -292,7 +300,7 @@ class _BreakfastPageState extends State<BreakfastPage>
             product.displayCalories,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              color: Colors.green,
+              color: Colors.white,
             ),
           ),
           const SizedBox(width: 8),
