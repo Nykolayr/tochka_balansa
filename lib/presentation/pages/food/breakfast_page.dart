@@ -32,8 +32,6 @@ class _BreakfastPageState extends State<BreakfastPage>
         currentTabIndex = _tabController.index;
       });
     });
-
-    // УБИРАЮ: Get.find<MainBloc>().add(LoadFoodProductsEvent());
   }
 
   @override

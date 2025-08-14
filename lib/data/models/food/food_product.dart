@@ -12,6 +12,7 @@ class FoodProduct extends Equatable {
   final int usageCount; // Счетчик сколько раз добавляли продукт
   final DateTime createdAt; // Дата создания продукта
   final bool isFavorite; // НОВОЕ: избранный продукт
+  final String? imageUrl; // НОВОЕ: URL изображения продукта
 
   const FoodProduct({
     required this.id,
@@ -23,7 +24,8 @@ class FoodProduct extends Equatable {
     required this.timestamp,
     required this.usageCount,
     required this.createdAt,
-    required this.isFavorite, // НОВОЕ
+    required this.isFavorite,
+    this.imageUrl, // НОВОЕ
   });
 
   factory FoodProduct.create({
@@ -32,6 +34,7 @@ class FoodProduct extends Equatable {
     required double amount,
     required String unit,
     required int caloriesPer100,
+    String? imageUrl, // НОВОЕ
   }) {
     final now = DateTime.now();
     return FoodProduct(
@@ -44,7 +47,8 @@ class FoodProduct extends Equatable {
       timestamp: now,
       usageCount: 1,
       createdAt: now,
-      isFavorite: false, // НОВОЕ: по умолчанию не избранный
+      isFavorite: false,
+      imageUrl: imageUrl, // НОВОЕ
     );
   }
 
@@ -80,7 +84,8 @@ class FoodProduct extends Equatable {
     DateTime? timestamp,
     int? usageCount,
     DateTime? createdAt,
-    bool? isFavorite, // НОВОЕ
+    bool? isFavorite,
+    String? imageUrl, // НОВОЕ
   }) {
     return FoodProduct(
       id: id ?? this.id,
@@ -92,7 +97,8 @@ class FoodProduct extends Equatable {
       timestamp: timestamp ?? this.timestamp,
       usageCount: usageCount ?? this.usageCount,
       createdAt: createdAt ?? this.createdAt,
-      isFavorite: isFavorite ?? this.isFavorite, // НОВОЕ
+      isFavorite: isFavorite ?? this.isFavorite,
+      imageUrl: imageUrl ?? this.imageUrl, // НОВОЕ
     );
   }
 
@@ -107,7 +113,8 @@ class FoodProduct extends Equatable {
       'timestamp': timestamp.toIso8601String(),
       'usageCount': usageCount,
       'createdAt': createdAt.toIso8601String(),
-      'isFavorite': isFavorite, // НОВОЕ
+      'isFavorite': isFavorite,
+      'imageUrl': imageUrl, // НОВОЕ
     };
   }
 
@@ -124,7 +131,8 @@ class FoodProduct extends Equatable {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
-      isFavorite: json['isFavorite'] as bool? ?? false, // НОВОЕ
+      isFavorite: json['isFavorite'] as bool? ?? false,
+      imageUrl: json['imageUrl'] as String?, // НОВОЕ
     );
   }
 
@@ -139,7 +147,8 @@ class FoodProduct extends Equatable {
     timestamp,
     usageCount,
     createdAt,
-    isFavorite, // НОВОЕ
+    isFavorite,
+    imageUrl, // НОВОЕ
   ];
 }
 

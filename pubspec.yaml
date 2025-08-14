@@ -55,6 +55,7 @@ dependencies:
   http: ^1.1.0 #https://pub.dev/packages/http
   uuid: ^4.3.3 #https://pub.dev/packages/uuid
   fl_chart: ^1.0.0 #https://pub.dev/packages/fl_chart
+  openfoodfacts: ^3.24.0 #https://pub.dev/packages/openfoodfacts
   
   
 dev_dependencies:

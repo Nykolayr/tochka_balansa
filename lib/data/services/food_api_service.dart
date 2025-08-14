@@ -1,138 +1,158 @@
+import 'package:openfoodfacts/openfoodfacts.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import '../models/food/food_product.dart';
 
 class FoodApiService {
-  static const String _baseUrl = 'https://world.openfoodfacts.org';
+  static bool _initialized = false;
 
-  /// Поиск продуктов по названию
-  static Future<List<FoodApiProduct>> searchProducts(String query) async {
-    try {
-      Logger.d('Ищем продукты: $query');
-
-      final url = Uri.parse(
-        '$_baseUrl/cgi/search.pl?search_terms=$query&search_simple=1&action=process&json=1&page_size=10',
+  /// Инициализация Open Food Facts
+  static void _initialize() {
+    if (!_initialized) {
+      OpenFoodAPIConfiguration.userAgent = UserAgent(
+        name: 'Tochka Balansa',
+        url: 'https://github.com/your-repo',
       );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final products = data['products'] as List?;
-
-        if (products != null) {
-          return products
-              .map((product) => FoodApiProduct.fromJson(product))
-              .where((product) => product.name.isNotEmpty)
-              .take(10)
-              .toList();
-        }
-      }
-
-      return [];
-    } catch (e) {
-      Logger.e('Ошибка поиска продуктов: $e');
-      return [];
+      OpenFoodAPIConfiguration.globalLanguages = [
+        OpenFoodFactsLanguage.RUSSIAN,
+        OpenFoodFactsLanguage.ENGLISH,
+      ];
+      OpenFoodAPIConfiguration.globalCountry = OpenFoodFactsCountry.RUSSIA;
+      _initialized = true;
+      Logger.d('Open Food Facts инициализирован');
     }
   }
 
   /// Получить продукт по штрих-коду
-  static Future<FoodApiProduct?> getProductByBarcode(String barcode) async {
+  static Future<FoodProduct?> getProductByBarcode(String barcode) async {
     try {
+      _initialize();
       Logger.d('Ищем продукт по штрих-коду: $barcode');
 
-      final url = Uri.parse('$_baseUrl/api/v0/product/$barcode.json');
-      Logger.d('URL запроса: $url');
+      final ProductQueryConfiguration configuration = ProductQueryConfiguration(
+        barcode,
+        language: OpenFoodFactsLanguage.RUSSIAN,
+        fields: [ProductField.ALL],
+        version: ProductQueryVersion.v3,
+      );
 
-      final response = await http.get(url);
-      Logger.d('Статус ответа: ${response.statusCode}');
-      Logger.d('Размер ответа: ${response.body.length} байт');
+      final ProductResultV3 result = await OpenFoodAPIClient.getProductV3(
+        configuration,
+      );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      if (result.status == ProductResultV3.statusSuccess &&
+          result.product != null) {
+        final product = result.product!;
+        Logger.d('Продукт найден: ${product.productName}');
 
-        // Безопасное логирование ответа
-        final responseStr = data.toString();
-        final logLength = responseStr.length > 200 ? 200 : responseStr.length;
-        Logger.d('Ответ API: ${responseStr.substring(0, logLength)}...');
-
-        if (data['status'] == 1 && data['product'] != null) {
-          Logger.d('Продукт найден в API');
-          return FoodApiProduct.fromJson(data['product']);
-        } else {
-          Logger.d('Продукт не найден в API. Статус: ${data['status']}');
-          if (data['status_verbose'] != null) {
-            Logger.d('Статус verbose: ${data['status_verbose']}');
+        // Получаем калории из нутриентов
+        int caloriesPer100 = 0;
+        if (product.nutriments != null) {
+          // Используем правильный метод getValue с правильными параметрами
+          final energyKcal = product.nutriments!.getValue(
+            Nutrient.energyKCal,
+            PerSize.oneHundredGrams,
+          );
+          if (energyKcal != null) {
+            caloriesPer100 = energyKcal.round();
+          } else {
+            // Если нет ккал, пробуем кДж и конвертируем
+            final energyKj = product.nutriments!.getValue(
+              Nutrient.energyKJ,
+              PerSize.oneHundredGrams,
+            );
+            if (energyKj != null) {
+              caloriesPer100 = (energyKj / 4.184)
+                  .round(); // примерное преобразование кДж в ккал
+            }
           }
-          // Логируем полный ответ для отладки
-          Logger.d('Полный ответ API: $responseStr');
         }
-      } else {
-        Logger.e('Ошибка HTTP: ${response.statusCode}');
-        Logger.e('Тело ответа: ${response.body}');
-      }
 
-      return null;
+        return FoodProduct.create(
+          name: product.productName ?? 'Неизвестно',
+          barcode: barcode,
+          amount: 100.0,
+          unit: 'г',
+          caloriesPer100: caloriesPer100,
+          imageUrl: product.imageFrontUrl, // Добавляем URL изображения
+        );
+      } else {
+        Logger.d(
+          'Продукт не найден в Open Food Facts. Статус: ${result.status}',
+        );
+        return null;
+      }
     } catch (e) {
       Logger.e('Ошибка поиска по штрих-коду: $e');
       return null;
     }
   }
-}
 
-/// Модель продукта из API
-class FoodApiProduct {
-  final String name;
-  final String? brand;
-  final String? barcode;
-  final double? caloriesPer100g;
-  final double? proteinsPer100g;
-  final double? fatsPer100g;
-  final double? carbsPer100g;
-  final String? imageUrl;
+  /// Поиск продуктов по названию
+  static Future<List<FoodProduct>> searchProducts(String query) async {
+    try {
+      _initialize();
+      Logger.d('Ищем продукты по запросу: $query');
 
-  const FoodApiProduct({
-    required this.name,
-    this.brand,
-    this.barcode,
-    this.caloriesPer100g,
-    this.proteinsPer100g,
-    this.fatsPer100g,
-    this.carbsPer100g,
-    this.imageUrl,
-  });
+      final ProductSearchQueryConfiguration config =
+          ProductSearchQueryConfiguration(
+            parametersList: [
+              SearchTerms(terms: [query]), // Поисковый запрос
+              const PageNumber(page: 1), // Пагинация
+              const PageSize(size: 10), // Лимит результатов
+            ],
+            language: OpenFoodFactsLanguage.RUSSIAN, // Язык
+            fields: [ProductField.ALL], // Получаем все поля
+            version: ProductQueryVersion.v3, // Актуальная версия API
+          );
 
-  factory FoodApiProduct.fromJson(Map<String, dynamic> json) {
-    return FoodApiProduct(
-      name: json['product_name'] ?? json['generic_name'] ?? '',
-      brand: json['brands'],
-      barcode: json['code'],
-      caloriesPer100g: _parseNutrient(json['nutriments']?['energy-kcal_100g']),
-      proteinsPer100g: _parseNutrient(json['nutriments']?['proteins_100g']),
-      fatsPer100g: _parseNutrient(json['nutriments']?['fat_100g']),
-      carbsPer100g: _parseNutrient(json['nutriments']?['carbohydrates_100g']),
-      imageUrl: json['image_url'],
-    );
-  }
+      final SearchResult result = await OpenFoodAPIClient.searchProducts(
+        User(userId: '123', password: '123'), // Анонимный пользователь
+        config,
+      );
 
-  static double? _parseNutrient(dynamic value) {
-    if (value == null) return null;
-    if (value is num) return value.toDouble();
-    if (value is String) {
-      final parsed = double.tryParse(value);
-      return parsed;
+      if (result.products != null && result.products!.isNotEmpty) {
+        Logger.d('Найдено продуктов: ${result.products!.length}');
+
+        return result.products!.map((product) {
+          // Получаем калории из нутриентов
+          int caloriesPer100 = 0;
+          if (product.nutriments != null) {
+            // Используем правильный метод getValue с правильными параметрами
+            final energyKcal = product.nutriments!.getValue(
+              Nutrient.energyKCal,
+              PerSize.oneHundredGrams,
+            );
+            if (energyKcal != null) {
+              caloriesPer100 = energyKcal.round();
+            } else {
+              // Если нет ккал, пробуем кДж и конвертируем
+              final energyKj = product.nutriments!.getValue(
+                Nutrient.energyKJ,
+                PerSize.oneHundredGrams,
+              );
+              if (energyKj != null) {
+                caloriesPer100 = (energyKj / 4.184)
+                    .round(); // примерное преобразование кДж в ккал
+              }
+            }
+          }
+
+          return FoodProduct.create(
+            name: product.productName ?? 'Неизвестно',
+            barcode: product.barcode,
+            amount: 100.0,
+            unit: 'г',
+            caloriesPer100: caloriesPer100,
+            imageUrl: product.imageFrontUrl, // Добавляем URL изображения
+          );
+        }).toList();
+      } else {
+        Logger.d('Продукты не найдены');
+        return [];
+      }
+    } catch (e) {
+      Logger.e('Ошибка поиска продуктов: $e');
+      return [];
     }
-    return null;
   }
-
-  /// Получить отображаемое название
-  String get displayName {
-    if (brand != null && brand!.isNotEmpty) {
-      return '$brand $name';
-    }
-    return name;
-  }
-
-  /// Получить калории (по умолчанию 0 если нет данных)
-  int get calories => caloriesPer100g?.round() ?? 0;
 }
