@@ -214,6 +214,8 @@ class _AddProductPageState extends State<AddProductPage> {
   }
 
   Future<void> _searchProducts(String query) async {
+    Logger.d('Начинаем поиск: $query');
+
     if (query.length < 3) {
       setState(() {
         _searchResults = [];
@@ -226,7 +228,9 @@ class _AddProductPageState extends State<AddProductPage> {
         _isLoading = true;
       });
 
+      Logger.d('Вызываем FoodApiService.searchProducts');
       final results = await FoodApiService.searchProducts(query);
+      Logger.d('Получили результаты: ${results.length}');
 
       setState(() {
         _searchResults = results;
