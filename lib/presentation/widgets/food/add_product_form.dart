@@ -5,8 +5,11 @@ class AddProductForm extends StatefulWidget {
   final String barcode;
   final Function(FoodProduct) onSave;
 
-  const AddProductForm({Key? key, required this.barcode, required this.onSave})
-    : super(key: key);
+  const AddProductForm({
+    super.key,
+    required this.barcode,
+    required this.onSave,
+  });
 
   @override
   State<AddProductForm> createState() => _AddProductFormState();

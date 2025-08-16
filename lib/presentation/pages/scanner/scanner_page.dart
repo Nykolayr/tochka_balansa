@@ -21,7 +21,7 @@ class _ScannerPageState extends State<ScannerPage> {
   MobileScannerController controller = MobileScannerController();
   bool isFlashOn = false;
   bool isCameraPermissionGranted = false;
-  bool _mounted = true; // Добавляем флаг для проверки состояния
+  bool _mounted = true;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   void dispose() {
-    _mounted = false; // Устанавливаем флаг при dispose
+    _mounted = false;
     controller.dispose();
     super.dispose();
   }
@@ -66,7 +66,6 @@ class _ScannerPageState extends State<ScannerPage> {
 
     controller.stop();
 
-    // Ищем в локальной базе продуктов
     ScannedProduct? product = await ProductDatabaseService.findProductByBarcode(
       code,
     );
@@ -74,10 +73,8 @@ class _ScannerPageState extends State<ScannerPage> {
     if (!_mounted) return;
 
     if (product != null) {
-      // Продукт найден в базе
       _showProductFoundDialog(product);
     } else {
-      // Продукт не найден, возвращаем штрих-код
       Navigator.of(context).pop({'barcode': code});
     }
   }
@@ -123,7 +120,6 @@ class _ScannerPageState extends State<ScannerPage> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                // Передаем полную информацию о продукте
                 Navigator.of(context).pop({
                   'name': product.name,
                   'totalQuantity': product.totalQuantity,
@@ -143,105 +139,50 @@ class _ScannerPageState extends State<ScannerPage> {
     );
   }
 
-  void showAddProductDialog(String barcode) {
-    if (!_mounted) return;
-
-    // Сохраняем контекст заранее
-    final navigatorContext = context;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(textLang('Продукт не найден')),
-          content: Text(
-            textLang(
-              'Продукт с кодом $barcode не найден в базе данных. Хотите добавить его?',
+  Widget _buildPermissionRequestView() {
+    return Scaffold(
+      appBar: AppBarWidget(title: textLang('Сканер'), isBack: true),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt_outlined,
+              size: 64,
+              color: AppColor.greyText.withOpacity(0.5),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (_mounted) controller.start();
-              },
-              child: Text(textLang('Отмена')),
+            const SizedBox(height: 16),
+            Text(
+              textLang('Требуется разрешение на камеру'),
+              style: TextStyle(
+                fontSize: 18,
+                color: AppColor.greyText.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                if (!_mounted) return;
-
-                final result = await showDialog<ScannedProduct>(
-                  context: navigatorContext,
-                  builder: (context) => AddProductDialog(barcode: barcode),
-                );
-
-                if (!_mounted) return;
-
-                if (result != null) {
-                  // Передаем полную информацию о продукте
-                  // ignore: use_build_context_synchronously
-                  Navigator.of(navigatorContext).pop({
-                    'name': result.name,
-                    'totalQuantity': result.totalQuantity,
-                    'quantityUnit': result.quantityUnit,
-                  });
-                  widget.onScanned?.call(result.name);
-                } else {
-                  if (_mounted) controller.start();
-                }
-              },
+              onPressed: _requestCameraPermission,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.darkBlue,
                 foregroundColor: Colors.white,
               ),
-              child: Text(textLang('Добавить')),
+              child: Text(textLang('Предоставить разрешение')),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     if (!isCameraPermissionGranted) {
-      return Scaffold(
-        appBar: AppBarWidget(title: textLang('Сканер'), isBack: true),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.camera_alt_outlined,
-                size: 64,
-                color: AppColor.greyText.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                textLang('Требуется разрешение на камеру'),
-                style: TextStyle(
-                  fontSize: 18,
-                  color: AppColor.greyText.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _requestCameraPermission,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.darkBlue,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(textLang('Предоставить разрешение')),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildPermissionRequestView();
     }
+
+    final scanWindowWidth = MediaQuery.of(context).size.width * 0.8;
+    final scanWindowHeight = scanWindowWidth * 0.6;
 
     return Scaffold(
       appBar: AppBarWidget(
@@ -264,7 +205,48 @@ class _ScannerPageState extends State<ScannerPage> {
       ),
       body: Stack(
         children: [
+          // Основной сканер
           MobileScanner(controller: controller, onDetect: _onDetect),
+
+          // Затемнение вокруг области сканирования
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.8), // Увеличили затемнение
+              BlendMode.srcOut,
+            ),
+            child: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(color: Colors.transparent),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: scanWindowWidth,
+                      height: scanWindowHeight,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Рамка сканирования
+          Center(
+            child: Container(
+              width: scanWindowWidth,
+              height: scanWindowHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+
+          // Подсказка
           Positioned(
             bottom: 50,
             left: 0,
@@ -276,13 +258,12 @@ class _ScannerPageState extends State<ScannerPage> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.7),
+                  color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  textLang('Наведите камеру на QR-код или штрих-код'),
+                  textLang('Наведите камеру на штрих-код в рамке'),
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ),
