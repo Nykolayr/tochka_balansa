@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -6,7 +8,6 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/product/scanned_product.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 import 'package:tochka_balansa/services/product_database_service.dart';
-import 'package:tochka_balansa/presentation/widgets/add_product_dialog.dart';
 
 class ScannerPage extends StatefulWidget {
   final Function(String)? onScanned;
@@ -149,14 +150,14 @@ class _ScannerPageState extends State<ScannerPage> {
             Icon(
               Icons.camera_alt_outlined,
               size: 64,
-              color: AppColor.greyText.withOpacity(0.5),
+              color: AppColor.greyText.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               textLang('Требуется разрешение на камеру'),
               style: TextStyle(
                 fontSize: 18,
-                color: AppColor.greyText.withOpacity(0.7),
+                color: AppColor.greyText.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -211,7 +212,7 @@ class _ScannerPageState extends State<ScannerPage> {
           // Затемнение вокруг области сканирования
           ColorFiltered(
             colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.8), // Увеличили затемнение
+              Colors.black.withValues(alpha: 0.8),
               BlendMode.srcOut,
             ),
             child: Stack(
@@ -258,7 +259,7 @@ class _ScannerPageState extends State<ScannerPage> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

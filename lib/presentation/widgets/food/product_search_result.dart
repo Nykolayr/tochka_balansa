@@ -10,11 +10,11 @@ class ProductSearchResultWidget extends StatelessWidget {
   final VoidCallback? onRetry;
 
   const ProductSearchResultWidget({
-    Key? key,
+    super.key,
     required this.result,
     required this.onProductSelected,
     this.onRetry,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +27,6 @@ class ProductSearchResultWidget extends StatelessWidget {
         return _buildNotFoundCard(context, result.barcode!);
       case ProductSearchStatus.error:
         return _buildErrorCard(context, result.error!);
-      default:
-        return const SizedBox.shrink();
     }
   }
 
