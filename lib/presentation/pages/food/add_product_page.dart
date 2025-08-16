@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
@@ -42,7 +44,17 @@ class _AddProductPageState extends State<AddProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarWidget(title: 'Добавить продукт', showBackButton: true),
+      appBar: AppBarWidget(
+        title: 'Добавить продукт',
+        showBackButton: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () => _showAddProductModal(''),
+            tooltip: 'Добавить продукт вручную',
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Поисковая строка с кнопкой сканирования
@@ -243,6 +255,21 @@ class _AddProductPageState extends State<AddProductPage> {
         final TextEditingController caloriesController =
             TextEditingController();
         final TextEditingController weightController = TextEditingController();
+        final TextEditingController barcodeController = TextEditingController();
+
+        // Если баркод передан, заполняем поле
+        if (barcode.isNotEmpty) {
+          barcodeController.text = barcode;
+        }
+
+        // Определяем заголовок и подзаголовок
+        final bool isFromScanner = barcode.isNotEmpty;
+        final String title = isFromScanner
+            ? 'Продукт не найден'
+            : 'Добавить новый продукт';
+        final String subtitle = isFromScanner
+            ? 'Штрих-код: $barcode'
+            : 'Заполните информацию о продукте';
 
         return Container(
           height: MediaQuery.of(context).size.height * 0.8,
@@ -290,13 +317,13 @@ class _AddProductPageState extends State<AddProductPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Продукт не найден',
+                            title,
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Штрих-код: $barcode',
+                            subtitle,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: Theme.of(
@@ -346,7 +373,9 @@ class _AddProductPageState extends State<AddProductPage> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Заполните информацию о продукте для добавления в локальную базу данных',
+                                isFromScanner
+                                    ? 'Заполните информацию о продукте для добавления в локальную базу данных'
+                                    : 'Создайте новый продукт и добавьте его в локальную базу данных',
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(
@@ -361,9 +390,23 @@ class _AddProductPageState extends State<AddProductPage> {
 
                       const SizedBox(height: 24),
 
+                      // Баркод (только если не передан)
+                      if (!isFromScanner) ...[
+                        TextField(
+                          controller: barcodeController,
+                          decoration: const InputDecoration(
+                            labelText: 'Штрих-код',
+                            border: OutlineInputBorder(),
+                            hintText: 'Введите штрих-код (необязательно)',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
                       // Название продукта
                       TextField(
                         controller: nameController,
+                        textCapitalization: TextCapitalization.sentences,
                         decoration: const InputDecoration(
                           labelText: 'Название продукта *',
                           border: OutlineInputBorder(),
@@ -431,7 +474,9 @@ class _AddProductPageState extends State<AddProductPage> {
                                   // Создаем продукт с ручными данными
                                   final manualProduct = FoodProduct.create(
                                     name: productName,
-                                    barcode: barcode,
+                                    barcode: isFromScanner
+                                        ? barcode
+                                        : barcodeController.text.trim(),
                                     amount: 100.0,
                                     unit: 'г',
                                     caloriesPer100:

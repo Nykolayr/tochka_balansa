@@ -1,3 +1,4 @@
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:hive/hive.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 
@@ -13,10 +14,12 @@ class LocalProductRepository {
   /// Получить продукт по баркоду
   Future<FoodProduct?> getProductByBarcode(String barcode) async {
     try {
-      final products = _box.values.where((product) => product.barcode == barcode);
+      final products = _box.values.where(
+        (product) => product.barcode == barcode,
+      );
       return products.isNotEmpty ? products.first : null;
     } catch (e) {
-      print('Ошибка при поиске продукта по баркоду: $e');
+      Logger.e('Ошибка при поиске продукта по баркоду: $e');
       return null;
     }
   }
@@ -26,7 +29,7 @@ class LocalProductRepository {
     try {
       await _box.add(product);
     } catch (e) {
-      print('Ошибка при сохранении продукта: $e');
+      Logger.e('Ошибка при сохранении продукта: $e');
       rethrow;
     }
   }
@@ -39,7 +42,7 @@ class LocalProductRepository {
         await _box.putAt(index, product);
       }
     } catch (e) {
-      print('Ошибка при обновлении продукта: $e');
+      Logger.e('Ошибка при обновлении продукта: $e');
       rethrow;
     }
   }
@@ -52,7 +55,7 @@ class LocalProductRepository {
         await _box.deleteAt(index);
       }
     } catch (e) {
-      print('Ошибка при удалении продукта: $e');
+      Logger.e('Ошибка при удалении продукта: $e');
       rethrow;
     }
   }
@@ -62,7 +65,7 @@ class LocalProductRepository {
     try {
       return _box.values.toList();
     } catch (e) {
-      print('Ошибка при получении всех продуктов: $e');
+      Logger.e('Ошибка при получении всех продуктов: $e');
       return [];
     }
   }
@@ -72,11 +75,12 @@ class LocalProductRepository {
     try {
       final lowercaseQuery = query.toLowerCase();
       return _box.values
-          .where((product) => 
-              product.name.toLowerCase().contains(lowercaseQuery))
+          .where(
+            (product) => product.name.toLowerCase().contains(lowercaseQuery),
+          )
           .toList();
     } catch (e) {
-      print('Ошибка при поиске продуктов: $e');
+      Logger.e('Ошибка при поиске продуктов: $e');
       return [];
     }
   }
@@ -86,7 +90,7 @@ class LocalProductRepository {
     try {
       return _box.values.where((product) => product.isFavorite).toList();
     } catch (e) {
-      print('Ошибка при получении избранных продуктов: $e');
+      Logger.e('Ошибка при получении избранных продуктов: $e');
       return [];
     }
   }
@@ -96,7 +100,7 @@ class LocalProductRepository {
     try {
       await _box.clear();
     } catch (e) {
-      print('Ошибка при очистке данных: $e');
+      Logger.e('Ошибка при очистке данных: $e');
       rethrow;
     }
   }
@@ -106,7 +110,7 @@ class LocalProductRepository {
     try {
       await _box.close();
     } catch (e) {
-      print('Ошибка при закрытии репозитория: $e');
+      Logger.e('Ошибка при закрытии репозитория: $e');
     }
   }
 }
