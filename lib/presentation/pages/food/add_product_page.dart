@@ -3,6 +3,7 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
+import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/app_bar_widget.dart';
 import 'package:tochka_balansa/presentation/pages/scanner/scanner_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/widgets/product_list_item.dart';
@@ -19,6 +20,18 @@ class _AddProductPageState extends State<AddProductPage> {
   List<FoodProduct> _searchResults = [];
   bool _isLoading = false;
   String searchQuery = '';
+  late LocalProductRepository _localRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeLocalRepository();
+  }
+
+  Future<void> _initializeLocalRepository() async {
+    _localRepository = LocalProductRepository();
+    await _localRepository.init();
+  }
 
   @override
   void dispose() {
@@ -136,17 +149,29 @@ class _AddProductPageState extends State<AddProductPage> {
         _searchResults = [];
       });
 
-      final product = await FoodApiService.getProductByBarcode(barcode);
-      Logger.d('Результат поиска: ${product?.name ?? "null"}');
-
-      if (product != null) {
-        Logger.d('Продукт найден, добавляем в результаты');
+      // 1. Сначала ищем в локальной БД
+      final localProduct = await _localRepository.getProductByBarcode(barcode);
+      if (localProduct != null) {
+        Logger.d('Продукт найден в локальной БД: ${localProduct.name}');
         setState(() {
-          _searchResults = [product];
+          _searchResults = [localProduct];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // 2. Если не найден локально, ищем в API
+      final apiProduct = await FoodApiService.getProductByBarcode(barcode);
+      Logger.d('Результат поиска в API: ${apiProduct?.name ?? "null"}');
+
+      if (apiProduct != null) {
+        Logger.d('Продукт найден в API, добавляем в результаты');
+        setState(() {
+          _searchResults = [apiProduct];
           _isLoading = false;
         });
       } else {
-        Logger.d('Продукт не найден, показываем SnackBar');
+        Logger.d('Продукт не найден нигде, показываем SnackBar');
         setState(() {
           _searchResults = [];
           _isLoading = false;
@@ -169,9 +194,6 @@ class _AddProductPageState extends State<AddProductPage> {
             ),
           );
         }
-
-        // Убираем автоматический вызов диалога - теперь он вызывается только по кнопке
-        // _showManualInputDialog(barcode);
       }
     } catch (e) {
       Logger.e('Ошибка поиска по штрих-коду: $e');
@@ -273,7 +295,7 @@ class _AddProductPageState extends State<AddProductPage> {
               child: const Text('Отмена'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final productName = nameController.text.trim();
                 Logger.d('Попытка создать продукт с названием: "$productName"');
 
@@ -289,6 +311,36 @@ class _AddProductPageState extends State<AddProductPage> {
                   );
 
                   Logger.d('Создан ручной продукт: ${manualProduct.name}');
+
+                  // Сохраняем в локальную БД
+                  try {
+                    await _localRepository.saveProduct(manualProduct);
+                    Logger.d('Продукт сохранен в локальную БД');
+
+                    // Показываем уведомление об успехе
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Продукт "${manualProduct.name}" сохранен локально!',
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    Logger.e('Ошибка сохранения в локальную БД: $e');
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Ошибка сохранения: $e'),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  }
 
                   // Добавляем в результаты поиска
                   setState(() {
