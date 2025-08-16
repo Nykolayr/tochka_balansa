@@ -171,28 +171,15 @@ class _AddProductPageState extends State<AddProductPage> {
           _isLoading = false;
         });
       } else {
-        Logger.d('Продукт не найден нигде, показываем SnackBar');
+        Logger.d('Продукт не найден нигде, показываем модалку');
         setState(() {
           _searchResults = [];
           _isLoading = false;
         });
 
-        // Показываем сообщение, что продукт не найден
+        // Сразу показываем модалку для заполнения
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Продукт со штрих-кодом $barcode не найден в базе данных',
-              ),
-              backgroundColor: AppColor.darkBlue,
-              duration: const Duration(seconds: 3),
-              action: SnackBarAction(
-                label: 'Ввести вручную',
-                textColor: Colors.white,
-                onPressed: () => _showManualInputDialog(barcode),
-              ),
-            ),
-          );
+          _showAddProductModal(barcode);
         }
       }
     } catch (e) {
@@ -246,123 +233,307 @@ class _AddProductPageState extends State<AddProductPage> {
     Logger.d('Добавляем продукт: ${product.name}');
   }
 
-  void _showManualInputDialog(String barcode) {
-    showDialog(
+  void _showAddProductModal(String barcode) {
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         final TextEditingController nameController = TextEditingController();
         final TextEditingController caloriesController =
             TextEditingController();
         final TextEditingController weightController = TextEditingController();
 
-        return AlertDialog(
-          title: const Text('Продукт не найден'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Штрих-код $barcode не найден в базе данных.'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Название продукта',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: caloriesController,
-                decoration: const InputDecoration(
-                  labelText: 'Калории на 100г',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: weightController,
-                decoration: const InputDecoration(
-                  labelText: 'Вес упаковки (г)',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Отмена'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final productName = nameController.text.trim();
-                Logger.d('Попытка создать продукт с названием: "$productName"');
+          child: Column(
+            children: [
+              // Индикатор перетаскивания
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
 
-                if (productName.isNotEmpty) {
-                  // Создаем продукт с ручными данными
-                  final manualProduct = FoodProduct.create(
-                    name: productName,
-                    barcode: barcode,
-                    amount: 100.0,
-                    unit: 'г',
-                    caloriesPer100: int.tryParse(caloriesController.text) ?? 0,
-                    totalWeight: double.tryParse(weightController.text),
-                  );
-
-                  Logger.d('Создан ручной продукт: ${manualProduct.name}');
-
-                  // Сохраняем в локальную БД
-                  try {
-                    await _localRepository.saveProduct(manualProduct);
-                    Logger.d('Продукт сохранен в локальную БД');
-
-                    // Показываем уведомление об успехе
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Продукт "${manualProduct.name}" сохранен локально!',
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    Logger.e('Ошибка сохранения в локальную БД: $e');
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Ошибка сохранения: $e'),
-                          backgroundColor: Colors.red,
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
-                    }
-                  }
-
-                  // Добавляем в результаты поиска
-                  setState(() {
-                    _searchResults = [manualProduct];
-                  });
-
-                  Navigator.of(context).pop();
-                } else {
-                  Logger.d('Название продукта пустое, показываем ошибку');
-                  // Показываем ошибку, если название пустое
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Введите название продукта'),
-                      backgroundColor: AppColor.darkBlue,
-                      duration: Duration(seconds: 2),
+              // Заголовок
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).dividerColor.withOpacity(0.3),
+                      width: 1,
                     ),
-                  );
-                }
-              },
-              child: const Text('Добавить'),
-            ),
-          ],
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Продукт не найден',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Штрих-код: $barcode',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Форма
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Информационный блок
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Заполните информацию о продукте для добавления в локальную базу данных',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Название продукта
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Название продукта *',
+                          border: OutlineInputBorder(),
+                          hintText: 'Введите название продукта',
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Калории
+                      TextField(
+                        controller: caloriesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Калории на 100г',
+                          border: OutlineInputBorder(),
+                          hintText: '0',
+                          suffixText: 'ккал',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Вес упаковки
+                      TextField(
+                        controller: weightController,
+                        decoration: const InputDecoration(
+                          labelText: 'Вес упаковки',
+                          border: OutlineInputBorder(),
+                          hintText: '0',
+                          suffixText: 'г',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Кнопки
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Отмена'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final productName = nameController.text.trim();
+                                Logger.d(
+                                  'Попытка создать продукт с названием: "$productName"',
+                                );
+
+                                if (productName.isNotEmpty) {
+                                  // Создаем продукт с ручными данными
+                                  final manualProduct = FoodProduct.create(
+                                    name: productName,
+                                    barcode: barcode,
+                                    amount: 100.0,
+                                    unit: 'г',
+                                    caloriesPer100:
+                                        int.tryParse(caloriesController.text) ??
+                                        0,
+                                    totalWeight: double.tryParse(
+                                      weightController.text,
+                                    ),
+                                  );
+
+                                  Logger.d(
+                                    'Создан ручной продукт: ${manualProduct.name}',
+                                  );
+
+                                  // Сохраняем в локальную БД
+                                  try {
+                                    await _localRepository.saveProduct(
+                                      manualProduct,
+                                    );
+                                    Logger.d('Продукт сохранен в локальную БД');
+
+                                    // Показываем уведомление об успехе
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Продукт "${manualProduct.name}" сохранен локально!',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    Logger.e(
+                                      'Ошибка сохранения в локальную БД: $e',
+                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Ошибка сохранения: $e',
+                                          ),
+                                          backgroundColor: Colors.red,
+                                          duration: const Duration(seconds: 3),
+                                        ),
+                                      );
+                                    }
+                                    return; // Не закрываем модалку при ошибке
+                                  }
+
+                                  // Добавляем в результаты поиска
+                                  setState(() {
+                                    _searchResults = [manualProduct];
+                                  });
+
+                                  Navigator.of(context).pop();
+                                } else {
+                                  Logger.d(
+                                    'Название продукта пустое, показываем ошибку',
+                                  );
+                                  // Показываем ошибку, если название пустое
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Введите название продукта',
+                                      ),
+                                      backgroundColor: AppColor.darkBlue,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Сохранить'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
