@@ -22,18 +22,9 @@ class _AddProductPageState extends State<AddProductPage> {
   List<FoodProduct> _searchResults = [];
   bool _isLoading = false;
   String searchQuery = '';
-  late LocalProductRepository _localRepository;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeLocalRepository();
-  }
-
-  Future<void> _initializeLocalRepository() async {
-    _localRepository = LocalProductRepository();
-    await _localRepository.init();
-  }
+  // Теперь используем сингл без инициализации
+  final LocalProductRepository _localRepository = LocalProductRepository();
 
   @override
   void dispose() {
@@ -471,6 +462,9 @@ class _AddProductPageState extends State<AddProductPage> {
                                 );
 
                                 if (productName.isNotEmpty) {
+                                  Logger.i(
+                                    'barcode $barcode ${barcodeController.text}',
+                                  );
                                   // Создаем продукт с ручными данными
                                   final manualProduct = FoodProduct.create(
                                     name: productName,
