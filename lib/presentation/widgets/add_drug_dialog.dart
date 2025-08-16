@@ -149,7 +149,7 @@ class _AddDrugDialogState extends State<AddDrugDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedUnit,
+                      initialValue: _selectedUnit,
                       decoration: InputDecoration(
                         labelText: textLang('Единица'),
                         border: OutlineInputBorder(

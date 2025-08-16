@@ -8,13 +8,13 @@ class CustomModalSheet extends StatelessWidget {
   final double? height;
 
   const CustomModalSheet({
-    Key? key,
+    super.key,
     required this.child,
     this.title,
     this.isDismissible = true,
     this.enableDrag = true,
     this.height,
-  }) : super(key: key);
+  });
 
   static Future<T?> show<T>({
     required BuildContext context,
@@ -30,11 +30,11 @@ class CustomModalSheet extends StatelessWidget {
       enableDrag: enableDrag,
       backgroundColor: Colors.transparent,
       builder: (context) => CustomModalSheet(
-        child: child,
         title: title,
         isDismissible: isDismissible,
         enableDrag: enableDrag,
         height: height,
+        child: child,
       ),
     );
   }
@@ -97,7 +97,9 @@ class CustomModalSheet extends StatelessWidget {
                   if (isDismissible)
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: IconButton(

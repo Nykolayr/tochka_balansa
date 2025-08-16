@@ -1,3 +1,4 @@
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
 import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
@@ -5,10 +6,8 @@ import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
 class ProductService {
   final LocalProductRepository _localRepository;
 
-  ProductService({
-    required LocalProductRepository localRepository,
-  }) : 
-    _localRepository = localRepository;
+  ProductService({required LocalProductRepository localRepository})
+    : _localRepository = localRepository;
 
   /// Поиск продукта по баркоду
   /// Сначала проверяет локальную БД, затем OpenFoodFacts
@@ -55,7 +54,7 @@ class ProductService {
         imageUrl: apiProduct.imageUrl,
       );
     } catch (e) {
-      print('Ошибка конвертации API продукта: $e');
+      Logger.e('Ошибка конвертации API продукта: $e');
       return null;
     }
   }
@@ -107,8 +106,8 @@ class ProductSearchResult {
 }
 
 enum ProductSearchStatus {
-  foundLocal,    // Найден в локальной БД
-  foundApi,      // Найден в OpenFoodFacts
-  notFound,      // Не найден нигде
-  error,         // Ошибка поиска
+  foundLocal, // Найден в локальной БД
+  foundApi, // Найден в OpenFoodFacts
+  notFound, // Не найден нигде
+  error, // Ошибка поиска
 }
