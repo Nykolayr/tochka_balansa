@@ -10,6 +10,9 @@ class FoodState extends Equatable {
   final List<FoodProduct> frequentProducts;
   final List<FoodProduct> breakfastProducts;
   final List<FoodProduct> searchProducts;
+  final List<FoodProduct> lunchProducts;
+  final List<FoodProduct> dinnerProducts;
+  final List<FoodProduct> snackProducts;
 
   const FoodState({
     required this.isLoading,
@@ -19,6 +22,9 @@ class FoodState extends Equatable {
     this.frequentProducts = const [],
     this.breakfastProducts = const [],
     this.searchProducts = const [],
+    this.lunchProducts = const [],
+    this.dinnerProducts = const [],
+    this.snackProducts = const [],
   });
 
   FoodState copyWith({

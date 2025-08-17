@@ -1,4 +1,5 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/data/models/health/daily_calories_record.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
@@ -14,37 +15,30 @@ class DailyCaloriesRepository {
   factory DailyCaloriesRepository() => _instance;
   DailyCaloriesRepository._internal();
 
-  static const String _storageKey = 'daily_calories_records';
-  static const String _foodProductsKey = 'food_products';
-  List<DailyCaloriesRecord> _records = [];
-  List<FoodProduct> _foodProducts = []; // НОВОЕ: список продуктов
-
-  /// Получить все записи
-  List<DailyCaloriesRecord> get records => List.unmodifiable(_records);
-
-  /// Получить все продукты
-  List<FoodProduct> get foodProducts => List.unmodifiable(_foodProducts);
+  /// Списки продуктов и записей
+  List<DailyCaloriesRecord> records = [];
+  List<FoodProduct> foodProducts = [];
 
   /// Добавить продукт
   Future<void> addFoodProduct(FoodProduct product) async {
-    _foodProducts.add(product);
-    await _saveFoodProductsToLocal();
+    foodProducts.add(product);
+    await saveFoodProductsToLocal();
 
     // Обновляем калории в дневной записи
-    await _updateDailyCalories();
+    await updateDailyCalories();
   }
 
   /// Удалить продукт
   Future<void> removeFoodProduct(String productId) async {
-    _foodProducts.removeWhere((product) => product.id == productId);
-    await _saveFoodProductsToLocal();
+    foodProducts.removeWhere((product) => product.id == productId);
+    await saveFoodProductsToLocal();
 
     // Обновляем калории в дневной записи
-    await _updateDailyCalories();
+    await updateDailyCalories();
   }
 
   /// Обновить калории в дневной записи
-  Future<void> _updateDailyCalories() async {
+  Future<void> updateDailyCalories() async {
     // ИСПРАВЛЕНО: проверяем данные пользователя ПЕРЕД обновлением
     final userRepository = Get.find<UserRepository>();
     final user = userRepository.user;
@@ -57,7 +51,7 @@ class DailyCaloriesRepository {
     final todayRecord = await getOrCreateTodayRecord();
 
     // Считаем калории от продуктов
-    final todayProducts = _foodProducts.where((product) {
+    final todayProducts = foodProducts.where((product) {
       final today = DateTime.now();
       final todayDate = DateTime(today.year, today.month, today.day);
       final productDate = DateTime(
@@ -80,16 +74,16 @@ class DailyCaloriesRepository {
     );
 
     // Обновляем запись в списке
-    final index = _records.indexWhere((r) => r.id == todayRecord.id);
+    final index = records.indexWhere((r) => r.id == todayRecord.id);
     if (index != -1) {
-      _records[index] = updatedRecord;
-      await _saveToLocal();
+      records[index] = updatedRecord;
+      await saveToLocal();
     }
   }
 
   /// Инициализация - загрузка из локального хранилища
   Future<void> init() async {
-    await _loadFromLocal();
+    await loadFromLocal();
     await _loadFoodProductsFromLocal();
   }
 
@@ -117,7 +111,7 @@ class DailyCaloriesRepository {
     final todayDate = DateTime(today.year, today.month, today.day);
 
     // Проверяем, есть ли уже запись на сегодня
-    DailyCaloriesRecord? todayRecord = _getTodayRecord(todayDate);
+    DailyCaloriesRecord? todayRecord = getTodayRecord(todayDate);
 
     if (todayRecord == null) {
       // ТОЛЬКО если данные валидны - создаем запись с расчетом
@@ -145,19 +139,19 @@ class DailyCaloriesRepository {
         gender: user.gender.name,
       );
 
-      _records.add(todayRecord);
-      await _saveToLocal();
+      records.add(todayRecord);
+      await saveToLocal();
     }
 
     return todayRecord;
   }
 
   /// Получить запись на конкретную дату
-  DailyCaloriesRecord? _getTodayRecord(DateTime date) {
+  DailyCaloriesRecord? getTodayRecord(DateTime date) {
     final targetDate = DateTime(date.year, date.month, date.day);
 
     try {
-      return _records.firstWhere((record) {
+      return records.firstWhere((record) {
         final recordDate = DateTime(
           record.date.year,
           record.date.month,
@@ -176,10 +170,10 @@ class DailyCaloriesRepository {
     final updatedRecord = todayRecord.addConsumedCalories(calories);
 
     // Обновляем запись в списке
-    final index = _records.indexWhere((r) => r.id == todayRecord.id);
+    final index = records.indexWhere((r) => r.id == todayRecord.id);
     if (index != -1) {
-      _records[index] = updatedRecord;
-      await _saveToLocal();
+      records[index] = updatedRecord;
+      await saveToLocal();
     }
 
     return updatedRecord;
@@ -191,67 +185,65 @@ class DailyCaloriesRepository {
     final updatedRecord = todayRecord.addBurnedCalories(calories);
 
     // Обновляем запись в списке
-    final index = _records.indexWhere((r) => r.id == todayRecord.id);
+    final index = records.indexWhere((r) => r.id == todayRecord.id);
     if (index != -1) {
-      _records[index] = updatedRecord;
-      await _saveToLocal();
+      records[index] = updatedRecord;
+      await saveToLocal();
     }
 
-    // ИСПРАВЛЕНО: возвращаем обновленную запись
     return updatedRecord;
   }
 
   /// Загрузить записи из локального хранилища
-  Future<void> _loadFromLocal() async {
+  Future<void> loadFromLocal() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final recordsJson = prefs.getStringList(_storageKey) ?? [];
-
-      _records = recordsJson
-          .map((json) => DailyCaloriesRecord.fromJson(jsonDecode(json)))
+      final recordsJson = await HiveData.loadListJson(
+        key: HiveDataKey.dailyCaloriesRecords,
+      );
+      records = recordsJson
+          .map((json) => DailyCaloriesRecord.fromJson(json))
           .toList();
     } catch (e) {
-      _records = [];
+      Logger.e('Ошибка загрузки записей: $e');
+      records = [];
     }
   }
 
   /// Сохранить записи в локальное хранилище
-  Future<void> _saveToLocal() async {
+  Future<void> saveToLocal() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final recordsJson = _records
-          .map((record) => jsonEncode(record.toJson()))
-          .toList();
-
-      await prefs.setStringList(_storageKey, recordsJson);
+      await HiveData.saveListJson(
+        key: HiveDataKey.dailyCaloriesRecords,
+        json: records.map((record) => record.toJson()).toList(),
+      );
     } catch (e) {
-      // Обработка ошибки сохранения
+      Logger.e('Ошибка сохранения записей: $e');
     }
   }
 
   /// Загрузить продукты из локального хранилища
   Future<void> _loadFoodProductsFromLocal() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final productsJson = prefs.getStringList(_foodProductsKey) ?? [];
+      final productsJson = await HiveData.loadListJson(
+        key: HiveDataKey.foodProducts,
+      );
 
-      _foodProducts = productsJson
-          .map((json) => FoodProduct.fromJson(jsonDecode(json)))
+      foodProducts = productsJson
+          .map((json) => FoodProduct.fromJson(json))
           .toList();
     } catch (e) {
-      _foodProducts = [];
+      Logger.e('Ошибка загрузки продуктов: $e');
+      foodProducts = [];
     }
   }
 
   /// Сохранить продукты в локальное хранилище
-  Future<void> _saveFoodProductsToLocal() async {
+  Future<void> saveFoodProductsToLocal() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final productsJson = _foodProducts
-          .map((product) => jsonEncode(product.toJson()))
-          .toList();
-
-      await prefs.setStringList(_foodProductsKey, productsJson);
+      await HiveData.saveListJson(
+        key: HiveDataKey.foodProducts,
+        json: foodProducts.map((product) => product.toJson()).toList(),
+      );
     } catch (e) {
       Logger.e('Ошибка сохранения продуктов: $e');
     }
@@ -259,19 +251,20 @@ class DailyCaloriesRepository {
 
   /// Очистить все записи (для тестирования)
   Future<void> clearAll() async {
-    _records.clear();
-    await _saveToLocal();
+    records.clear();
+    foodProducts.clear();
+    await saveToLocal();
   }
 
   /// Переключить избранное продукта
   Future<void> toggleProductFavorite(String productId) async {
-    final index = _foodProducts.indexWhere((p) => p.id == productId);
+    final index = foodProducts.indexWhere((p) => p.id == productId);
     if (index != -1) {
-      final product = _foodProducts[index];
+      final product = foodProducts[index];
       final updatedProduct = product.toggleFavorite();
 
-      _foodProducts[index] = updatedProduct;
-      await _saveFoodProductsToLocal();
+      foodProducts[index] = updatedProduct;
+      await saveFoodProductsToLocal();
     }
   }
 }

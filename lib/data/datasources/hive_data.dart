@@ -145,4 +145,5 @@ enum HiveDataKey {
   scannedProducts, // Переименовали с drugs на scannedProducts
   healthData, // Добавляем ключ для данных о здоровье
   foodProducts, // Ключ для продуктов местной базы
+  dailyCaloriesRecords, // Ключ для записей о калориях
 }

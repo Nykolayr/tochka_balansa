@@ -9,9 +9,29 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
   FoodBloc() : super(FoodState.initial()) {
     // Обработчики событий
     on<AddProductToBreakfast>(_onAddToBreakfast);
+    on<AddProductToLunch>(_onAddToLunch);
+    on<AddProductToDinner>(_onAddToDinner);
+    on<AddProductToSnack>(_onAddToSnack);
     on<AddProductToRecent>(_onAddToRecent);
     on<AddProductToFrequent>(_onAddToFrequent);
     on<UpdateSearchProducts>(_onUpdateSearchProducts);
+  }
+
+  // Добавить продукт в обед
+  void _onAddToLunch(AddProductToLunch event, Emitter<FoodState> emit) {
+    final currentLunch = [...state.lunchProducts];
+
+    // Добавляем с текущим временем
+    final productWithTime = event.product.copyWith(timestamp: DateTime.now());
+
+    currentLunch.add(productWithTime);
+
+    emit(state.copyWith(lunchProducts: currentLunch, isListChange: true));
+  }
+
+  // Добавить продукт в ужин  
+  void _onAddToDinner(AddProductToDinner event, Emitter<FoodState> emit) {
+    final currentDinner = [...state.dinnerProducts];
   }
 
   // Добавить продукт в завтрак

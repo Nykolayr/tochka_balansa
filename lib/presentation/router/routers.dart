@@ -27,10 +27,7 @@ import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/presentation/pages/health/steps_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/steps_history_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
-import 'package:tochka_balansa/presentation/pages/food/breakfast_page.dart';
-import 'package:tochka_balansa/presentation/pages/food/lunch_page.dart';
-import 'package:tochka_balansa/presentation/pages/food/dinner_page.dart';
-import 'package:tochka_balansa/presentation/pages/food/snack_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/eat_page.dart';
 import 'package:tochka_balansa/presentation/pages/exercise/exercise_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/add_product_page.dart';
 
@@ -146,45 +143,7 @@ final GoRouter router = GoRouter(
                 );
               },
             ),
-            GoRoute(
-              name: 'lunch',
-              path: 'lunch',
-              pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
-                return buildPageWithDefaultTransition(
-                  type: PageTransitionType.rightToLeft,
-                  context: context,
-                  state: state,
-                  child: LunchPage(key: ValueKey(languageState)),
-                );
-              },
-            ),
-            GoRoute(
-              name: 'dinner',
-              path: 'dinner',
-              pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
-                return buildPageWithDefaultTransition(
-                  type: PageTransitionType.rightToLeft,
-                  context: context,
-                  state: state,
-                  child: DinnerPage(key: ValueKey(languageState)),
-                );
-              },
-            ),
-            GoRoute(
-              name: 'snack',
-              path: 'snack',
-              pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
-                return buildPageWithDefaultTransition(
-                  type: PageTransitionType.rightToLeft,
-                  context: context,
-                  state: state,
-                  child: SnackPage(key: ValueKey(languageState)),
-                );
-              },
-            ),
+
             GoRoute(
               name: 'exercise',
               path: 'exercise',
