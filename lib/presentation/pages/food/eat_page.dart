@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
-class BreakfastPage extends StatefulWidget {
-  const BreakfastPage({super.key});
+class EatPage extends StatefulWidget {
+  final EatType eatType;
+  const EatPage({super.key, required this.eatType});
 
   @override
-  State<BreakfastPage> createState() => _BreakfastPageState();
+  State<EatPage> createState() => _EatPageState();
 }
 
-class _BreakfastPageState extends State<BreakfastPage>
-    with SingleTickerProviderStateMixin {
+class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = '';
   late TabController _tabController;
@@ -45,12 +49,12 @@ class _BreakfastPageState extends State<BreakfastPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarWidget(
-        title: 'Завтрак',
+        title: textLang(widget.eatType.title),
         isBack: true,
         actions: [
           IconButton(
             onPressed: () {
-              context.push('/main/home/add-product');
+              context.push('/main/home/add-product', extra: widget.eatType);
             },
             icon: Container(
               width: 40,
@@ -64,60 +68,62 @@ class _BreakfastPageState extends State<BreakfastPage>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Поиск
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: textLang('Поиск продуктов...'),
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+      body: BlocBuilder<FoodBloc, FoodState>(
+        bloc: Get.find<FoodBloc>(),
+        builder: (context, state) {
+          return Column(
+            children: [
+              // Поиск
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: textLang('Поиск продуктов...'),
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
-            ),
-          ),
 
-          // Табы
-          TabBar(
-            indicatorSize: TabBarIndicatorSize.tab,
-            controller: _tabController,
-            labelColor: AppColor.green,
-            unselectedLabelColor: Colors.black,
-            indicator: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(width: 2.0, color: AppColor.green),
+              // Табы
+              TabBar(
+                indicatorSize: TabBarIndicatorSize.tab,
+                controller: _tabController,
+                labelColor: AppColor.green,
+                unselectedLabelColor: Colors.black,
+                indicator: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(width: 2.0, color: AppColor.green),
+                  ),
+                ),
+                tabs: ProductTabType.values
+                    .map((e) => Tab(text: textLang(e.title)))
+                    .toList(),
               ),
-            ),
-            tabs: const [
-              Tab(text: 'ЧАСТЫЕ'),
-              Tab(text: 'НЕДАВНИЕ'),
-              Tab(text: 'ИЗБРАННЫЕ'),
+
+              const Gap(16),
+              // Список продуктов по табам
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildProductsList(ProductTabType.frequent),
+                    _buildProductsList(ProductTabType.recent),
+                    _buildProductsList(ProductTabType.favorite),
+                  ],
+                ),
+              ),
             ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Список продуктов по табам
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildProductsList(ProductTabType.frequent),
-                _buildProductsList(ProductTabType.recent),
-                _buildProductsList(ProductTabType.favorite),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
       bottomNavigationBar: _buildBreakfastBlock(),
     );
@@ -182,7 +188,6 @@ class _BreakfastPageState extends State<BreakfastPage>
                 IconButton(
                   onPressed: () {
                     // TODO: добавить продукт в завтрак
-                    // TODO: добавить продукт в завtрак
                   },
                   icon: Container(
                     width: 32,
@@ -323,8 +328,8 @@ enum ProductTabType {
   favorite; // Избранные
 
   String get title => switch (this) {
-    frequent => 'Частых',
-    recent => 'Недавних',
-    favorite => 'Избранных',
+    frequent => 'ЧАСТЫЕ',
+    recent => 'НЕДАВНИЕ',
+    favorite => 'ИЗБРАННЫЕ',
   };
 }

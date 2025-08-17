@@ -8,12 +8,14 @@ import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
 import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/app_bar_widget.dart';
 import 'package:tochka_balansa/presentation/pages/scanner/scanner_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/widgets/product_list_item.dart';
 
 class AddProductPage extends StatefulWidget {
-  const AddProductPage({super.key});
+  final EatType eatType;
+  const AddProductPage({super.key, required this.eatType});
 
   @override
   State<AddProductPage> createState() => _AddProductPageState();

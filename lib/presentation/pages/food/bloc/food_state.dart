@@ -4,6 +4,7 @@ class FoodState extends Equatable {
   final bool isLoading;
   final String error;
   final bool isListChange;
+  final ProductTabType currentTab;
 
   // Списки продуктов по табам
   final List<FoodProduct> recentProducts;
@@ -30,6 +31,7 @@ class FoodState extends Equatable {
     required this.dinnerProducts,
     required this.snackProducts,
     required this.favoriteProducts,
+    required this.currentTab,
   });
 
   FoodState copyWith({
@@ -44,6 +46,7 @@ class FoodState extends Equatable {
     List<FoodProduct>? dinnerProducts,
     List<FoodProduct>? snackProducts,
     List<FoodProduct>? favoriteProducts,
+    ProductTabType? currentTab,
   }) {
     // Если изменился хотя бы один из списков, инвертируем isListChange
     bool hasListChanged =
@@ -70,6 +73,7 @@ class FoodState extends Equatable {
       dinnerProducts: dinnerProducts ?? this.dinnerProducts,
       snackProducts: snackProducts ?? this.snackProducts,
       favoriteProducts: favoriteProducts ?? this.favoriteProducts,
+      currentTab: currentTab ?? this.currentTab,
     );
   }
 
@@ -77,10 +81,10 @@ class FoodState extends Equatable {
     isLoading: false,
     error: '',
     isListChange: false,
-    recentProducts: [],
+    recentProducts: Get.find<FoodProductRepository>().getProducts(),
     frequentProducts: [],
     favoriteProducts: [],
-    searchProducts: [],
+    searchProducts: Get.find<FoodProductRepository>().getProducts(),
     breakfastProducts: Get.find<DailyCaloriesRepository>()
         .getTodayRecord(DateTime.now())
         .breakfast,
@@ -93,6 +97,7 @@ class FoodState extends Equatable {
     snackProducts: Get.find<DailyCaloriesRepository>()
         .getTodayRecord(DateTime.now())
         .snacks,
+    currentTab: ProductTabType.recent,
   );
 
   @override
@@ -108,5 +113,6 @@ class FoodState extends Equatable {
     dinnerProducts,
     snackProducts,
     favoriteProducts,
+    currentTab,
   ];
 }

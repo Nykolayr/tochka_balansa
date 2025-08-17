@@ -5,6 +5,7 @@ import 'package:tochka_balansa/core/utils/functions.dart';
 import 'package:tochka_balansa/presentation/pages/auth/auth_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/code_page.dart';
 import 'package:tochka_balansa/presentation/pages/auth/reg_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 import 'package:tochka_balansa/presentation/pages/health/health_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_page.dart';
 import 'package:tochka_balansa/presentation/pages/health/weight_history_page.dart';
@@ -131,15 +132,15 @@ final GoRouter router = GoRouter(
           },
           routes: [
             GoRoute(
-              name: 'breakfast',
-              path: 'breakfast',
+              name: 'eat',
+              path: 'eat',
               pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
+                final eatType = state.extra as EatType;
                 return buildPageWithDefaultTransition(
                   type: PageTransitionType.rightToLeft,
                   context: context,
                   state: state,
-                  child: BreakfastPage(key: ValueKey(languageState)),
+                  child: EatPage(eatType: eatType),
                 );
               },
             ),
@@ -161,12 +162,12 @@ final GoRouter router = GoRouter(
               name: 'add-product',
               path: 'add-product',
               pageBuilder: (context, state) {
-                final languageState = Get.find<LanguageBloc>().state;
+                final eatType = state.extra as EatType;
                 return buildPageWithDefaultTransition(
                   type: PageTransitionType.rightToLeft,
                   context: context,
                   state: state,
-                  child: AddProductPage(key: ValueKey(languageState)),
+                  child: AddProductPage(eatType: eatType),
                 );
               },
             ),

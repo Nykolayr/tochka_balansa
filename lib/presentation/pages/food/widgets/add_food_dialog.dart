@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 
 class AddFoodDialog extends StatelessWidget {
   const AddFoodDialog({super.key});
@@ -51,7 +52,7 @@ class AddFoodDialog extends StatelessWidget {
               ),
               itemCount: 4,
               itemBuilder: (context, index) {
-                final mealType = MealType.values[index];
+                final mealType = EatType.values[index];
                 return _buildMealButton(context, mealType);
               },
             ),
@@ -62,43 +63,14 @@ class AddFoodDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildMealButton(BuildContext context, MealType mealType) {
-    final iconData = switch (mealType) {
-      MealType.breakfast => Icons.wb_sunny,
-      MealType.lunch => Icons.restaurant,
-      MealType.dinner => Icons.nights_stay,
-      MealType.snack => Icons.coffee,
-    };
-
-    final color = switch (mealType) {
-      MealType.breakfast => Colors.orange,
-      MealType.lunch => Colors.green,
-      MealType.dinner => Colors.blue,
-      MealType.snack => Colors.purple,
-    };
-
+  Widget _buildMealButton(BuildContext context, EatType eatType) {
     return ElevatedButton(
       onPressed: () {
         Navigator.of(context).pop(); // Закрываем sheet
-
-        // ИСПРАВЛЕНО: пути без слешей, так как это дочерние роуты к home
-        switch (mealType) {
-          case MealType.breakfast:
-            context.push('/main/home/breakfast'); // полный путь
-            break;
-          case MealType.lunch:
-            context.push('/main/home/lunch');
-            break;
-          case MealType.dinner:
-            context.push('/main/home/dinner');
-            break;
-          case MealType.snack:
-            context.push('/main/home/snack');
-            break;
-        }
+        context.push('/main/home/eat', extra: eatType);
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
+        backgroundColor: eatType.color,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         padding: const EdgeInsets.all(16),
@@ -107,10 +79,10 @@ class AddFoodDialog extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(iconData, size: 32),
+          Icon(eatType.icon, size: 32),
           const SizedBox(height: 8),
           Text(
-            mealType.title,
+            eatType.title,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),

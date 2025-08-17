@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/presentation/pages/food/eat_page.dart';
 
 part 'food_event.dart';
 part 'food_state.dart';
@@ -15,8 +16,23 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
     on<AddProductToDinner>(_onAddToDinner);
     on<AddProductToSnack>(_onAddToSnack);
     on<AddProductToRecent>(_onAddToRecent);
-    on<AddProductToFrequent>(_onAddToFrequent);
-    on<UpdateSearchProducts>(_onUpdateSearchProducts);
+    on<AddProductToFavorite>(_onAddToFavorite);
+    on<ChangeTab>(_onChangeTab);
+  }
+
+  // Добавить продукт в избранное
+  void _onAddToFavorite(AddProductToFavorite event, Emitter<FoodState> emit) {
+    final currentFavorite = [...state.favoriteProducts];
+  }
+
+  // Переключаем табы
+  void _onChangeTab(ChangeTab event, Emitter<FoodState> emit) {
+    emit(
+      state.copyWith(
+        currentTab: event.tab,
+        searchProducts: Get.find<FoodProductRepository>().getProducts(),
+      ),
+    );
   }
 
   // Добавить продукт в обед

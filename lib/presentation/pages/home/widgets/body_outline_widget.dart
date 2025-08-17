@@ -10,7 +10,7 @@ import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tochka_balansa/presentation/pages/home/widgets/add_food_dialog.dart';
+import 'package:tochka_balansa/presentation/pages/food/widgets/add_food_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/consumed_vessel_widget.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/add_burned_dialog.dart';

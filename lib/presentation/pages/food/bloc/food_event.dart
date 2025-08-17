@@ -57,22 +57,22 @@ class AddProductToRecent extends FoodEvent {
   List<Object> get props => [product];
 }
 
-/// Добавляем продукт в часто используемые
-class AddProductToFrequent extends FoodEvent {
+/// Добавляем продукт в избранное
+class AddProductToFavorite extends FoodEvent {
   final FoodProduct product;
 
-  const AddProductToFrequent(this.product);
+  const AddProductToFavorite(this.product);
 
   @override
   List<Object> get props => [product];
 }
 
-/// Обновляем список продуктов
-class UpdateSearchProducts extends FoodEvent {
-  final List<FoodProduct> products;
+/// Переключаем табы
+class ChangeTab extends FoodEvent {
+  final ProductTabType tab;
 
-  const UpdateSearchProducts(this.products);
+  const ChangeTab(this.tab);
 
   @override
-  List<Object> get props => [products];
+  List<Object> get props => [tab];
 }

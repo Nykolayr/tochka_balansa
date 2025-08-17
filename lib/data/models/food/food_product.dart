@@ -208,24 +208,4 @@ class FoodProduct extends Equatable {
   ];
 }
 
-/// Типы приемов пищи
-enum MealType {
-  breakfast, // Завтрак
-  lunch, // Обед
-  dinner, // Ужин
-  snack; // Перекус
 
-  String get title => switch (this) {
-    breakfast => 'Завтрак',
-    lunch => 'Обед',
-    dinner => 'Ужин',
-    snack => 'Перекус',
-  };
-
-  String get value => switch (this) {
-    breakfast => 'breakfast',
-    lunch => 'lunch',
-    dinner => 'dinner',
-    snack => 'snack',
-  };
-}
