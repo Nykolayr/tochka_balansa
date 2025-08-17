@@ -1,11 +1,90 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:tochka_balansa/data/models/food/food_product.dart';
 
 part 'food_event.dart';
 part 'food_state.dart';
 
 class FoodBloc extends Bloc<FoodEvent, FoodState> {
   FoodBloc() : super(FoodState.initial()) {
-    on<FoodEvent>((event, emit) {});
+    // Обработчики событий
+    on<AddProductToBreakfast>(_onAddToBreakfast);
+    on<AddProductToRecent>(_onAddToRecent);
+    on<AddProductToFrequent>(_onAddToFrequent);
+    on<UpdateSearchProducts>(_onUpdateSearchProducts);
+  }
+
+  // Добавить продукт в завтрак
+  void _onAddToBreakfast(AddProductToBreakfast event, Emitter<FoodState> emit) {
+    final currentBreakfast = [...state.breakfastProducts];
+
+    // Добавляем с текущим временем
+    final productWithTime = event.product.copyWith(timestamp: DateTime.now());
+
+    currentBreakfast.add(productWithTime);
+
+    emit(
+      state.copyWith(breakfastProducts: currentBreakfast, isListChange: true),
+    );
+  }
+
+  // Добавить продукт в недавние
+  void _onAddToRecent(AddProductToRecent event, Emitter<FoodState> emit) {
+    // Удаляем дубликаты, оставляем самые последние
+    final currentRecent = state.recentProducts
+        .where((p) => p.id != event.product.id)
+        .take(19)
+        .toList();
+
+    // Добавляем новый продукт в начало
+    currentRecent.add(event.product);
+
+    emit(
+      state.copyWith(
+        recentProducts: currentRecent.toList(),
+        isListChange: true,
+      ),
+    );
+  }
+
+  // Добавить/обновить в частые
+  void _onAddToFrequent(AddProductToFrequent event, Emitter<FoodState> emit) {
+    final currentFrequent = [...state.frequentProducts];
+
+    // Ищем продукт по ID
+    final existingIndex = currentFrequent.indexWhere(
+      (p) => p.id == event.product.id,
+    );
+
+    // Увеличиваем счетчик использования
+    final productUpdated = event.product.copyWith(timestamp: DateTime.now());
+
+    if (existingIndex >= 0) {
+      // Обновляем существующий
+      currentFrequent[existingIndex] = productUpdated;
+    } else {
+      // Добавляем новый
+      currentFrequent.add(productUpdated);
+    }
+
+    // Сортируем по времени добавления (последние сверху)
+    currentFrequent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    emit(state.copyWith(frequentProducts: currentFrequent, isListChange: true));
+  }
+
+  // Обновить список для поиска
+  void _onUpdateSearchProducts(
+    UpdateSearchProducts event,
+    Emitter<FoodState> emit,
+  ) {
+    emit(state.copyWith(searchProducts: event.products));
+  }
+
+  // Удобный метод: добавить продукт во все категории
+  void addProductToAllCategories(FoodProduct product) {
+    add(AddProductToBreakfast(product));
+    add(AddProductToRecent(product));
+    add(AddProductToFrequent(product));
   }
 }

@@ -2,10 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
 import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
+import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/app_bar_widget.dart';
 import 'package:tochka_balansa/presentation/pages/scanner/scanner_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/widgets/product_list_item.dart';
@@ -232,8 +234,8 @@ class _AddProductPageState extends State<AddProductPage> {
   }
 
   void _addProductToMeal(FoodProduct product) {
-    // TODO: Добавить продукт в прием пищи
-    Logger.d('Добавляем продукт: ${product.name}');
+    Logger.i('Добавляем продукт: ${product.toJson()}');
+    Get.find<FoodBloc>().add(AddProductToRecent(product));
   }
 
   void _showAddProductModal(String barcode) {

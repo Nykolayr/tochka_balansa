@@ -28,7 +28,6 @@ Future<void> initMain() async {
     await Get.putAsync<Api>(() async => Api());
   } catch (e) {
     Logger.e('DioClient error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   try {
@@ -39,7 +38,6 @@ Future<void> initMain() async {
     });
   } catch (e) {
     Logger.e('UserRepository error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   // Регистрируем HealthRepository
@@ -50,14 +48,12 @@ Future<void> initMain() async {
     });
   } catch (e) {
     Logger.e('HealthRepository error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   try {
     Get.put<AuthBloc>(AuthBloc());
   } catch (e) {
     Logger.e('AuthBloc error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   try {
@@ -67,35 +63,31 @@ Future<void> initMain() async {
     });
   } catch (e) {
     Logger.e('MainRepository error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   try {
     await Get.find<MainRepository>().init();
   } catch (e) {
     Logger.e('MainRepository error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   try {
     Get.put<MainBloc>(MainBloc());
   } catch (e) {
     Logger.e('MainBloc error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   try {
     Get.put<GoalBloc>(GoalBloc());
   } catch (e) {
     Logger.e('GoalBloc error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
+  // Добавляем FoodBloc для работы с продуктами
   try {
     Get.put<FoodBloc>(FoodBloc());
   } catch (e) {
     Logger.e('FoodBloc error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   // Добавляем LanguageBloc
@@ -103,7 +95,6 @@ Future<void> initMain() async {
     Get.put<LanguageBloc>(LanguageBloc());
   } catch (e) {
     Logger.e('LanguageBloc error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
   // Добавляем HealthBloc
@@ -111,25 +102,19 @@ Future<void> initMain() async {
     Get.put<HealthBloc>(HealthBloc());
   } catch (e) {
     Logger.e('HealthBloc error = $e');
-    // Убираем return, просто логируем ошибку
   }
 
-  // Инициализируем репозиторий калорий
   try {
     final dailyCaloriesRepo = DailyCaloriesRepository();
     Get.put(dailyCaloriesRepo);
 
     // Только инициализируем, НЕ создаем запись
     await dailyCaloriesRepo.init();
-    
+
     Logger.i('DailyCaloriesRepository инициализирован');
-    
-    // НЕ создаем запись - она создастся только после ввода данных пользователем
-    
   } catch (e) {
     Logger.e('DailyCaloriesRepository error = $e');
   }
 
   await Future.delayed(Duration(seconds: 2));
-  // Убираем return '', функция должна возвращать void
 }

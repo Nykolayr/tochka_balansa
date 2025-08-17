@@ -5,14 +5,8 @@ import 'package:tochka_balansa/data/models/food/food_product.dart';
 class ProductListItem extends StatelessWidget {
   final FoodProduct product;
   final VoidCallback? onAdd;
-  final VoidCallback? onDelete;
 
-  const ProductListItem({
-    super.key,
-    required this.product,
-    this.onAdd,
-    this.onDelete,
-  });
+  const ProductListItem({super.key, required this.product, this.onAdd});
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +95,8 @@ class ProductListItem extends StatelessWidget {
                   iconSize: 24,
                 ),
               ),
+
             // Кнопка удаления
-            if (onDelete != null)
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: onDelete,
-              ),
           ],
         ),
       ),
