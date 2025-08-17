@@ -5,11 +5,15 @@ class FoodState extends Equatable {
   final String error;
   final bool isListChange;
 
-  // Списки продуктов по категориям
+  // Списки продуктов по табам
   final List<FoodProduct> recentProducts;
   final List<FoodProduct> frequentProducts;
-  final List<FoodProduct> breakfastProducts;
+  final List<FoodProduct> favoriteProducts;
+
+  // поиск
   final List<FoodProduct> searchProducts;
+  // Списки продуктов по категориям
+  final List<FoodProduct> breakfastProducts;
   final List<FoodProduct> lunchProducts;
   final List<FoodProduct> dinnerProducts;
   final List<FoodProduct> snackProducts;
@@ -18,13 +22,14 @@ class FoodState extends Equatable {
     required this.isLoading,
     required this.error,
     required this.isListChange,
-    this.recentProducts = const [],
-    this.frequentProducts = const [],
-    this.breakfastProducts = const [],
-    this.searchProducts = const [],
-    this.lunchProducts = const [],
-    this.dinnerProducts = const [],
-    this.snackProducts = const [],
+    required this.recentProducts,
+    required this.frequentProducts,
+    required this.searchProducts,
+    required this.breakfastProducts,
+    required this.lunchProducts,
+    required this.dinnerProducts,
+    required this.snackProducts,
+    required this.favoriteProducts,
   });
 
   FoodState copyWith({
@@ -35,19 +40,36 @@ class FoodState extends Equatable {
     List<FoodProduct>? frequentProducts,
     List<FoodProduct>? breakfastProducts,
     List<FoodProduct>? searchProducts,
+    List<FoodProduct>? lunchProducts,
+    List<FoodProduct>? dinnerProducts,
+    List<FoodProduct>? snackProducts,
+    List<FoodProduct>? favoriteProducts,
   }) {
-    bool hasChanges =
+    // Если изменился хотя бы один из списков, инвертируем isListChange
+    bool hasListChanged =
         recentProducts != null ||
         frequentProducts != null ||
         breakfastProducts != null ||
-        searchProducts != null;
+        searchProducts != null ||
+        lunchProducts != null ||
+        dinnerProducts != null ||
+        snackProducts != null ||
+        favoriteProducts != null;
+    bool newIsListChange = hasListChanged
+        ? !(isListChange ?? false)
+        : (isListChange ?? this.isListChange);
     return FoodState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      isListChange: isListChange ?? hasChanges,
+      isListChange: newIsListChange,
       recentProducts: recentProducts ?? this.recentProducts,
       frequentProducts: frequentProducts ?? this.frequentProducts,
       breakfastProducts: breakfastProducts ?? this.breakfastProducts,
+      searchProducts: searchProducts ?? this.searchProducts,
+      lunchProducts: lunchProducts ?? this.lunchProducts,
+      dinnerProducts: dinnerProducts ?? this.dinnerProducts,
+      snackProducts: snackProducts ?? this.snackProducts,
+      favoriteProducts: favoriteProducts ?? this.favoriteProducts,
     );
   }
 
@@ -57,7 +79,20 @@ class FoodState extends Equatable {
     isListChange: false,
     recentProducts: [],
     frequentProducts: [],
-    breakfastProducts: [],
+    favoriteProducts: [],
+    searchProducts: [],
+    breakfastProducts: Get.find<DailyCaloriesRepository>()
+        .getTodayRecord(DateTime.now())
+        .breakfast,
+    lunchProducts: Get.find<DailyCaloriesRepository>()
+        .getTodayRecord(DateTime.now())
+        .lunch,
+    dinnerProducts: Get.find<DailyCaloriesRepository>()
+        .getTodayRecord(DateTime.now())
+        .dinner,
+    snackProducts: Get.find<DailyCaloriesRepository>()
+        .getTodayRecord(DateTime.now())
+        .snacks,
   );
 
   @override
@@ -68,5 +103,10 @@ class FoodState extends Equatable {
     recentProducts,
     frequentProducts,
     breakfastProducts,
+    searchProducts,
+    lunchProducts,
+    dinnerProducts,
+    snackProducts,
+    favoriteProducts,
   ];
 }

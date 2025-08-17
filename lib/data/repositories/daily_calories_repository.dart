@@ -93,7 +93,7 @@ class DailyCaloriesRepository {
   }
 
   /// Получить или создать запись на сегодня
-  Future<DailyCaloriesRecord> getOrCreateTodayRecord() async {
+  DailyCaloriesRecord getOrCreateTodayRecord() {
     final userRepository = Get.find<UserRepository>();
     final user = userRepository.user;
 
@@ -116,7 +116,7 @@ class DailyCaloriesRepository {
     final todayDate = DateTime(today.year, today.month, today.day);
 
     // Проверяем, есть ли уже запись на сегодня
-    final todayRecord = await getTodayRecord(todayDate);
+    final todayRecord = getTodayRecord(todayDate);
 
     if (todayRecord.consumedCalories == 0) {
       // ТОЛЬКО если данные валидны - создаем запись с расчетом
@@ -145,17 +145,24 @@ class DailyCaloriesRepository {
       );
 
       records.add(newRecord);
-      await saveToLocal();
+      saveToLocal();
     }
 
     return todayRecord;
   }
 
   /// Получить запись на конкретную дату
-  Future<DailyCaloriesRecord> getTodayRecord(DateTime? date) async {
+  DailyCaloriesRecord getTodayRecord(DateTime? date) {
     try {
       if (date == null) {
-        return getOrCreateTodayRecord();
+        return records.firstWhere((record) {
+          final recordDate = DateTime(
+            record.date.year,
+            record.date.month,
+            record.date.day,
+          );
+          return recordDate.isAtSameMomentAs(currentDate);
+        });
       }
       return records.firstWhere((record) {
         final recordDate = DateTime(
@@ -169,7 +176,14 @@ class DailyCaloriesRepository {
       Logger.e(
         'Ошибка получения записи на дату ${currentDate.toIso8601String()}: $e',
       );
-      return getOrCreateTodayRecord();
+      return records.firstWhere((record) {
+        final recordDate = DateTime(
+          record.date.year,
+          record.date.month,
+          record.date.day,
+        );
+        return recordDate.isAtSameMomentAs(currentDate);
+      });
     }
   }
 

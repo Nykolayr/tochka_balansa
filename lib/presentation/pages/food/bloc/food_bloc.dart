@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 part 'food_event.dart';
 part 'food_state.dart';
@@ -29,7 +31,7 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
     emit(state.copyWith(lunchProducts: currentLunch, isListChange: true));
   }
 
-  // Добавить продукт в ужин  
+  // Добавить продукт в ужин
   void _onAddToDinner(AddProductToDinner event, Emitter<FoodState> emit) {
     final currentDinner = [...state.dinnerProducts];
   }
@@ -46,6 +48,11 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
     emit(
       state.copyWith(breakfastProducts: currentBreakfast, isListChange: true),
     );
+  }
+
+  // Добавить продукт в перекус
+  void _onAddToSnack(AddProductToSnack event, Emitter<FoodState> emit) {
+    final currentSnack = [...state.snackProducts];
   }
 
   // Добавить продукт в недавние

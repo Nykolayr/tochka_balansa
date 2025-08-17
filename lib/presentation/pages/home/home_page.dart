@@ -28,9 +28,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _initializeDailyCalories() async {
     final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-
-    // ИСПРАВЛЕНО: всегда получаем запись (не null)
-    final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
+    final todayRecord = dailyCaloriesRepo.getOrCreateTodayRecord();
 
     // Обновляем MainBloc
     final mainBloc = Get.find<MainBloc>();

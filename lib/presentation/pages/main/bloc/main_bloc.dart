@@ -70,7 +70,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       await dailyCaloriesRepo.addFoodProduct(event.product);
 
       // Обновляем состояние
-      final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
+      final todayRecord = dailyCaloriesRepo.getOrCreateTodayRecord();
       emit(
         state.copyWith(
           consumedCalories: todayRecord.consumedCalories,
@@ -92,7 +92,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       await dailyCaloriesRepo.removeFoodProduct(event.productId);
 
       // Обновляем состояние
-      final todayRecord = await dailyCaloriesRepo.getOrCreateTodayRecord();
+      final todayRecord = dailyCaloriesRepo.getOrCreateTodayRecord();
       emit(
         state.copyWith(
           consumedCalories: todayRecord.consumedCalories,
