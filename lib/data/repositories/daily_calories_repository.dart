@@ -5,8 +5,6 @@ import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 /// Репозиторий для управления дневными записями калорий
 class DailyCaloriesRepository {
@@ -149,7 +147,6 @@ class DailyCaloriesRepository {
   /// Получить запись на конкретную дату
   DailyCaloriesRecord? getTodayRecord(DateTime date) {
     final targetDate = DateTime(date.year, date.month, date.day);
-
     try {
       return records.firstWhere((record) {
         final recordDate = DateTime(

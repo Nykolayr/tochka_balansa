@@ -1,4 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:get/get.dart';
+import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/data/models/gender.dart';
+import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
 /// Модель дневной записи калорий
 class DailyCaloriesRecord extends Equatable {
@@ -8,7 +12,10 @@ class DailyCaloriesRecord extends Equatable {
   final int burnedCalories; // Сожжено калорий (базовый обмен)
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String gender; // НОВОЕ: добавляем пол для расчета maxValue
+  final List<FoodProduct> breakfast;
+  final List<FoodProduct> lunch;
+  final List<FoodProduct> dinner;
+  final List<FoodProduct> snacks;
 
   const DailyCaloriesRecord({
     required this.id,
@@ -17,13 +24,16 @@ class DailyCaloriesRecord extends Equatable {
     required this.burnedCalories,
     required this.createdAt,
     required this.updatedAt,
-    required this.gender, // НОВОЕ
+    required this.breakfast,
+    required this.lunch,
+    required this.dinner,
+    required this.snacks,
   });
 
   factory DailyCaloriesRecord.create({
     required DateTime date,
     required int burnedCalories,
-    required String gender, // НОВОЕ
+    required String gender,
   }) {
     final now = DateTime.now();
     return DailyCaloriesRecord(
@@ -33,7 +43,10 @@ class DailyCaloriesRecord extends Equatable {
       burnedCalories: burnedCalories,
       createdAt: now,
       updatedAt: now,
-      gender: gender, // НОВОЕ
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snacks: [],
     );
   }
 
@@ -44,7 +57,10 @@ class DailyCaloriesRecord extends Equatable {
     int? burnedCalories,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? gender, // НОВОЕ
+    List<FoodProduct>? breakfast,
+    List<FoodProduct>? lunch,
+    List<FoodProduct>? dinner,
+    List<FoodProduct>? snacks,
   }) {
     return DailyCaloriesRecord(
       id: id ?? this.id,
@@ -53,7 +69,10 @@ class DailyCaloriesRecord extends Equatable {
       burnedCalories: burnedCalories ?? this.burnedCalories,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      gender: gender ?? this.gender, // НОВОЕ
+      breakfast: breakfast ?? this.breakfast,
+      lunch: lunch ?? this.lunch,
+      dinner: dinner ?? this.dinner,
+      snacks: snacks ?? this.snacks,
     );
   }
 
@@ -79,10 +98,12 @@ class DailyCaloriesRecord extends Equatable {
   /// Получить максимальное количество калорий для 100% заполнения сосуда
   /// Женщины: максимум 3500, мужчины: максимум 4000
   int get maxCalories {
-    if (gender == 'female') {
-      return 3200; // Максимум для женщин
+    final userRepository = Get.find<UserRepository>();
+    final user = userRepository.user;
+    if (user.gender == Gender.female) {
+      return 3000; // Максимум для женщин
     } else {
-      return 3800; // Максимум для мужчин
+      return 3500; // Максимум для мужчин
     }
   }
 
@@ -100,7 +121,6 @@ class DailyCaloriesRecord extends Equatable {
       'burnedCalories': burnedCalories,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      'gender': gender, // НОВОЕ
     };
   }
 
@@ -112,7 +132,26 @@ class DailyCaloriesRecord extends Equatable {
       burnedCalories: json['burnedCalories'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      gender: json['gender'] as String? ?? 'male', // НОВОЕ: по умолчанию male
+      breakfast:
+          (json['breakfast'] as List<dynamic>?)
+              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      lunch:
+          (json['lunch'] as List<dynamic>?)
+              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      dinner:
+          (json['dinner'] as List<dynamic>?)
+              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      snacks:
+          (json['snacks'] as List<dynamic>?)
+              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -124,6 +163,9 @@ class DailyCaloriesRecord extends Equatable {
     burnedCalories,
     createdAt,
     updatedAt,
-    gender, // НОВОЕ
+    breakfast,
+    lunch,
+    dinner,
+    snacks,
   ];
 }
