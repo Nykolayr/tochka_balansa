@@ -13,6 +13,13 @@ class DailyCaloriesRepository {
   factory DailyCaloriesRepository() => _instance;
   DailyCaloriesRepository._internal();
 
+  /// дата отображаемая в UI
+  DateTime _currentDate = DateTime.now();
+  DateTime get currentDate => _currentDate;
+  set currentDate(DateTime date) {
+    _currentDate = date;
+  }
+
   /// Списки продуктов и записей
   List<DailyCaloriesRecord> records = [];
   List<FoodProduct> foodProducts = [];
@@ -109,9 +116,9 @@ class DailyCaloriesRepository {
     final todayDate = DateTime(today.year, today.month, today.day);
 
     // Проверяем, есть ли уже запись на сегодня
-    DailyCaloriesRecord? todayRecord = getTodayRecord(todayDate);
+    final todayRecord = await getTodayRecord(todayDate);
 
-    if (todayRecord == null) {
+    if (todayRecord.consumedCalories == 0) {
       // ТОЛЬКО если данные валидны - создаем запись с расчетом
       Logger.i('Данные пользователя валидны, рассчитываем калории');
 
@@ -131,13 +138,13 @@ class DailyCaloriesRepository {
         'Создаем запись на сегодня: BMR=$bmr, активность=${user.activityLevel.title}, итого=$totalCalories',
       );
 
-      todayRecord = DailyCaloriesRecord.create(
+      final newRecord = DailyCaloriesRecord.create(
         date: todayDate,
         burnedCalories: totalCalories,
         gender: user.gender.name,
       );
 
-      records.add(todayRecord);
+      records.add(newRecord);
       await saveToLocal();
     }
 
@@ -145,19 +152,24 @@ class DailyCaloriesRepository {
   }
 
   /// Получить запись на конкретную дату
-  DailyCaloriesRecord? getTodayRecord(DateTime date) {
-    final targetDate = DateTime(date.year, date.month, date.day);
+  Future<DailyCaloriesRecord> getTodayRecord(DateTime? date) async {
     try {
+      if (date == null) {
+        return getOrCreateTodayRecord();
+      }
       return records.firstWhere((record) {
         final recordDate = DateTime(
           record.date.year,
           record.date.month,
           record.date.day,
         );
-        return recordDate.isAtSameMomentAs(targetDate);
+        return recordDate.isAtSameMomentAs(date);
       });
     } catch (e) {
-      return null; // Запись не найдена
+      Logger.e(
+        'Ошибка получения записи на дату ${currentDate.toIso8601String()}: $e',
+      );
+      return getOrCreateTodayRecord();
     }
   }
 
