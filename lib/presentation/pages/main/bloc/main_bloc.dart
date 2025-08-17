@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
-import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 part 'main_event.dart';
 part 'main_state.dart';
@@ -15,9 +14,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     on<GetUserEvent>(_onGetUserEvent);
     on<GoToPageEvent>(_onGoToPageEvent);
     on<UpdateCaloriesEvent>(_onUpdateCaloriesEvent);
-    on<AddFoodProductEvent>(_onAddFoodProductEvent);
-    on<RemoveFoodProductEvent>(_onRemoveFoodProductEvent);
-    on<ToggleProductFavoriteEvent>(_onToggleProductFavoriteEvent);
   }
 
   /// переход на страницу
@@ -51,6 +47,8 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     UpdateCaloriesEvent event,
     Emitter<MainState> emit,
   ) {
+
+    
     emit(
       state.copyWith(
         consumedCalories: event.consumedCalories,
@@ -58,65 +56,5 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         maxCalories: event.maxCalories,
       ),
     );
-  }
-
-  /// НОВОЕ: добавление продукта питания
-  Future<void> _onAddFoodProductEvent(
-    AddFoodProductEvent event,
-    Emitter<MainState> emit,
-  ) async {
-    try {
-      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-      await dailyCaloriesRepo.addFoodProduct(event.product);
-
-      // Обновляем состояние
-      final todayRecord = dailyCaloriesRepo.getOrCreateTodayRecord();
-      emit(
-        state.copyWith(
-          consumedCalories: todayRecord.consumedCalories,
-          foodProducts: dailyCaloriesRepo.foodProducts,
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(error: 'Ошибка добавления продукта: $e'));
-    }
-  }
-
-  /// НОВОЕ: удаление продукта питания
-  Future<void> _onRemoveFoodProductEvent(
-    RemoveFoodProductEvent event,
-    Emitter<MainState> emit,
-  ) async {
-    try {
-      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-      await dailyCaloriesRepo.removeFoodProduct(event.productId);
-
-      // Обновляем состояние
-      final todayRecord = dailyCaloriesRepo.getOrCreateTodayRecord();
-      emit(
-        state.copyWith(
-          consumedCalories: todayRecord.consumedCalories,
-          foodProducts: dailyCaloriesRepo.foodProducts,
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(error: 'Ошибка удаления продукта: $e'));
-    }
-  }
-
-  /// НОВОЕ: переключить избранное продукта
-  Future<void> _onToggleProductFavoriteEvent(
-    ToggleProductFavoriteEvent event,
-    Emitter<MainState> emit,
-  ) async {
-    try {
-      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-      await dailyCaloriesRepo.toggleProductFavorite(event.productId);
-
-      // Обновляем состояние
-      emit(state.copyWith(foodProducts: dailyCaloriesRepo.foodProducts));
-    } catch (e) {
-      emit(state.copyWith(error: 'Ошибка переключения избранного: $e'));
-    }
   }
 }

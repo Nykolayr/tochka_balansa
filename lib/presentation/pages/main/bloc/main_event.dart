@@ -34,21 +34,3 @@ class UpdateCaloriesEvent extends MainEvent {
     required this.maxCalories,
   });
 }
-
-/// НОВОЕ: добавление продукта питания
-class AddFoodProductEvent extends MainEvent {
-  final FoodProduct product;
-  const AddFoodProductEvent(this.product);
-}
-
-/// НОВОЕ: удаление продукта питания
-class RemoveFoodProductEvent extends MainEvent {
-  final String productId;
-  const RemoveFoodProductEvent(this.productId);
-}
-
-/// НОВОЕ: переключить избранное продукта
-class ToggleProductFavoriteEvent extends MainEvent {
-  final String productId;
-  const ToggleProductFavoriteEvent(this.productId);
-}

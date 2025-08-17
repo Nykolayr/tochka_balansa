@@ -3,7 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
 import 'package:tochka_balansa/presentation/pages/food/eat_page.dart';
+import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 
 part 'food_event.dart';
 part 'food_state.dart';
@@ -22,53 +24,44 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
 
   // Добавить продукт в избранное
   void _onAddToFavorite(AddProductToFavorite event, Emitter<FoodState> emit) {
-    final currentFavorite = [...state.favoriteProducts];
+    FoodProductRepository repo = Get.find<FoodProductRepository>();
+    repo.toggleProductFavorite(event.product.id);
+    emit(state.copyWith(favoriteProducts: repo.getFavoriteProducts()));
   }
 
   // Переключаем табы
   void _onChangeTab(ChangeTab event, Emitter<FoodState> emit) {
     emit(
-      state.copyWith(
-        currentTab: event.tab,
-        searchProducts: Get.find<FoodProductRepository>().getProducts(),
-      ),
+      state.copyWith(currentTab: event.tab, searchProducts: event.tab.products),
     );
   }
 
   // Добавить продукт в обед
   void _onAddToLunch(AddProductToLunch event, Emitter<FoodState> emit) {
-    final currentLunch = [...state.lunchProducts];
-
-    // Добавляем с текущим временем
-    final productWithTime = event.product.copyWith(timestamp: DateTime.now());
-
-    currentLunch.add(productWithTime);
-
-    emit(state.copyWith(lunchProducts: currentLunch, isListChange: true));
+    DailyCaloriesRepository repo = Get.find<DailyCaloriesRepository>();
+    repo.addFoodProduct(event.product, EatType.lunch);
+    emit(state.copyWith(lunchProducts: repo.getCurrentRecord().lunch));
   }
 
   // Добавить продукт в ужин
   void _onAddToDinner(AddProductToDinner event, Emitter<FoodState> emit) {
-    final currentDinner = [...state.dinnerProducts];
+    DailyCaloriesRepository repo = Get.find<DailyCaloriesRepository>();
+    repo.addFoodProduct(event.product, EatType.dinner);
+    emit(state.copyWith(lunchProducts: repo.getCurrentRecord().dinner));
   }
 
   // Добавить продукт в завтрак
   void _onAddToBreakfast(AddProductToBreakfast event, Emitter<FoodState> emit) {
-    final currentBreakfast = [...state.breakfastProducts];
-
-    // Добавляем с текущим временем
-    final productWithTime = event.product.copyWith(timestamp: DateTime.now());
-
-    currentBreakfast.add(productWithTime);
-
-    emit(
-      state.copyWith(breakfastProducts: currentBreakfast, isListChange: true),
-    );
+    DailyCaloriesRepository repo = Get.find<DailyCaloriesRepository>();
+    repo.addFoodProduct(event.product, EatType.breakfast);
+    emit(state.copyWith(lunchProducts: repo.getCurrentRecord().breakfast));
   }
 
   // Добавить продукт в перекус
   void _onAddToSnack(AddProductToSnack event, Emitter<FoodState> emit) {
-    final currentSnack = [...state.snackProducts];
+    DailyCaloriesRepository repo = Get.find<DailyCaloriesRepository>();
+    repo.addFoodProduct(event.product, EatType.snack);
+    emit(state.copyWith(lunchProducts: repo.getCurrentRecord().snacks));
   }
 
   // Добавить продукт в недавние
@@ -88,46 +81,5 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
         isListChange: true,
       ),
     );
-  }
-
-  // Добавить/обновить в частые
-  void _onAddToFrequent(AddProductToFrequent event, Emitter<FoodState> emit) {
-    final currentFrequent = [...state.frequentProducts];
-
-    // Ищем продукт по ID
-    final existingIndex = currentFrequent.indexWhere(
-      (p) => p.id == event.product.id,
-    );
-
-    // Увеличиваем счетчик использования
-    final productUpdated = event.product.copyWith(timestamp: DateTime.now());
-
-    if (existingIndex >= 0) {
-      // Обновляем существующий
-      currentFrequent[existingIndex] = productUpdated;
-    } else {
-      // Добавляем новый
-      currentFrequent.add(productUpdated);
-    }
-
-    // Сортируем по времени добавления (последние сверху)
-    currentFrequent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-    emit(state.copyWith(frequentProducts: currentFrequent, isListChange: true));
-  }
-
-  // Обновить список для поиска
-  void _onUpdateSearchProducts(
-    UpdateSearchProducts event,
-    Emitter<FoodState> emit,
-  ) {
-    emit(state.copyWith(searchProducts: event.products));
-  }
-
-  // Удобный метод: добавить продукт во все категории
-  void addProductToAllCategories(FoodProduct product) {
-    add(AddProductToBreakfast(product));
-    add(AddProductToRecent(product));
-    add(AddProductToFrequent(product));
   }
 }

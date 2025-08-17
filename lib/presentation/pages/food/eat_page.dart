@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class EatPage extends StatefulWidget {
@@ -156,9 +156,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
             // НОВОЕ: звездочка избранного в начале
             leading: IconButton(
               onPressed: () {
-                Get.find<MainBloc>().add(
-                  ToggleProductFavoriteEvent(product.id),
-                );
+                Get.find<FoodBloc>().add(AddProductToFavorite(product));
               },
               icon: Icon(
                 product.isFavorite ? Icons.star : Icons.star_border,
@@ -332,4 +330,16 @@ enum ProductTabType {
     recent => 'НЕДАВНИЕ',
     favorite => 'ИЗБРАННЫЕ',
   };
+
+  List<FoodProduct> get products {
+    FoodProductRepository repo = Get.find<FoodProductRepository>();
+    switch (this) {
+      case ProductTabType.favorite:
+        return repo.getFavoriteProducts();
+      case ProductTabType.frequent:
+        return repo.getFrequentProducts();
+      case ProductTabType.recent:
+        return repo.getRecentProducts();
+    }
+  }
 }

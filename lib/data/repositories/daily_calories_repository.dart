@@ -5,91 +5,99 @@ import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:get/get.dart';
+import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 
 /// Репозиторий для управления дневными записями калорий
 class DailyCaloriesRepository {
   static final DailyCaloriesRepository _instance =
       DailyCaloriesRepository._internal();
   factory DailyCaloriesRepository() => _instance;
-  DailyCaloriesRepository._internal();
 
-  /// дата отображаемая в UI
-  DateTime _currentDate = DateTime.now();
-  DateTime get currentDate => _currentDate;
-  set currentDate(DateTime date) {
-    _currentDate = date;
+  DailyCaloriesRepository._internal() {
+    // При инициализации загружаем записи из локального хранилища
+    loadFromLocal();
   }
 
-  /// Списки продуктов и записей
+  /// Списки  записей
   List<DailyCaloriesRecord> records = [];
-  List<FoodProduct> foodProducts = [];
+
+  /// дата отображаемая в UI
+  DateTime currentDate = DateTime.now();
+
+  /// устанавливаем дату
+  void setCurrentDate(DateTime date) {
+    currentDate = date;
+  }
+
+  /// взят запись по currentDate
+  DailyCaloriesRecord getCurrentRecord() {
+    return getTodayRecord(currentDate);
+  }
 
   /// Добавить продукт
-  Future<void> addFoodProduct(FoodProduct product) async {
-    foodProducts.add(product);
-    await saveFoodProductsToLocal();
-
+  Future<void> addFoodProduct(FoodProduct product, EatType type) async {
+    var record = getTodayRecord(currentDate);
+    switch (type) {
+      case EatType.breakfast:
+        record.breakfast.add(product);
+      case EatType.lunch:
+        record.lunch.add(product);
+      case EatType.dinner:
+        record.dinner.add(product);
+      case EatType.snack:
+        record.snacks.add(product);
+    }
     // Обновляем калории в дневной записи
-    await updateDailyCalories();
+    updateDailyCalories();
   }
 
   /// Удалить продукт
-  Future<void> removeFoodProduct(String productId) async {
-    foodProducts.removeWhere((product) => product.id == productId);
-    await saveFoodProductsToLocal();
-
+  Future<void> removeFoodProduct(FoodProduct product, EatType type) async {
+    var record = getTodayRecord(currentDate);
+    switch (type) {
+      case EatType.breakfast:
+        record.breakfast.removeWhere((item) => item.id == product.id);
+      case EatType.lunch:
+        record.lunch.removeWhere((item) => item.id == product.id);
+      case EatType.dinner:
+        record.dinner.removeWhere((item) => item.id == product.id);
+      case EatType.snack:
+        record.snacks.removeWhere((item) => item.id == product.id);
+    }
     // Обновляем калории в дневной записи
-    await updateDailyCalories();
+    updateDailyCalories();
   }
 
   /// Обновить калории в дневной записи
-  Future<void> updateDailyCalories() async {
-    // ИСПРАВЛЕНО: проверяем данные пользователя ПЕРЕД обновлением
-    final userRepository = Get.find<UserRepository>();
-    final user = userRepository.user;
+  void updateDailyCalories() {
+    // Пересчитываем все продукты по всем категориям и обновляем калории в текущей записи
 
-    if (user.initialWeight <= 0 || user.height <= 0) {
-      Logger.i('Пользователь не ввел данные, пропускаем обновление калорий');
-      return; // НЕ обновляем если данных нет
+    // Получаем текущую запись за выбранную дату
+    var record = getTodayRecord(currentDate);
+
+    // Список всех продуктов по категориям
+    List<FoodProduct> allProducts = [];
+    allProducts.addAll(record.breakfast);
+    allProducts.addAll(record.lunch);
+    allProducts.addAll(record.dinner);
+    allProducts.addAll(record.snacks);
+
+    // Суммируем калории всех продуктов
+    double totalCalories = 0;
+    for (var product in allProducts) {
+      totalCalories += product.totalCalories;
     }
 
-    final todayRecord = await getOrCreateTodayRecord();
+    // Обновляем consumedCalories в записи
+    record = record.copyWith(consumedCalories: totalCalories.toInt());
 
-    // Считаем калории от продуктов
-    final todayProducts = foodProducts.where((product) {
-      final today = DateTime.now();
-      final todayDate = DateTime(today.year, today.month, today.day);
-      final productDate = DateTime(
-        product.timestamp.year,
-        product.timestamp.month,
-        product.timestamp.day,
-      );
-      return productDate.isAtSameMomentAs(todayDate);
-    }).toList();
-
-    final totalConsumedCalories = todayProducts.fold<int>(
-      0,
-      (sum, product) => sum + product.totalCalories,
-    );
-
-    // Обновляем запись
-    final updatedRecord = todayRecord.copyWith(
-      consumedCalories: totalConsumedCalories,
-      updatedAt: DateTime.now(),
-    );
-
-    // Обновляем запись в списке
-    final index = records.indexWhere((r) => r.id == todayRecord.id);
-    if (index != -1) {
-      records[index] = updatedRecord;
-      await saveToLocal();
-    }
+    // Сохраняем изменения в локальное хранилище
+    saveToLocal();
   }
 
   /// Инициализация - загрузка из локального хранилища
   Future<void> init() async {
     await loadFromLocal();
-    await _loadFoodProductsFromLocal();
   }
 
   /// Получить или создать запись на сегодня
@@ -188,30 +196,30 @@ class DailyCaloriesRepository {
   }
 
   /// Добавить калории к съеденным на сегодня
-  Future<DailyCaloriesRecord> addConsumedCalories(int calories) async {
-    final todayRecord = await getOrCreateTodayRecord();
+  DailyCaloriesRecord addConsumedCalories(int calories) {
+    final todayRecord = getOrCreateTodayRecord();
     final updatedRecord = todayRecord.addConsumedCalories(calories);
 
     // Обновляем запись в списке
     final index = records.indexWhere((r) => r.id == todayRecord.id);
     if (index != -1) {
       records[index] = updatedRecord;
-      await saveToLocal();
+      saveToLocal();
     }
 
     return updatedRecord;
   }
 
   /// Добавить калории к сожженным (например, от шагов)
-  Future<DailyCaloriesRecord> addBurnedCalories(int calories) async {
-    final todayRecord = await getOrCreateTodayRecord();
+  DailyCaloriesRecord addBurnedCalories(int calories) {
+    final todayRecord = getOrCreateTodayRecord();
     final updatedRecord = todayRecord.addBurnedCalories(calories);
 
     // Обновляем запись в списке
     final index = records.indexWhere((r) => r.id == todayRecord.id);
     if (index != -1) {
       records[index] = updatedRecord;
-      await saveToLocal();
+      saveToLocal();
     }
 
     return updatedRecord;
@@ -244,50 +252,9 @@ class DailyCaloriesRepository {
     }
   }
 
-  /// Загрузить продукты из локального хранилища
-  Future<void> _loadFoodProductsFromLocal() async {
-    try {
-      final productsJson = await HiveData.loadListJson(
-        key: HiveDataKey.foodProducts,
-      );
-
-      foodProducts = productsJson
-          .map((json) => FoodProduct.fromJson(json))
-          .toList();
-    } catch (e) {
-      Logger.e('Ошибка загрузки продуктов: $e');
-      foodProducts = [];
-    }
-  }
-
-  /// Сохранить продукты в локальное хранилище
-  Future<void> saveFoodProductsToLocal() async {
-    try {
-      await HiveData.saveListJson(
-        key: HiveDataKey.foodProducts,
-        json: foodProducts.map((product) => product.toJson()).toList(),
-      );
-    } catch (e) {
-      Logger.e('Ошибка сохранения продуктов: $e');
-    }
-  }
-
   /// Очистить все записи (для тестирования)
   Future<void> clearAll() async {
     records.clear();
-    foodProducts.clear();
     await saveToLocal();
-  }
-
-  /// Переключить избранное продукта
-  Future<void> toggleProductFavorite(String productId) async {
-    final index = foodProducts.indexWhere((p) => p.id == productId);
-    if (index != -1) {
-      final product = foodProducts[index];
-      final updatedProduct = product.toggleFavorite();
-
-      foodProducts[index] = updatedProduct;
-      await saveFoodProductsToLocal();
-    }
   }
 }

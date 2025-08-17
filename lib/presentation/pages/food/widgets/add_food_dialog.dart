@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 
 class AddFoodDialog extends StatelessWidget {

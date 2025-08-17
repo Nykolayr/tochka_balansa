@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 
 class ProductListItemWidget extends StatelessWidget {
   final FoodProduct product;
@@ -28,9 +28,7 @@ class ProductListItemWidget extends StatelessWidget {
           // Звездочка избранного
           GestureDetector(
             onTap: () {
-              context.read<MainBloc>().add(
-                ToggleProductFavoriteEvent(product.id),
-              );
+              context.read<FoodBloc>().add(AddProductToFavorite(product));
             },
             child: Icon(
               product.isFavorite ? Icons.star : Icons.star_border,

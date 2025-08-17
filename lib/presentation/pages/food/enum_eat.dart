@@ -22,7 +22,8 @@ enum EatType {
     }
   }
 
-  Function(FoodProduct) get addProduct {
+  /// Добавляем продукт через bloc
+  Function(FoodProduct) get addProductBloc {
     switch (this) {
       case EatType.breakfast:
         return (product) {
@@ -45,6 +46,7 @@ enum EatType {
         };
     }
   }
+
   Color get color {
     switch (this) {
       case EatType.breakfast:

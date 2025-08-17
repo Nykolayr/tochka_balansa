@@ -81,10 +81,10 @@ class FoodState extends Equatable {
     isLoading: false,
     error: '',
     isListChange: false,
-    recentProducts: Get.find<FoodProductRepository>().getProducts(),
-    frequentProducts: [],
-    favoriteProducts: [],
-    searchProducts: Get.find<FoodProductRepository>().getProducts(),
+    recentProducts: Get.find<FoodProductRepository>().getRecentProducts(),
+    frequentProducts: Get.find<FoodProductRepository>().getFrequentProducts(),
+    favoriteProducts: Get.find<FoodProductRepository>().getFavoriteProducts(),
+    searchProducts: Get.find<FoodProductRepository>().getRecentProducts(),
     breakfastProducts: Get.find<DailyCaloriesRepository>()
         .getTodayRecord(DateTime.now())
         .breakfast,
