@@ -28,7 +28,8 @@ class _AddProductPageState extends State<AddProductPage> {
   String searchQuery = '';
 
   // Теперь используем сингл без инициализации
-  final LocalProductRepository _localRepository = LocalProductRepository();
+  final LocalProductRepository _localRepository =
+      Get.find<LocalProductRepository>();
 
   @override
   void dispose() {

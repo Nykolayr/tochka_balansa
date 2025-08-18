@@ -8,7 +8,24 @@ class LocalProductRepository {
 
   LocalProductRepository._internal();
 
-  factory LocalProductRepository() => _instance;
+  factory LocalProductRepository() {
+    _instance._init();
+    return _instance;
+  }
+
+  // Метод для загрузки продуктов при инициализации
+  bool _isInitialized = false;
+
+  Future<void> _init() async {
+    if (!_isInitialized) {
+      try {
+        await getAllProducts();
+        _isInitialized = true;
+      } catch (e) {
+        Logger.e('Ошибка при инициализации LocalProductRepository: $e');
+      }
+    }
+  }
 
   /// Получить продукт по баркоду
   Future<FoodProduct?> getProductByBarcode(String barcode) async {

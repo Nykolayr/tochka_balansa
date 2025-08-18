@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:tochka_balansa/data/api/api.dart';
 import 'package:tochka_balansa/data/api/dio_client.dart';
 import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
+import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
 import 'package:tochka_balansa/data/repositories/main_repository.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/data/repositories/health_repository.dart';
@@ -19,6 +20,15 @@ import 'package:tochka_balansa/providers/language_bloc.dart';
 
 /// внедряем зависимости
 Future<void> initMain() async {
+  try {
+    await Get.putAsync(() async {
+      final localProductRepository = LocalProductRepository();
+      return localProductRepository;
+    });
+  } catch (e) {
+    Logger.e('FoodProductRepository error = $e');
+  }
+
   // Инициализируем FoodProductRepository
   try {
     await Get.putAsync(() async {
