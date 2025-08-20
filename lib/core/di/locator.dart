@@ -98,7 +98,7 @@ Future<void> initMain() async {
   try {
     await Get.putAsync(() async {
       final mainRepository = MainRepository();
-      await Get.find<MainRepository>().init();
+      await mainRepository.init();
       return mainRepository;
     });
   } catch (e) {
