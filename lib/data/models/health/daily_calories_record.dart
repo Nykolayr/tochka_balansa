@@ -126,12 +126,19 @@ class DailyCaloriesRecord extends Equatable {
 
   factory DailyCaloriesRecord.fromJson(Map<String, dynamic> json) {
     return DailyCaloriesRecord(
-      id: json['id'] as String,
-      date: DateTime.parse(json['date'] as String),
-      consumedCalories: json['consumedCalories'] as int,
-      burnedCalories: json['burnedCalories'] as int,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: json['id'] ?? '',
+      date: json['date'] != null
+          ? DateTime.parse(json['date'])
+          : DateTime.now(),
+      consumedCalories: json['consumedCalories'] ?? 0,
+      burnedCalories: json['burnedCalories'] ?? 0,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.now(),
       breakfast:
           (json['breakfast'] as List<dynamic>?)
               ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))

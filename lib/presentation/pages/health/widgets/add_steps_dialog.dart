@@ -216,7 +216,7 @@ class AddStepsDialog {
                           Get.find<DailyCaloriesRepository>();
 
                       // ИСПРАВЛЕНО: получаем обновленную запись
-                      final updatedRecord = await dailyCaloriesRepo
+                      final updatedRecord = dailyCaloriesRepo
                           .addBurnedCalories(calories);
 
                       // Обновляем MainBloc с обновленными данными
