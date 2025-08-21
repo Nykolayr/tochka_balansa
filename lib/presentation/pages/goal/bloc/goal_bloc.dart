@@ -25,14 +25,8 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     on<CompleteSubGoalEvent>(_onCompleteSubGoal); // Добавляем обработчик
     on<MoveToArchiveEvent>(_onMoveToArchive); // Добавляем обработчик
 
-    // Загружаем цели при инициализации блока
+    // Инициализация блока (без автоматической загрузки данных)
     Logger.i('GoalBloc: Инициализация блока');
-
-    // Добавляем небольшую задержку, чтобы UserRepository успел инициализироваться
-    Future.delayed(const Duration(milliseconds: 100), () {
-      add(const LoadGoalsEvent());
-      add(const LoadGoalTypesEvent());
-    });
   }
 
   Future<void> _onLoadGoalTypes(
@@ -40,8 +34,10 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     Emitter<GoalState> emit,
   ) async {
     try {
-      // Загружаем типы целей из локального хранилища
-      await _userRepository.loadGoalTypesFromLocal();
+      // Загружаем типы целей только если их еще нет
+      if (_userRepository.goalTypes.isEmpty) {
+        await _userRepository.loadGoalTypesFromLocal();
+      }
 
       // Создаем стандартные типы целей, если их нет
       final goalTypes = _userRepository.goalTypes;
@@ -62,12 +58,29 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     LoadGoalsEvent event,
     Emitter<GoalState> emit,
   ) async {
+    Logger.i(
+      'GoalBloc: Получен LoadGoalsEvent (${DateTime.now().millisecondsSinceEpoch})',
+    );
+
     emit(state.copyWith(isLoading: true));
 
     try {
-      // Явно загружаем данные из локального хранилища
-      await _userRepository.loadUserFromLocal();
-      await _userRepository.loadArchivedGoalsFromLocal(); // Загружаем архив
+      // Пользователь уже загружен в UserRepository.init(), загружаем только архив
+      if (_userRepository.archivedGoals.isEmpty) {
+        await _userRepository.loadArchivedGoalsFromLocal();
+      }
+
+      // Загружаем типы целей, если их еще нет
+      if (_userRepository.goalTypes.isEmpty) {
+        await _userRepository.loadGoalTypesFromLocal();
+
+        // Создаем стандартные типы целей, если их нет
+        if (_userRepository.goalTypes.isEmpty) {
+          final defaultTypes = DefaultGoalTypes.defaultTypes;
+          _userRepository.goalTypes = defaultTypes;
+          await _userRepository.saveGoalTypesToLocal();
+        }
+      }
 
       Logger.i('Загрузка целей из UserRepository');
       final user = _userRepository.user;
@@ -93,6 +106,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           mainGoal: user.mainGoal,
           additionalGoals: user.additionalGoals,
           archivedGoals: _userRepository.archivedGoals, // Добавляем архив
+          goalTypes: _userRepository.goalTypes, // Добавляем типы целей
         ),
       );
     } catch (e) {
@@ -130,19 +144,13 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       await _userRepository.saveUserToLocal();
       Logger.i('Главная цель сохранена в Hive');
 
-      // Проверяем, что цель правильно сохранилась
-      await _userRepository.loadUserFromLocal();
+      // Проверяем, что цель правильно сохранилась (пользователь уже в памяти)
       Logger.i(
         'Проверка после сохранения: mainGoal = ${_userRepository.user.mainGoal}',
       );
 
       // Обновляем состояние блока
       emit(state.copyWith(isLoading: false, mainGoal: event.goal));
-
-      // Явно вызываем загрузку целей после небольшой задержки
-      Future.delayed(const Duration(milliseconds: 300), () {
-        add(const LoadGoalsEvent());
-      });
     } catch (e) {
       Logger.e('Ошибка сохранения главной цели: $e');
       emit(state.copyWith(isLoading: false, error: e.toString()));

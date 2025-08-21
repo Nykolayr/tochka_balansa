@@ -12,7 +12,6 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/providers/language_bloc.dart';
 import 'package:tochka_balansa/data/datasources/hive_data.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
-import 'package:tochka_balansa/core/di/locator.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool isMock = true;
@@ -23,8 +22,8 @@ void main() async {
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
 
-  // Инициализируем все зависимости
-  await initMain();
+  // Регистрируем LanguageBloc для использования в MyApp
+  Get.lazyPut<LanguageBloc>(() => LanguageBloc(), fenix: true);
 
   runApp(const MyApp());
 }

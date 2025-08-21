@@ -17,13 +17,8 @@ class HealthBloc extends Bloc<HealthEvent, HealthState> {
     on<UpdateHealthMetricEvent>(_onUpdateHealthMetric);
     on<DeleteHealthMetricEvent>(_onDeleteHealthMetric);
 
-    // Загружаем данные при инициализации блока
+    // Инициализация блока (без автоматической загрузки данных)
     Logger.i('HealthBloc: Инициализация блока');
-
-    // Добавляем небольшую задержку, чтобы HealthRepository успел инициализироваться
-    Future.delayed(const Duration(milliseconds: 100), () {
-      add(LoadHealthDataEvent());
-    });
   }
 
   Future<void> _onLoadHealthData(

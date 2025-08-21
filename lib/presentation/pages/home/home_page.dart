@@ -19,8 +19,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Загружаем цели при инициализации страницы
-    Get.find<GoalBloc>().add(const LoadGoalsEvent());
+    // Цели уже загружены в MainPage.initState(), не загружаем повторно
 
     // Инициализируем дневную запись калорий и обновляем MainBloc
     _initializeDailyCalories();

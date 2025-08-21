@@ -7,6 +7,7 @@ import 'package:tochka_balansa/presentation/pages/main/enum/enum_main_page.dart'
 import 'package:tochka_balansa/presentation/pages/main/widgets/navigation_buttons.dart';
 import 'package:tochka_balansa/presentation/pages/main/widgets/oval_bottom_bar.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -47,10 +48,17 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
 
-    // Загружаем цели при инициализации страницы
+    // Загружаем данные при инициализации страницы
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print(
+        'MainPage: Инициализация данных (${DateTime.now().millisecondsSinceEpoch})',
+      );
+
       final goalBloc = Get.find<GoalBloc>();
-      goalBloc.add(const LoadGoalsEvent());
+      goalBloc.add(const LoadGoalsEvent()); // Загружаем все цели и типы целей
+
+      final healthBloc = Get.find<HealthBloc>();
+      healthBloc.add(LoadHealthDataEvent());
     });
   }
 

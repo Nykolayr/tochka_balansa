@@ -16,6 +16,11 @@ class UserRepository {
   List<AdditionalGoal> goalTypes = []; // Убираем геттер/сеттер
   List<AdditionalGoal> archivedGoals = []; // Добавляем архив
 
+  // Флаги для отслеживания загрузки данных
+  bool _isUserLoaded = false;
+  bool _isGoalTypesLoaded = false;
+  bool _isArchivedGoalsLoaded = false;
+
   bool get isReg => token.isNotEmpty;
 
   static final UserRepository _instance = UserRepository._internal();
@@ -75,12 +80,20 @@ class UserRepository {
     await SecureStorageService().deleteToken();
     user = User.initial();
     token = '';
+    _resetLoadFlags();
   }
 
   /// удаление аккаунта
   Future<void> deleteAccount() async {
     await Api().deleteAccount();
     await logout();
+  }
+
+  /// Сброс флагов загрузки (вызывается при logout, clearUser)
+  void _resetLoadFlags() {
+    _isUserLoaded = false;
+    _isGoalTypesLoaded = false;
+    _isArchivedGoalsLoaded = false;
   }
 
   /// авторизация по email
@@ -176,15 +189,23 @@ class UserRepository {
     await SecureStorageService().deleteToken();
     user = User.initial();
     token = '';
+    _resetLoadFlags();
   }
 
   /// Загрузка пользователя из локального хранилища
   Future<void> loadUserFromLocal() async {
+    // Если пользователь уже загружен, не загружаем повторно
+    if (_isUserLoaded) {
+      Logger.d('Пользователь уже загружен, пропускаем повторную загрузку');
+      return;
+    }
+
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.user);
       // Конвертируем Map<dynamic, dynamic> в Map<String, dynamic>
       final convertedData = Map<String, dynamic>.from(data);
       user = User.fromJson(convertedData);
+      _isUserLoaded = true;
       Logger.i('loadUserFromLocal: пользователь загружен: ${user.name}');
     } catch (e) {
       Logger.e('loadUserFromLocal error: $e');
@@ -223,6 +244,12 @@ class UserRepository {
   }
 
   Future<void> loadGoalTypesFromLocal() async {
+    // Если типы целей уже загружены, не загружаем повторно
+    if (_isGoalTypesLoaded) {
+      Logger.d('Типы целей уже загружены, пропускаем повторную загрузку');
+      return;
+    }
+
     try {
       final goalTypesJson = await HiveData.loadListJson(
         key: HiveDataKey.goalTypes,
@@ -232,6 +259,7 @@ class UserRepository {
             (json) => AdditionalGoal.fromJson(Map<String, dynamic>.from(json)),
           )
           .toList();
+      _isGoalTypesLoaded = true;
       Logger.i('Типы целей загружены из Hive: ${goalTypes.length}');
     } catch (e) {
       Logger.e('Ошибка загрузки типов целей: $e');
@@ -255,6 +283,12 @@ class UserRepository {
   }
 
   Future<void> loadArchivedGoalsFromLocal() async {
+    // Если архивные цели уже загружены, не загружаем повторно
+    if (_isArchivedGoalsLoaded) {
+      Logger.d('Архивные цели уже загружены, пропускаем повторную загрузку');
+      return;
+    }
+
     try {
       final data = await HiveData.loadListJson(key: HiveDataKey.archivedGoals);
       if (data.isNotEmpty && !data.first.containsKey('error')) {
@@ -271,6 +305,7 @@ class UserRepository {
           }
           return goal;
         }).toList();
+        _isArchivedGoalsLoaded = true;
         Logger.i(
           'Архивные цели загружены из Hive: ${archivedGoals.length} целей',
         );

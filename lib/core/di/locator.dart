@@ -16,16 +16,15 @@ import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
-import 'package:tochka_balansa/providers/language_bloc.dart';
 
 /// внедряем зависимости
 Future<void> initMain() async {
   // Инициализируем единый FoodProductRepository (объединили LocalProductRepository)
   try {
-    await Get.putAsync(() async {
-      final foodProductRepository = FoodProductRepository();
-      await foodProductRepository.init();
-      return foodProductRepository;
+    await Get.putAsync<FoodProductRepository>(() async {
+      final repo = FoodProductRepository();
+      await repo.init();
+      return repo;
     });
   } catch (e) {
     Logger.e('FoodProductRepository error = $e');
@@ -33,12 +32,11 @@ Future<void> initMain() async {
 
   // Инициализируем DailyCaloriesRepository
   try {
-    final dailyCaloriesRepo = DailyCaloriesRepository();
-    Get.lazyPut(() => dailyCaloriesRepo, fenix: true);
-
-    // Только инициализируем, НЕ создаем запись
-    await dailyCaloriesRepo.init();
-
+    await Get.putAsync<DailyCaloriesRepository>(() async {
+      final repo = DailyCaloriesRepository();
+      await repo.init();
+      return repo;
+    });
     Logger.i('DailyCaloriesRepository инициализирован');
   } catch (e) {
     Logger.e('DailyCaloriesRepository error = $e');
@@ -60,10 +58,10 @@ Future<void> initMain() async {
 
   // Инициализируем UserRepository
   try {
-    await Get.putAsync(() async {
-      final userRepository = UserRepository();
-      await userRepository.init();
-      return userRepository;
+    await Get.putAsync<UserRepository>(() async {
+      final repo = UserRepository();
+      await repo.init();
+      return repo;
     });
   } catch (e) {
     Logger.e('UserRepository error = $e');
@@ -71,10 +69,7 @@ Future<void> initMain() async {
 
   // Регистрируем HealthRepository
   try {
-    await Get.putAsync(() async {
-      final healthRepository = HealthRepository();
-      return healthRepository;
-    });
+    Get.lazyPut<HealthRepository>(() => HealthRepository(), fenix: true);
   } catch (e) {
     Logger.e('HealthRepository error = $e');
   }
@@ -88,10 +83,10 @@ Future<void> initMain() async {
 
   // Инициализируем MainRepository
   try {
-    await Get.putAsync(() async {
-      final mainRepository = MainRepository();
-      await mainRepository.init();
-      return mainRepository;
+    await Get.putAsync<MainRepository>(() async {
+      final repo = MainRepository();
+      await repo.init();
+      return repo;
     });
   } catch (e) {
     Logger.e('MainRepository error = $e');
@@ -118,13 +113,6 @@ Future<void> initMain() async {
     Logger.e('FoodBloc error = $e');
   }
 
-  // Добавляем LanguageBloc
-  try {
-    Get.lazyPut<LanguageBloc>(() => LanguageBloc(), fenix: true);
-  } catch (e) {
-    Logger.e('LanguageBloc error = $e');
-  }
-
   // Добавляем HealthBloc
   try {
     Get.lazyPut<HealthBloc>(() => HealthBloc(), fenix: true);
@@ -132,5 +120,5 @@ Future<void> initMain() async {
     Logger.e('HealthBloc error = $e');
   }
 
-  // Убираем ненужную задержку
+  Logger.w('end Locator');
 }
