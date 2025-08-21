@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
-import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
+import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/app_bar_widget.dart';
@@ -27,9 +27,9 @@ class _AddProductPageState extends State<AddProductPage> {
   bool _isLoading = false;
   String searchQuery = '';
 
-  // Теперь используем сингл без инициализации
-  final LocalProductRepository _localRepository =
-      Get.find<LocalProductRepository>();
+  // Теперь используем единый FoodProductRepository
+  final FoodProductRepository _localRepository =
+      Get.find<FoodProductRepository>();
 
   @override
   void dispose() {
@@ -158,7 +158,7 @@ class _AddProductPageState extends State<AddProductPage> {
       });
 
       // 1. Сначала ищем в локальной БД
-      final localProduct = await _localRepository.getProductByBarcode(barcode);
+      final localProduct = _localRepository.getProductByBarcode(barcode);
       if (localProduct != null) {
         Logger.d('Продукт найден в локальной БД: ${localProduct.name}');
         setState(() {
@@ -494,9 +494,7 @@ class _AddProductPageState extends State<AddProductPage> {
 
                                   // Сохраняем в локальную БД
                                   try {
-                                    await _localRepository.saveProduct(
-                                      manualProduct,
-                                    );
+                                    _localRepository.saveProduct(manualProduct);
                                     Logger.d('Продукт сохранен в локальную БД');
 
                                     // Показываем уведомление об успехе

@@ -12,8 +12,7 @@ import 'package:tochka_balansa/presentation/widgets/text_form_field.dart';
 import 'package:tochka_balansa/presentation/widgets/app_date_field.dart';
 import 'package:tochka_balansa/presentation/widgets/app_dropdown_field.dart';
 import 'package:get/get.dart';
-import 'package:tochka_balansa/presentation/widgets/weight_picker_widget.dart';
-import 'package:tochka_balansa/presentation/widgets/height_picker_widget.dart';
+import 'package:tochka_balansa/presentation/widgets/number_picker_wheel.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 
 class UserDataPage extends StatefulWidget {
@@ -30,8 +29,8 @@ class _UserDataPageState extends State<UserDataPage> {
   final GlobalKey _heightKey = GlobalKey();
   final _scrollController = ScrollController();
 
-  double selectedWeight = 90.0;
-  double selectedHeight = 165.0;
+  double selectedWeight = 70.0;
+  double selectedHeight = 170.0;
   DateTime selectedDate = DateTime(2000, 1, 1);
   Gender selectedGender = Gender.male;
   ActivityLevel selectedActivityLevel =
@@ -56,7 +55,9 @@ class _UserDataPageState extends State<UserDataPage> {
     if (user.name.isNotEmpty) {
       nameController.text = user.name;
       selectedWeight = user.initialWeight > 0 ? user.initialWeight : 70.0;
-      selectedHeight = user.height > 0 ? user.height * 100 : 165.0;
+      selectedHeight = user.height > 0
+          ? user.height
+          : 170.0; // Убрал умножение на 100
       selectedDate = user.birthDate;
       selectedGender = user.gender;
       selectedActivityLevel = user.activityLevel; // НОВОЕ поле
@@ -66,9 +67,13 @@ class _UserDataPageState extends State<UserDataPage> {
   void _saveUserData() {
     if (formKey.currentState!.validate()) {
       FocusScope.of(context).unfocus();
+
+      // Автоматически исправляем первую букву имени
+      String correctedName = _capitalizeFirstLetter(nameController.text);
+
       Get.find<AuthBloc>().add(
         SaveUserDataEvent(
-          name: nameController.text,
+          name: correctedName,
           weight: selectedWeight,
           height: selectedHeight,
           birthDate: selectedDate,
@@ -78,6 +83,17 @@ class _UserDataPageState extends State<UserDataPage> {
       );
       context.go('/main');
     }
+  }
+
+  String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+
+    // Проверяем, является ли первый символ буквой (русской или английской)
+    if (RegExp(r'[а-яА-Яa-zA-Z]').hasMatch(text[0])) {
+      return text[0].toUpperCase() + text.substring(1).toLowerCase();
+    }
+
+    return text;
   }
 
   @override
@@ -128,20 +144,30 @@ class _UserDataPageState extends State<UserDataPage> {
                   ),
                   const Gap(20),
 
-                  WeightPickerWidget(
+                  NumberPickerWheel(
                     key: _weightKey,
                     value: selectedWeight,
                     onChanged: (weight) =>
                         setState(() => selectedWeight = weight),
                     label: textLang('Вес'),
+                    unit: 'кг',
+                    min: 30.0,
+                    max: 290.0,
+                    decimalPlaces: 0,
+                    step: 1.0,
                   ),
                   const Gap(20),
-                  HeightPickerWidget(
+                  NumberPickerWheel(
                     key: _heightKey,
                     value: selectedHeight,
                     onChanged: (height) =>
                         setState(() => selectedHeight = height),
                     label: textLang('Рост'),
+                    unit: 'см',
+                    min: 120.0,
+                    max: 250.0,
+                    decimalPlaces: 0,
+                    step: 1.0,
                   ),
 
                   const Gap(20),

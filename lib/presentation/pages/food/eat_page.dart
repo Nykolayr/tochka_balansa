@@ -130,8 +130,8 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildProductsList(ProductTabType tabType) {
-    // TODO: получать продукты по типу таба
-    final products = <FoodProduct>[];
+    // Получаем продукты по типу таба
+    final products = tabType.products;
 
     if (products.isEmpty) {
       return Center(

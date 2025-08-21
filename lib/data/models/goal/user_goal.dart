@@ -25,12 +25,8 @@ class UserGoal extends Equatable {
 
   factory UserGoal.fromJson(Map<String, dynamic> json) {
     try {
-      // Отладочный вывод
-      Logger.i('UserGoal.fromJson: $json');
-
       // Проверяем тип goalType
       String? goalTypeStr = json['goalType'] as String?;
-      Logger.i('Строка goalType: $goalTypeStr');
 
       if (goalTypeStr == null) {
         Logger.e('goalType в JSON равен null');
@@ -45,7 +41,6 @@ class UserGoal extends Equatable {
           break;
         }
       }
-      Logger.i('Найден GoalType: ${goalType.name}');
 
       // Находим deadlineType
       String? deadlineTypeStr = json['deadlineType'] as String?;

@@ -71,14 +71,6 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
 
       Logger.i('Загрузка целей из UserRepository');
       final user = _userRepository.user;
-      Logger.i('Загружена главная цель: ${user.mainGoal}');
-      Logger.i(
-        'Загружено дополнительных целей: ${user.additionalGoals.length}',
-      );
-      Logger.i(
-        'Загружено архивных целей: ${_userRepository.archivedGoals.length}',
-      );
-
       // Проверяем, не загружаем ли мы пустую цель, когда у нас уже есть цель
       if (!user.mainGoal.hasMainGoal && state.mainGoal.hasMainGoal) {
         Logger.w(

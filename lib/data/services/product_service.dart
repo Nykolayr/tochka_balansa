@@ -1,20 +1,21 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/services/food_api_service.dart';
-import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
+import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
 
 class ProductService {
-  final LocalProductRepository _localRepository;
+  final FoodProductRepository _localRepository =
+      Get.find<FoodProductRepository>();
 
-  ProductService({required LocalProductRepository localRepository})
-    : _localRepository = localRepository;
+  ProductService();
 
   /// Поиск продукта по баркоду
   /// Сначала проверяет локальную БД, затем OpenFoodFacts
   Future<ProductSearchResult> searchProductByBarcode(String barcode) async {
     try {
       // 1. Поиск в локальной БД
-      final localProduct = await _localRepository.getProductByBarcode(barcode);
+      final localProduct = _localRepository.getProductByBarcode(barcode);
       if (localProduct != null) {
         return ProductSearchResult.local(localProduct);
       }
@@ -34,7 +35,7 @@ class ProductService {
 
   /// Сохранение локального продукта
   Future<void> saveLocalProduct(FoodProduct product) async {
-    await _localRepository.saveProduct(product);
+    _localRepository.saveProduct(product);
   }
 
   /// Конвертация API продукта в локальный

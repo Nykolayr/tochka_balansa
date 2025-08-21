@@ -44,9 +44,6 @@ class AppTextFormField extends StatelessWidget {
     if (value.length < 4) {
       return textLang('Имя должно содержать минимум 4 символа');
     }
-    if (!RegExp(r'^[А-Я]').hasMatch(value)) {
-      return textLang('Первая буква должна быть заглавной');
-    }
     return null;
   }
 

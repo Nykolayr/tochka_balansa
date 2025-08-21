@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:tochka_balansa/data/api/api.dart';
 import 'package:tochka_balansa/data/api/dio_client.dart';
 import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
-import 'package:tochka_balansa/data/repositories/local_product_repository.dart';
+// Удален import LocalProductRepository - объединен с FoodProductRepository
 import 'package:tochka_balansa/data/repositories/main_repository.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/data/repositories/health_repository.dart';
@@ -20,19 +20,11 @@ import 'package:tochka_balansa/providers/language_bloc.dart';
 
 /// внедряем зависимости
 Future<void> initMain() async {
-  try {
-    await Get.putAsync(() async {
-      final localProductRepository = LocalProductRepository();
-      return localProductRepository;
-    });
-  } catch (e) {
-    Logger.e('FoodProductRepository error = $e');
-  }
-
-  // Инициализируем FoodProductRepository
+  // Инициализируем единый FoodProductRepository (объединили LocalProductRepository)
   try {
     await Get.putAsync(() async {
       final foodProductRepository = FoodProductRepository();
+      await foodProductRepository.init();
       return foodProductRepository;
     });
   } catch (e) {
@@ -42,7 +34,7 @@ Future<void> initMain() async {
   // Инициализируем DailyCaloriesRepository
   try {
     final dailyCaloriesRepo = DailyCaloriesRepository();
-    Get.put(dailyCaloriesRepo);
+    Get.lazyPut(() => dailyCaloriesRepo, fenix: true);
 
     // Только инициализируем, НЕ создаем запись
     await dailyCaloriesRepo.init();
@@ -89,7 +81,7 @@ Future<void> initMain() async {
 
   // Инициализируем AuthBloc
   try {
-    Get.put<AuthBloc>(AuthBloc());
+    Get.lazyPut<AuthBloc>(() => AuthBloc(), fenix: true);
   } catch (e) {
     Logger.e('AuthBloc error = $e');
   }
@@ -107,38 +99,38 @@ Future<void> initMain() async {
 
   // Инициализируем MainBloc
   try {
-    Get.put<MainBloc>(MainBloc());
+    Get.lazyPut<MainBloc>(() => MainBloc(), fenix: true);
   } catch (e) {
     Logger.e('MainBloc error = $e');
   }
 
   // Инициализируем GoalBloc
   try {
-    Get.put<GoalBloc>(GoalBloc());
+    Get.lazyPut<GoalBloc>(() => GoalBloc(), fenix: true);
   } catch (e) {
     Logger.e('GoalBloc error = $e');
   }
 
   // Добавляем FoodBloc для работы с продуктами
   try {
-    Get.put<FoodBloc>(FoodBloc());
+    Get.lazyPut<FoodBloc>(() => FoodBloc(), fenix: true);
   } catch (e) {
     Logger.e('FoodBloc error = $e');
   }
 
   // Добавляем LanguageBloc
   try {
-    Get.put<LanguageBloc>(LanguageBloc());
+    Get.lazyPut<LanguageBloc>(() => LanguageBloc(), fenix: true);
   } catch (e) {
     Logger.e('LanguageBloc error = $e');
   }
 
   // Добавляем HealthBloc
   try {
-    Get.put<HealthBloc>(HealthBloc());
+    Get.lazyPut<HealthBloc>(() => HealthBloc(), fenix: true);
   } catch (e) {
     Logger.e('HealthBloc error = $e');
   }
 
-  await Future.delayed(Duration(seconds: 2));
+  // Убираем ненужную задержку
 }

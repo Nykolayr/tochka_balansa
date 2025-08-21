@@ -14,8 +14,8 @@ class DailyCaloriesRepository {
   factory DailyCaloriesRepository() => _instance;
 
   DailyCaloriesRepository._internal() {
-    // При инициализации загружаем записи из локального хранилища
-    loadFromLocal();
+    // Убираем автоматическую загрузку из конструктора
+    // Загрузка будет происходить только при явном вызове init()
   }
 
   /// Списки  записей
@@ -114,7 +114,7 @@ class DailyCaloriesRepository {
       // Возвращаем базовую запись с минимальными значениями
       return DailyCaloriesRecord.create(
         date: DateTime.now(),
-        burnedCalories: 2000, // Базовое значение
+        burnedCalories: 1500, // Базовое значение BMR для взрослого человека
         gender: user.gender.name,
       );
     }
@@ -148,7 +148,7 @@ class DailyCaloriesRepository {
 
       final newRecord = DailyCaloriesRecord.create(
         date: todayDate,
-        burnedCalories: totalCalories,
+        burnedCalories: bmr, // Используем BMR (базовый обмен веществ)
         gender: user.gender.name,
       );
 

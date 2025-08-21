@@ -14,7 +14,7 @@ class FoodProduct extends Equatable {
   final bool isFavorite; // Избранный продукт
   final String? imageUrl; // URL изображения продукта
   final double? totalWeight; // Общий вес продукта в упаковке
-  
+
   // Нутриенты на 100г
   final double? proteinsPer100; // Белки на 100г
   final double? fatPer100; // Жиры на 100г
@@ -164,16 +164,16 @@ class FoodProduct extends Equatable {
 
   factory FoodProduct.fromJson(Map<String, dynamic> json) {
     return FoodProduct(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      barcode: json['barcode'] as String?,
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      barcode: json['barcode'] ?? '',
       amount: (json['amount'] as num).toDouble(),
-      unit: json['unit'] as String,
-      caloriesPer100: json['caloriesPer100'] as int,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      usageCount: json['usageCount'] as int? ?? 1,
+      unit: json['unit'] ?? '',
+      caloriesPer100: json['caloriesPer100'] ?? 0,
+      timestamp: DateTime.parse(json['timestamp'] ?? ''),
+      usageCount: json['usageCount'] ?? 1,
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
+          ? DateTime.parse(json['createdAt'] ?? '')
           : DateTime.now(),
       isFavorite: json['isFavorite'] as bool? ?? false,
       imageUrl: json['imageUrl'] as String?,
@@ -207,5 +207,3 @@ class FoodProduct extends Equatable {
     saturatedFatPer100,
   ];
 }
-
-

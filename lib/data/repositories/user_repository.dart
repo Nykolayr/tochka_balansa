@@ -61,9 +61,6 @@ class UserRepository {
       Logger.i('Инициализация UserRepository');
       await HiveData.init();
       token = await SecureStorageService().getToken() ?? '';
-      Logger.i(
-        'Токен загружен: ${token.isNotEmpty ? "присутствует" : "отсутствует"}',
-      );
       await loadUserFromLocal();
     } catch (e) {
       Logger.e('Ошибка при инициализации UserRepository: $e');
@@ -185,11 +182,8 @@ class UserRepository {
   Future<void> loadUserFromLocal() async {
     try {
       final data = await HiveData.loadJson(key: HiveDataKey.user);
-      Logger.i('loadUserFromLocal: загружены данные из Hive');
-
       // Конвертируем Map<dynamic, dynamic> в Map<String, dynamic>
       final convertedData = Map<String, dynamic>.from(data);
-      Logger.i('convertedData ${convertedData.runtimeType}');
       user = User.fromJson(convertedData);
       Logger.i('loadUserFromLocal: пользователь загружен: ${user.name}');
     } catch (e) {
