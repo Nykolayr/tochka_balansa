@@ -69,14 +69,14 @@ Future<void> initMain() async {
 
   // Регистрируем HealthRepository
   try {
-    Get.lazyPut<HealthRepository>(() => HealthRepository(), fenix: true);
+    await Get.putAsync<HealthRepository>(() async => HealthRepository());
   } catch (e) {
     Logger.e('HealthRepository error = $e');
   }
 
   // Инициализируем AuthBloc
   try {
-    Get.lazyPut<AuthBloc>(() => AuthBloc(), fenix: true);
+    await Get.putAsync<AuthBloc>(() async => AuthBloc());
   } catch (e) {
     Logger.e('AuthBloc error = $e');
   }
@@ -94,31 +94,33 @@ Future<void> initMain() async {
 
   // Инициализируем MainBloc
   try {
-    Get.lazyPut<MainBloc>(() => MainBloc(), fenix: true);
+    await Get.putAsync<MainBloc>(() async => MainBloc());
   } catch (e) {
     Logger.e('MainBloc error = $e');
   }
 
   // Инициализируем GoalBloc
   try {
-    Get.lazyPut<GoalBloc>(() => GoalBloc(), fenix: true);
+    await Get.putAsync<GoalBloc>(() async => GoalBloc());
   } catch (e) {
     Logger.e('GoalBloc error = $e');
   }
 
   // Добавляем FoodBloc для работы с продуктами
   try {
-    Get.lazyPut<FoodBloc>(() => FoodBloc(), fenix: true);
+    await Get.putAsync<FoodBloc>(() async => FoodBloc());
   } catch (e) {
     Logger.e('FoodBloc error = $e');
   }
 
   // Добавляем HealthBloc
   try {
-    Get.lazyPut<HealthBloc>(() => HealthBloc(), fenix: true);
+    await Get.putAsync<HealthBloc>(() async => HealthBloc());
   } catch (e) {
     Logger.e('HealthBloc error = $e');
   }
 
-  Logger.w('end Locator');
+  Logger.i('Все блоки инициализированы и готовы к работе');
+
+  await Future.delayed(const Duration(seconds: 2));
 }

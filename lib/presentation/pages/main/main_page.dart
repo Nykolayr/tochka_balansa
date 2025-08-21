@@ -18,7 +18,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
-  MainBloc bloc = Get.find<MainBloc>();
+  final MainBloc bloc = Get.find<MainBloc>();
   final PageController pageController = PageController();
 
   /// нажатие на таб
