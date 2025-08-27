@@ -97,7 +97,6 @@ class BodyOutlineWidget extends StatelessWidget {
                           value: mainState.burnedCalories,
                           maxValue: mainState.maxCalories,
                           onTap: (value) {
-                            // ИСПРАВЛЕНО: показываем модалку для сожжено
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -161,9 +160,10 @@ class BodyOutlineWidget extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 100,
+              top: 85,
               child: Text(
-                '${currentWeight.toStringAsFixed(1)} кг',
+                '${currentWeight.toStringAsFixed(1)} \n кг.',
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
@@ -184,6 +184,7 @@ class BodyOutlineWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'ИМТ: ${bmi.toStringAsFixed(1)}',
@@ -196,7 +197,8 @@ class BodyOutlineWidget extends StatelessWidget {
                 const Gap(3),
                 Text(
                   bmiCategory.title,
-                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11, color: Colors.black),
                   textAlign: TextAlign.center,
                 ),
               ],
