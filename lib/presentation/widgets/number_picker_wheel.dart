@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 
 class NumberPickerWheel extends StatefulWidget {
@@ -58,8 +59,6 @@ class _NumberPickerWheelState extends State<NumberPickerWheel> {
   void _initializeDigits() {
     // Преобразуем значение в целое число
     int intValue = widget.value.toInt();
-    
-    print('NumberPickerWheel: инициализация с значением ${widget.value}, intValue: $intValue');
 
     // Разбиваем на цифры
     List<int> wholeDigits = intValue
@@ -75,8 +74,6 @@ class _NumberPickerWheelState extends State<NumberPickerWheel> {
 
     // Берем только первые 3 цифры
     _digits = wholeDigits.take(3).toList();
-    
-    print('NumberPickerWheel: цифры: $_digits');
 
     // Создаем контроллеры для каждого колеса
     _controllers = List.generate(
@@ -121,19 +118,19 @@ class _NumberPickerWheelState extends State<NumberPickerWheel> {
   }
 
   void _onDigitChanged(int digitIndex, int newValue) {
-    print('NumberPickerWheel: изменение цифры $digitIndex на $newValue');
     setState(() {
       _digits[digitIndex] = newValue;
     });
 
     // Обновляем значение
     double calculatedValue = _calculateValue();
-    print('NumberPickerWheel: проверка диапазона: $calculatedValue >= ${widget.min} && $calculatedValue <= ${widget.max}');
+
     if (calculatedValue >= widget.min && calculatedValue <= widget.max) {
-      print('NumberPickerWheel: вызываем onChanged с $calculatedValue');
       widget.onChanged(calculatedValue);
     } else {
-      print('NumberPickerWheel: значение $calculatedValue вне диапазона [${widget.min}, ${widget.max}]');
+      Logger.e(
+        'NumberPickerWheel: значение $calculatedValue вне диапазона [${widget.min}, ${widget.max}]',
+      );
     }
   }
 
@@ -143,7 +140,6 @@ class _NumberPickerWheelState extends State<NumberPickerWheel> {
     for (int i = 0; i < 3; i++) {
       wholePart = wholePart * 10 + _digits[i];
     }
-    print('NumberPickerWheel: рассчитанное значение: $wholePart');
     return wholePart.toDouble();
   }
 

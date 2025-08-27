@@ -50,10 +50,6 @@ class _MainPageState extends State<MainPage> {
 
     // Загружаем данные при инициализации страницы
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print(
-        'MainPage: Инициализация данных (${DateTime.now().millisecondsSinceEpoch})',
-      );
-
       final goalBloc = Get.find<GoalBloc>();
       goalBloc.add(const LoadGoalsEvent()); // Загружаем все цели и типы целей
 
