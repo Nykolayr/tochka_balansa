@@ -122,5 +122,5 @@ Future<void> initMain() async {
 
   Logger.i('Все блоки инициализированы и готовы к работе');
 
-  await Future.delayed(const Duration(seconds: 2));
+  Logger.w('end Locator');
 }
