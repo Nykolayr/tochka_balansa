@@ -6,6 +6,7 @@ class CustomModalSheet extends StatelessWidget {
   final bool isDismissible;
   final bool enableDrag;
   final double? height;
+  final bool showCloseButton;
 
   const CustomModalSheet({
     super.key,
@@ -14,6 +15,7 @@ class CustomModalSheet extends StatelessWidget {
     this.isDismissible = true,
     this.enableDrag = true,
     this.height,
+    this.showCloseButton = true,
   });
 
   static Future<T?> show<T>({
@@ -23,6 +25,7 @@ class CustomModalSheet extends StatelessWidget {
     bool isDismissible = true,
     bool enableDrag = true,
     double? height,
+    bool showCloseButton = true,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -34,6 +37,7 @@ class CustomModalSheet extends StatelessWidget {
         isDismissible: isDismissible,
         enableDrag: enableDrag,
         height: height,
+        showCloseButton: showCloseButton,
         child: child,
       ),
     );
@@ -94,7 +98,7 @@ class CustomModalSheet extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isDismissible)
+                  if (showCloseButton)
                     Container(
                       decoration: BoxDecoration(
                         color: Theme.of(

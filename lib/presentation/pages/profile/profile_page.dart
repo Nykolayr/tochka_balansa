@@ -19,23 +19,18 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showLogoutDialog() {
     CustomModalSheet.show(
       context: context,
-      title: 'Выход из аккаунта',
-      height: 200,
-      isDismissible: false,
+      title: 'Вы уверены, что хотите выйти?',
+      height: 220,
+      isDismissible: true,
+      showCloseButton: false,
       child: Column(
         children: [
-          Text(
-            'Вы уверены, что хотите выйти?',
-            style: AppText.text16mb.copyWith(color: AppColor.black),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
           Text(
             'Все данные будут удалены с устройства',
             style: AppText.text14rb.copyWith(color: AppColor.greyText),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Row(
             children: [
               Expanded(
