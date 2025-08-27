@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/core/theme/text.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
@@ -79,15 +80,20 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _logout() async {
     try {
       await _userRepository.logout();
-      // Перенаправляем на страницу авторизации
-      Get.offAllNamed('/auth');
+      // Перезапускаем приложение с самого начала (сплэш экран)
+      if (context.mounted) {
+        context.go('/splash');
+      }
     } catch (e) {
       // Показываем ошибку если что-то пошло не так
-      Get.snackbar(
-        'Ошибка',
-        'Не удалось выйти из аккаунта',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Не удалось выйти из аккаунта'),
+            backgroundColor: AppColor.red,
+          ),
+        );
+      }
     }
   }
 
