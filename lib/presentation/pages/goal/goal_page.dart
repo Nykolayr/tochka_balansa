@@ -7,6 +7,7 @@ import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_card_widget.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/goal_edit_modal.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 class GoalPage extends StatelessWidget {
   const GoalPage({super.key});
@@ -23,30 +24,58 @@ class GoalPage extends StatelessWidget {
             children: [
               // Главная цель
               ...[
-                Text(
-                  textLang('Главная цель'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.darkBlue,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      textLang('Главная цель'),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.darkBlue,
+                      ),
+                    ),
+                    if (!state.mainGoal.hasMainGoal)
+                      ElevatedButton(
+                        onPressed: () {
+                          // Переходим на главную страницу (индекс 0)
+                          final mainBloc = Get.find<MainBloc>();
+                          mainBloc.add(GoToPageEvent(0));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.darkBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(textLang('Добавить')),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                GoalCardWidget(
-                  goal: state.mainGoal,
-                  isMainGoal: true,
-                  onTap: () {
-                    // Показываем модальное окно редактирования главной цели
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) =>
-                          GoalEditModal(currentGoal: state.mainGoal),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
+                // Показываем виджет только если цель установлена
+                if (state.mainGoal.hasMainGoal) ...[
+                  GoalCardWidget(
+                    goal: state.mainGoal,
+                    isMainGoal: true,
+                    onTap: () {
+                      // Показываем модальное окно редактирования главной цели
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) =>
+                            GoalEditModal(currentGoal: state.mainGoal),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ],
 
               // Дополнительные цели
