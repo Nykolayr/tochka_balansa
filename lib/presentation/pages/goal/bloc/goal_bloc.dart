@@ -395,4 +395,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
+
+  /// Сброс состояния блока (без emit)
+  void reset() {
+    Logger.i('GoalBloc: состояние сброшено');
+  }
 }

@@ -38,4 +38,10 @@ class HealthRepository {
       Logger.e('Error saving health data: $e');
     }
   }
+
+  /// Сброс данных о здоровье
+  void reset() {
+    healthData = HealthData.initial();
+    Logger.i('HealthRepository: данные сброшены');
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/data/api/api.dart';
 import 'package:tochka_balansa/data/datasources/hive_data.dart';
@@ -8,6 +9,15 @@ import 'package:tochka_balansa/data/models/response_api.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/models/goal/additional_goal.dart';
 import 'package:tochka_balansa/data/models/health/activity_level.dart';
+import 'package:tochka_balansa/data/repositories/health_repository.dart';
+import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/main_repository.dart';
+import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/auth/bloc/auth_bloc.dart';
 
 /// репо для юзера
 class UserRepository {
@@ -73,14 +83,122 @@ class UserRepository {
   }
 
   Future<void> logout() async {
-    await HiveData.saveJson(
-      json: User.initial().toJson(),
-      key: HiveDataKey.user,
-    );
-    await SecureStorageService().deleteToken();
-    user = User.initial();
-    token = '';
-    _resetLoadFlags();
+    try {
+      Logger.i('Начинаем полную очистку приложения при выходе');
+
+      // 1. Очищаем все данные в Hive
+      await _clearAllHiveData();
+
+      // 2. Удаляем токен
+      await SecureStorageService().deleteToken();
+
+      // 3. Очищаем все блоки и репозитории из Get
+      await _clearAllGetDependencies();
+
+      Logger.i('Полная очистка завершена');
+    } catch (e) {
+      Logger.e('Ошибка при очистке данных: $e');
+    }
+  }
+
+  /// Очистка всех зависимостей из Get
+  Future<void> _clearAllGetDependencies() async {
+    try {
+      // Сбрасываем состояние всех блоков перед удалением
+      if (Get.isRegistered<HealthBloc>()) {
+        final healthBloc = Get.find<HealthBloc>();
+        healthBloc.reset();
+        Get.delete<HealthBloc>();
+      }
+      if (Get.isRegistered<GoalBloc>()) {
+        final goalBloc = Get.find<GoalBloc>();
+        goalBloc.reset();
+        Get.delete<GoalBloc>();
+      }
+      if (Get.isRegistered<FoodBloc>()) {
+        final foodBloc = Get.find<FoodBloc>();
+        foodBloc.reset();
+        Get.delete<FoodBloc>();
+      }
+      if (Get.isRegistered<MainBloc>()) {
+        final mainBloc = Get.find<MainBloc>();
+        mainBloc.reset();
+        Get.delete<MainBloc>();
+      }
+      if (Get.isRegistered<AuthBloc>()) {
+        final authBloc = Get.find<AuthBloc>();
+        authBloc.reset();
+        Get.delete<AuthBloc>();
+      }
+
+      // Сбрасываем состояние всех репозиториев перед удалением
+      if (Get.isRegistered<HealthRepository>()) {
+        final healthRepo = Get.find<HealthRepository>();
+        healthRepo.reset();
+        Get.delete<HealthRepository>();
+      }
+      if (Get.isRegistered<FoodProductRepository>()) {
+        final foodRepo = Get.find<FoodProductRepository>();
+        foodRepo.reset();
+        Get.delete<FoodProductRepository>();
+      }
+      if (Get.isRegistered<DailyCaloriesRepository>()) {
+        final caloriesRepo = Get.find<DailyCaloriesRepository>();
+        caloriesRepo.reset();
+        Get.delete<DailyCaloriesRepository>();
+      }
+      if (Get.isRegistered<MainRepository>()) {
+        final mainRepo = Get.find<MainRepository>();
+        mainRepo.reset();
+        Get.delete<MainRepository>();
+      }
+
+      // Очищаем все репозитории в памяти
+      _clearAllRepositories();
+
+      Logger.i('Все зависимости из Get удалены');
+    } catch (e) {
+      Logger.e('Ошибка удаления зависимостей: $e');
+    }
+  }
+
+  /// Очистка всех репозиториев в памяти
+  void _clearAllRepositories() {
+    try {
+      // Очищаем текущий UserRepository
+      _resetLoadFlags();
+
+      // Очищаем все списки данных
+      goalTypes.clear();
+      archivedGoals.clear();
+
+      // Сбрасываем пользователя на начальное состояние
+      user = User.initial();
+
+      // Сбрасываем токен
+      token = '';
+
+      Logger.i('Все репозитории в памяти очищены');
+    } catch (e) {
+      Logger.e('Ошибка очистки репозиториев: $e');
+    }
+  }
+
+  /// Очистка всех данных в Hive
+  Future<void> _clearAllHiveData() async {
+    try {
+      Logger.i('Начинаем полную очистку Hive...');
+
+      // Полностью удаляем бокс с диска
+      await HiveData.deleteFromDisk();
+
+      // Пересоздаем пустой бокс
+      await HiveData.init();
+
+      Logger.i('Весь Hive полностью удален с диска и пересоздан');
+    } catch (e) {
+      Logger.e('Ошибка очистки Hive: $e');
+    }
   }
 
   /// удаление аккаунта

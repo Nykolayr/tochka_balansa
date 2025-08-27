@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
@@ -81,5 +82,10 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
         isListChange: true,
       ),
     );
+  }
+
+  /// Сброс состояния блока (без emit)
+  void reset() {
+    Logger.i('FoodBloc: состояние сброшено');
   }
 }

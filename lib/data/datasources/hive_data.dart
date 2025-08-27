@@ -15,6 +15,11 @@ class HiveData {
     await _box.clear();
   }
 
+  /// Полное удаление бокса с диска
+  static Future<void> deleteFromDisk() async {
+    await _box.deleteFromDisk();
+  }
+
   static Future<void> saveBool({
     required bool bool,
     required HiveDataKey key,

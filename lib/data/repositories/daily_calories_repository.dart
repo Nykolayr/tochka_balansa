@@ -275,4 +275,11 @@ class DailyCaloriesRepository {
     records.clear();
     await saveToLocal();
   }
+
+  /// Сброс данных репозитория
+  void reset() {
+    records.clear();
+    currentDate = DateTime.now();
+    Logger.i('DailyCaloriesRepository: данные сброшены');
+  }
 }

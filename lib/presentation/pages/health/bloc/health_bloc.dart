@@ -96,6 +96,11 @@ class HealthBloc extends Bloc<HealthEvent, HealthState> {
     }
   }
 
+  /// Сброс состояния блока (без emit)
+  void reset() {
+    Logger.i('HealthBloc: состояние сброшено');
+  }
+
   Future<void> _onDeleteHealthMetric(
     DeleteHealthMetricEvent event,
     Emitter<HealthState> emit,

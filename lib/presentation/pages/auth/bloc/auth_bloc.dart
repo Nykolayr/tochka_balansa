@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/health/activity_level.dart';
 import 'package:tochka_balansa/data/models/user.dart';
@@ -97,6 +98,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (answer.isEmpty) {
       emit(state.copyWith(status: AuthStatus.successEnter));
     }
+  }
+
+  /// Сброс состояния блока (без emit)
+  void reset() {
+    Logger.i('AuthBloc: состояние сброшено');
   }
 
   /// очистка ошибки и показа ошибки

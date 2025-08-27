@@ -242,4 +242,11 @@ class FoodProductRepository {
       Logger.e('Ошибка при очистке данных: $e');
     }
   }
+
+  /// Сброс данных репозитория
+  void reset() {
+    products.clear();
+    _isInitialized = false;
+    Logger.i('FoodProductRepository: данные сброшены');
+  }
 }

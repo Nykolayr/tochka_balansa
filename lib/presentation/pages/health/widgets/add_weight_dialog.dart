@@ -192,7 +192,7 @@ class _WeightPickerWheelState extends State<WeightPickerWheel> {
                 style: AppText.text18bb.copyWith(color: AppColor.black),
               ),
               Text(
-                '${_wholePart}.${_decimalPart.toString().padLeft(1, '0')} кг',
+                '$_wholePart.${_decimalPart.toString().padLeft(1, '0')} кг',
                 style: AppText.text18bb.copyWith(color: AppColor.black),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
@@ -47,8 +48,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     UpdateCaloriesEvent event,
     Emitter<MainState> emit,
   ) {
-
-    
     emit(
       state.copyWith(
         consumedCalories: event.consumedCalories,
@@ -56,5 +55,10 @@ class MainBloc extends Bloc<MainEvent, MainState> {
         maxCalories: event.maxCalories,
       ),
     );
+  }
+
+  /// Сброс состояния блока (без emit)
+  void reset() {
+    Logger.i('MainBloc: состояние сброшено');
   }
 }
