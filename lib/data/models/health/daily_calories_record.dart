@@ -1,15 +1,13 @@
 import 'package:equatable/equatable.dart';
-import 'package:get/get.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
-import 'package:tochka_balansa/data/models/gender.dart';
-import 'package:tochka_balansa/data/repositories/user_repository.dart';
 
 /// Модель дневной записи калорий
 class DailyCaloriesRecord extends Equatable {
   final String id;
   final DateTime date;
   final int consumedCalories; // Съедено калорий
-  final int burnedCalories; // Сожжено калорий (базовый обмен)
+  final int burnedCalories; // Сожжено калорий (от упражнений)
+  final int maxCalories; // Максимальные калории (BMR + активность)
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<FoodProduct> breakfast;
@@ -22,6 +20,7 @@ class DailyCaloriesRecord extends Equatable {
     required this.date,
     required this.consumedCalories,
     required this.burnedCalories,
+    required this.maxCalories,
     required this.createdAt,
     required this.updatedAt,
     required this.breakfast,
@@ -33,6 +32,7 @@ class DailyCaloriesRecord extends Equatable {
   factory DailyCaloriesRecord.create({
     required DateTime date,
     required int burnedCalories,
+    required int maxCalories,
     required String gender,
   }) {
     final now = DateTime.now();
@@ -41,6 +41,7 @@ class DailyCaloriesRecord extends Equatable {
       date: date,
       consumedCalories: 0, // По умолчанию 0
       burnedCalories: burnedCalories,
+      maxCalories: maxCalories,
       createdAt: now,
       updatedAt: now,
       breakfast: [],
@@ -55,6 +56,7 @@ class DailyCaloriesRecord extends Equatable {
     DateTime? date,
     int? consumedCalories,
     int? burnedCalories,
+    int? maxCalories,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<FoodProduct>? breakfast,
@@ -67,6 +69,7 @@ class DailyCaloriesRecord extends Equatable {
       date: date ?? this.date,
       consumedCalories: consumedCalories ?? this.consumedCalories,
       burnedCalories: burnedCalories ?? this.burnedCalories,
+      maxCalories: maxCalories ?? this.maxCalories,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       breakfast: breakfast ?? this.breakfast,
@@ -96,16 +99,7 @@ class DailyCaloriesRecord extends Equatable {
   int get balance => consumedCalories - burnedCalories;
 
   /// Получить максимальное количество калорий для 100% заполнения сосуда
-  /// Женщины: максимум 3500, мужчины: максимум 4000
-  int get maxCalories {
-    final userRepository = Get.find<UserRepository>();
-    final user = userRepository.user;
-    if (user.gender == Gender.female) {
-      return 3000; // Максимум для женщин
-    } else {
-      return 3500; // Максимум для мужчин
-    }
-  }
+  /// Теперь используется сохраненное значение maxCalories
 
   /// Процент заполнения сосуда "Съедено"
   double get consumedPercentage => consumedCalories / maxCalories;
@@ -119,8 +113,13 @@ class DailyCaloriesRecord extends Equatable {
       'date': date.toIso8601String(),
       'consumedCalories': consumedCalories,
       'burnedCalories': burnedCalories,
+      'maxCalories': maxCalories,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'breakfast': breakfast.map((e) => e.toJson()).toList(),
+      'lunch': lunch.map((e) => e.toJson()).toList(),
+      'dinner': dinner.map((e) => e.toJson()).toList(),
+      'snacks': snacks.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -132,10 +131,10 @@ class DailyCaloriesRecord extends Equatable {
           : DateTime.now(),
       consumedCalories: json['consumedCalories'] ?? 0,
       burnedCalories: json['burnedCalories'] ?? 0,
+      maxCalories: json['maxCalories'] ?? 2000, // Базовое значение по умолчанию
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
-
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : DateTime.now(),
@@ -168,6 +167,7 @@ class DailyCaloriesRecord extends Equatable {
     date,
     consumedCalories,
     burnedCalories,
+    maxCalories,
     createdAt,
     updatedAt,
     breakfast,

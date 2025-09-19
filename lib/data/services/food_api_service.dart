@@ -129,13 +129,14 @@ class FoodApiService {
         return FoodProduct.create(
           name: product.productName ?? 'Неизвестно',
           barcode: barcode,
-          amount: 100.0, // По умолчанию 100г/мл
+          amount:
+              totalWeight ?? 100.0, // Вес упаковки (количество, которое съел)
           unit: unit,
-          caloriesPer100: caloriesPer100,
+          caloriesPer100: caloriesPer100, // Калории на 100г
           imageUrl:
               product.imageFrontSmallUrl ??
               product.imageFrontUrl, // Предпочитаем small URL
-          totalWeight: totalWeight,
+          totalWeight: totalWeight, // Общий вес упаковки
           proteinsPer100: proteinsPer100,
           fatPer100: fatPer100,
           carbsPer100: carbsPer100,
@@ -262,13 +263,14 @@ class FoodApiService {
           return FoodProduct.create(
             name: product.productName ?? 'Неизвестно',
             barcode: product.barcode,
-            amount: 100.0, // По умолчанию 100г/мл
+            amount:
+                totalWeight ?? 100.0, // Вес упаковки (количество, которое съел)
             unit: unit,
-            caloriesPer100: caloriesPer100,
+            caloriesPer100: caloriesPer100, // Калории на 100г
             imageUrl:
                 product.imageFrontSmallUrl ??
                 product.imageFrontUrl, // Предпочитаем small URL
-            totalWeight: totalWeight,
+            totalWeight: totalWeight, // Общий вес упаковки
             proteinsPer100: proteinsPer100,
             fatPer100: fatPer100,
             carbsPer100: carbsPer100,

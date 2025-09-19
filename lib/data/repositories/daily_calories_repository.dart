@@ -37,16 +37,44 @@ class DailyCaloriesRepository {
   /// Добавить продукт
   Future<void> addFoodProduct(FoodProduct product, EatType type) async {
     var record = getTodayRecord(currentDate);
+
+    // Создаем копию списков для обновления
+    List<FoodProduct> breakfast = List.from(record.breakfast);
+    List<FoodProduct> lunch = List.from(record.lunch);
+    List<FoodProduct> dinner = List.from(record.dinner);
+    List<FoodProduct> snacks = List.from(record.snacks);
+
     switch (type) {
       case EatType.breakfast:
-        record.breakfast.add(product);
+        breakfast.add(product);
+        break;
       case EatType.lunch:
-        record.lunch.add(product);
+        lunch.add(product);
+        break;
       case EatType.dinner:
-        record.dinner.add(product);
+        dinner.add(product);
+        break;
       case EatType.snack:
-        record.snacks.add(product);
+        snacks.add(product);
+        break;
     }
+
+    // Создаем обновленную запись
+    final updatedRecord = record.copyWith(
+      breakfast: breakfast,
+      lunch: lunch,
+      dinner: dinner,
+      snacks: snacks,
+    );
+
+    // Обновляем запись в списке
+    final index = records.indexWhere((r) => r.id == record.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+    } else {
+      records.add(updatedRecord);
+    }
+
     // Обновляем калории в дневной записи
     updateDailyCalories();
   }
@@ -54,16 +82,44 @@ class DailyCaloriesRepository {
   /// Удалить продукт
   Future<void> removeFoodProduct(FoodProduct product, EatType type) async {
     var record = getTodayRecord(currentDate);
+
+    // Создаем копию списков для обновления
+    List<FoodProduct> breakfast = List.from(record.breakfast);
+    List<FoodProduct> lunch = List.from(record.lunch);
+    List<FoodProduct> dinner = List.from(record.dinner);
+    List<FoodProduct> snacks = List.from(record.snacks);
+
     switch (type) {
       case EatType.breakfast:
-        record.breakfast.removeWhere((item) => item.id == product.id);
+        breakfast.removeWhere((item) => item.id == product.id);
+        break;
       case EatType.lunch:
-        record.lunch.removeWhere((item) => item.id == product.id);
+        lunch.removeWhere((item) => item.id == product.id);
+        break;
       case EatType.dinner:
-        record.dinner.removeWhere((item) => item.id == product.id);
+        dinner.removeWhere((item) => item.id == product.id);
+        break;
       case EatType.snack:
-        record.snacks.removeWhere((item) => item.id == product.id);
+        snacks.removeWhere((item) => item.id == product.id);
+        break;
     }
+
+    // Создаем обновленную запись
+    final updatedRecord = record.copyWith(
+      breakfast: breakfast,
+      lunch: lunch,
+      dinner: dinner,
+      snacks: snacks,
+    );
+
+    // Обновляем запись в списке
+    final index = records.indexWhere((r) => r.id == record.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+    } else {
+      records.add(updatedRecord);
+    }
+
     // Обновляем калории в дневной записи
     updateDailyCalories();
   }
@@ -89,7 +145,18 @@ class DailyCaloriesRepository {
     }
 
     // Обновляем consumedCalories в записи
-    record = record.copyWith(consumedCalories: totalCalories.toInt());
+    final updatedRecord = record.copyWith(
+      consumedCalories: totalCalories.toInt(),
+    );
+
+    // Обновляем запись в списке
+    final index = records.indexWhere((r) => r.id == record.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+    } else {
+      // Если запись не найдена в списке, добавляем её
+      records.add(updatedRecord);
+    }
 
     // Сохраняем изменения в локальное хранилище
     saveToLocal();
@@ -114,7 +181,8 @@ class DailyCaloriesRepository {
       // Возвращаем базовую запись с минимальными значениями
       return DailyCaloriesRecord.create(
         date: DateTime.now(),
-        burnedCalories: 1500, // Базовое значение BMR для взрослого человека
+        burnedCalories: 1500, // Базовые калории организма (BMR)
+        maxCalories: 2000, // Базовое значение для взрослого человека
         gender: user.gender.name,
       );
     }
@@ -163,7 +231,9 @@ class DailyCaloriesRepository {
 
       final newRecord = DailyCaloriesRecord.create(
         date: todayDate,
-        burnedCalories: bmr, // Используем BMR (базовый обмен веществ)
+        burnedCalories: bmr, // Базовые калории организма (BMR)
+        maxCalories:
+            totalCalories, // Максимальные калории включают BMR + активность
         gender: user.gender.name,
       );
 
@@ -177,39 +247,43 @@ class DailyCaloriesRepository {
 
   /// Получить запись на конкретную дату
   DailyCaloriesRecord getTodayRecord(DateTime? date) {
-    if (records.isEmpty) {
-      return getOrCreateTodayRecord();
-    }
+    final targetDate = date ?? currentDate;
+    final targetDateOnly = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+    );
 
-    Logger.i('records.isEmpty = ${records.length}');
-
+    // Ищем запись на нужную дату
     try {
-      if (date == null) {
-        return records.firstWhere((record) {
-          final recordDate = DateTime(
-            record.date.year,
-            record.date.month,
-            record.date.day,
-          );
-          return recordDate.isAtSameMomentAs(currentDate);
-        });
-      }
-
       return records.firstWhere((record) {
         final recordDate = DateTime(
           record.date.year,
           record.date.month,
           record.date.day,
         );
-        return recordDate.isAtSameMomentAs(date);
+        return recordDate.isAtSameMomentAs(targetDateOnly);
       });
     } catch (e) {
-      Logger.e(
-        'Ошибка получения записи на дату ${currentDate.toIso8601String()}: $e',
-      );
-      // Если запись не найдена, создаем новую
-      Logger.i('Создаем новую запись на сегодня');
-      return getOrCreateTodayRecord();
+      // Если запись не найдена, создаем новую только для сегодняшней даты
+      final today = DateTime.now();
+      final todayOnly = DateTime(today.year, today.month, today.day);
+
+      if (targetDateOnly.isAtSameMomentAs(todayOnly)) {
+        Logger.i('Создаем новую запись на сегодня');
+        return getOrCreateTodayRecord();
+      } else {
+        // Для других дат возвращаем пустую запись
+        Logger.i(
+          'Запись на дату ${targetDateOnly.toIso8601String()} не найдена, возвращаем пустую',
+        );
+        return DailyCaloriesRecord.create(
+          date: targetDateOnly,
+          burnedCalories: 1500, // Базовые калории организма (BMR)
+          maxCalories: 2000, // Базовое значение для взрослого человека
+          gender: 'male', // Базовое значение
+        );
+      }
     }
   }
 

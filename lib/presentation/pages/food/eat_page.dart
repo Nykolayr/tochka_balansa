@@ -7,8 +7,10 @@ import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class EatPage extends StatefulWidget {
@@ -26,6 +28,10 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
 
   // Текущий выбранный таб
   int currentTabIndex = 0;
+
+  // Защита от повторных нажатий
+  bool _isAddingProduct = false;
+  bool _isRemovingProduct = false;
 
   @override
   void initState() {
@@ -125,7 +131,12 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
           );
         },
       ),
-      bottomNavigationBar: _buildBreakfastBlock(),
+      bottomNavigationBar: BlocBuilder<MainBloc, MainState>(
+        bloc: Get.find<MainBloc>(),
+        builder: (context, mainState) {
+          return _buildBreakfastBlock();
+        },
+      ),
     );
   }
 
@@ -184,9 +195,79 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  onPressed: () {
-                    // TODO: добавить продукт в завтрак
-                  },
+                  onPressed: _isAddingProduct
+                      ? null
+                      : () async {
+                          if (_isAddingProduct) return;
+
+                          setState(() {
+                            _isAddingProduct = true;
+                          });
+
+                          try {
+                            // Добавляем продукт в соответствующий прием пищи
+                            switch (widget.eatType) {
+                              case EatType.breakfast:
+                                Get.find<FoodBloc>().add(
+                                  AddProductToBreakfast(product),
+                                );
+                                break;
+                              case EatType.lunch:
+                                Get.find<FoodBloc>().add(
+                                  AddProductToLunch(product),
+                                );
+                                break;
+                              case EatType.dinner:
+                                Get.find<FoodBloc>().add(
+                                  AddProductToDinner(product),
+                                );
+                                break;
+                              case EatType.snack:
+                                Get.find<FoodBloc>().add(
+                                  AddProductToSnack(product),
+                                );
+                                break;
+                            }
+
+                            // Также добавляем в недавние для истории
+                            Get.find<FoodBloc>().add(
+                              AddProductToRecent(product),
+                            );
+
+                            // Принудительно обновляем UI
+                            setState(() {});
+
+                            // Обновляем MainBloc с новыми калориями
+                            final dailyCaloriesRepo =
+                                Get.find<DailyCaloriesRepository>();
+                            final updatedRecord = dailyCaloriesRepo
+                                .getCurrentRecord();
+                            final mainBloc = Get.find<MainBloc>();
+                            mainBloc.add(
+                              UpdateCaloriesEvent(
+                                consumedCalories:
+                                    updatedRecord.consumedCalories,
+                                burnedCalories: updatedRecord.burnedCalories,
+                                maxCalories: updatedRecord.maxCalories,
+                              ),
+                            );
+
+                            // Показываем уведомление об успехе
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Продукт "${product.name}" добавлен в ${widget.eatType.title}',
+                                ),
+                                backgroundColor: Colors.green,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          } finally {
+                            setState(() {
+                              _isAddingProduct = false;
+                            });
+                          }
+                        },
                   icon: Container(
                     width: 32,
                     height: 32,
@@ -206,8 +287,25 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildBreakfastBlock() {
-    // TODO: получать текущий завтрак
-    final breakfastProducts = <FoodProduct>[];
+    // Получаем продукты из репозитория
+    final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+    final currentRecord = dailyCaloriesRepo.getCurrentRecord();
+
+    List<FoodProduct> mealProducts = [];
+    switch (widget.eatType) {
+      case EatType.breakfast:
+        mealProducts = currentRecord.breakfast;
+        break;
+      case EatType.lunch:
+        mealProducts = currentRecord.lunch;
+        break;
+      case EatType.dinner:
+        mealProducts = currentRecord.dinner;
+        break;
+      case EatType.snack:
+        mealProducts = currentRecord.snacks;
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -226,20 +324,20 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
         children: [
           Row(
             children: [
-              const Icon(Icons.wb_sunny, color: Colors.orange),
+              Icon(widget.eatType.icon, color: Colors.orange),
               const SizedBox(width: 8),
-              const Text(
-                'Завтрак',
-                style: TextStyle(
+              Text(
+                widget.eatType.title,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
               const Spacer(),
-              if (breakfastProducts.isNotEmpty)
+              if (mealProducts.isNotEmpty)
                 Text(
-                  '${breakfastProducts.fold<int>(0, (sum, p) => sum + p.totalCalories)} ккал',
+                  '${mealProducts.fold<int>(0, (sum, p) => sum + p.totalCalories)} ккал',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -251,16 +349,16 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
 
           const SizedBox(height: 12),
 
-          if (breakfastProducts.isEmpty)
-            const Text(
+          if (mealProducts.isEmpty)
+            Text(
               'Добавьте продукты из списка или добавьте продукт через кнопку +',
-              style: TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
               textAlign: TextAlign.center,
             )
           else
             Column(
-              children: breakfastProducts
-                  .map((product) => _buildBreakfastProductItem(product))
+              children: mealProducts
+                  .map((product) => _buildMealProductItem(product))
                   .toList(),
             ),
         ],
@@ -268,13 +366,14 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildBreakfastProductItem(FoodProduct product) {
+  Widget _buildMealProductItem(FoodProduct product) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColor.darkBlue,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColor.darkBlue, width: 1),
       ),
       child: Row(
         children: [
@@ -286,13 +385,13 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                   product.name,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppColor.darkBlue,
                   ),
                 ),
                 Text(
                   product.displayAmount,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: AppColor.greyText.withValues(alpha: 0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -303,14 +402,60 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
             product.displayCalories,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: Colors.green,
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
-            onPressed: () {
-              // TODO: удалить продукт из завтрака
-            },
+            onPressed: _isRemovingProduct
+                ? null
+                : () async {
+                    if (_isRemovingProduct) return;
+
+                    setState(() {
+                      _isRemovingProduct = true;
+                    });
+
+                    try {
+                      // Удаляем продукт из соответствующего приема пищи
+                      final dailyCaloriesRepo =
+                          Get.find<DailyCaloriesRepository>();
+                      await dailyCaloriesRepo.removeFoodProduct(
+                        product,
+                        widget.eatType,
+                      );
+
+                      // Принудительно обновляем UI
+                      setState(() {});
+
+                      // Обновляем MainBloc с новыми калориями
+                      final updatedRecord = dailyCaloriesRepo
+                          .getCurrentRecord();
+                      final mainBloc = Get.find<MainBloc>();
+                      mainBloc.add(
+                        UpdateCaloriesEvent(
+                          consumedCalories: updatedRecord.consumedCalories,
+                          burnedCalories: updatedRecord.burnedCalories,
+                          maxCalories: updatedRecord.maxCalories,
+                        ),
+                      );
+
+                      // Показываем уведомление
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Продукт "${product.name}" удален из ${widget.eatType.title}',
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    } finally {
+                      setState(() {
+                        _isRemovingProduct = false;
+                      });
+                    }
+                  },
             icon: const Icon(Icons.remove_circle, color: Colors.red),
           ),
         ],
