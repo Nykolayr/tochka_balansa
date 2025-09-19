@@ -165,10 +165,23 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
     // Получаем продукты по типу таба
     final products = tabType.products;
 
-    if (products.isEmpty) {
+    // Фильтруем продукты по поисковому запросу
+    final filteredProducts = searchQuery.isEmpty
+        ? products
+        : products
+              .where(
+                (product) => product.name.toLowerCase().contains(
+                  searchQuery.toLowerCase(),
+                ),
+              )
+              .toList();
+
+    if (filteredProducts.isEmpty) {
       return Center(
         child: Text(
-          'Нет продуктов в ${tabType.title}',
+          searchQuery.isEmpty
+              ? 'Нет продуктов в ${tabType.title}'
+              : 'Продукты не найдены',
           style: TextStyle(
             fontSize: 16,
             color: AppColor.greyText.withValues(alpha: 0.7),
@@ -179,9 +192,9 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: products.length,
+      itemCount: filteredProducts.length,
       itemBuilder: (context, index) {
-        final product = products[index];
+        final product = filteredProducts[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
