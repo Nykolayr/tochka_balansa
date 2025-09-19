@@ -58,7 +58,7 @@ class MainState extends Equatable {
     selectedIndex: 0,
     consumedCalories: 0,
     burnedCalories: 0,
-    maxCalories: 2000,
+    maxCalories: 5000,
     foodProducts: [], // НОВОЕ
   );
 

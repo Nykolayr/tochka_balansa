@@ -14,7 +14,7 @@ class ConsumedVesselWidget extends StatefulWidget {
     required this.isVessel,
     required this.value,
     required this.onTap,
-    this.maxValue = 3500,
+    this.maxValue = 5000,
   });
 
   @override
@@ -38,7 +38,7 @@ class _ConsumedVesselWidgetState extends State<ConsumedVesselWidget> {
   Widget build(BuildContext context) {
     // Защита от отрицательных значений
     final safeValue = widget.value < 0 ? 0 : widget.value;
-    final safeMaxValue = widget.maxValue <= 0 ? 2000 : widget.maxValue;
+    final safeMaxValue = widget.maxValue <= 0 ? 5000 : widget.maxValue;
 
     // Рассчитываем процент заполнения
     final percentage = safeMaxValue > 0 ? safeValue / safeMaxValue : 0.0;

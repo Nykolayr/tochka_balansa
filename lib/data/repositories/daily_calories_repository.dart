@@ -190,7 +190,7 @@ class DailyCaloriesRepository {
       return DailyCaloriesRecord.create(
         date: DateTime.now(),
         burnedCalories: 1500, // Базовые калории организма (BMR)
-        maxCalories: 2000, // Базовое значение для взрослого человека
+        maxCalories: 5000, // Фиксированная максимальная емкость сосудов
         gender: user.gender.name,
       );
     }
@@ -240,8 +240,7 @@ class DailyCaloriesRepository {
       final newRecord = DailyCaloriesRecord.create(
         date: todayDate,
         burnedCalories: bmr, // Базовые калории организма (BMR)
-        maxCalories:
-            totalCalories, // Максимальные калории включают BMR + активность
+        maxCalories: 5000, // Фиксированная максимальная емкость сосудов
         gender: user.gender.name,
       );
 
