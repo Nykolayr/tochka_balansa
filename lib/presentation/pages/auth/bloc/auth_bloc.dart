@@ -8,6 +8,7 @@ import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/health/activity_level.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -37,6 +38,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       event.gender,
       event.activityLevel, // НОВОЕ поле
     );
+
+    // После сохранения данных пользователя перезаписываем запись на сегодня
+    try {
+      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+      final todayRecord = dailyCaloriesRepo.recreateTodayRecord();
+      Logger.i(
+        'Запись на сегодня перезаписана после ввода данных пользователя: consumedCalories=${todayRecord.consumedCalories}, burnedCalories=${todayRecord.burnedCalories}',
+      );
+    } catch (e) {
+      Logger.e(
+        'Ошибка перезаписи записи на сегодня после ввода данных пользователя: $e',
+      );
+    }
   }
 
   /// авторизация по email

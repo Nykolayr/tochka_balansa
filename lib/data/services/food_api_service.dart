@@ -130,7 +130,7 @@ class FoodApiService {
           name: product.productName ?? 'Неизвестно',
           barcode: barcode,
           amount:
-              totalWeight ?? 100.0, // Вес упаковки (количество, которое съел)
+              totalWeight ?? 100.0, // Вес продукта (количество, которое съел)
           unit: unit,
           caloriesPer100: caloriesPer100, // Калории на 100г
           imageUrl:
@@ -264,7 +264,7 @@ class FoodApiService {
             name: product.productName ?? 'Неизвестно',
             barcode: product.barcode,
             amount:
-                totalWeight ?? 100.0, // Вес упаковки (количество, которое съел)
+                totalWeight ?? 100.0, // Вес продукта (количество, которое съел)
             unit: unit,
             caloriesPer100: caloriesPer100, // Калории на 100г
             imageUrl:

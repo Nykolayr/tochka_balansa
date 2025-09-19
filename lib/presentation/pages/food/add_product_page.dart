@@ -460,11 +460,11 @@ class _AddProductPageState extends State<AddProductPage> {
 
                       const SizedBox(height: 16),
 
-                      // Вес упаковки
+                      // Вес продукта
                       TextField(
                         controller: weightController,
                         decoration: const InputDecoration(
-                          labelText: 'Вес упаковки',
+                          labelText: 'Вес продукта',
                           border: OutlineInputBorder(),
                           hintText: '0',
                           suffixText: 'г',

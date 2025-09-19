@@ -30,18 +30,6 @@ Future<void> initMain() async {
     Logger.e('FoodProductRepository error = $e');
   }
 
-  // Инициализируем DailyCaloriesRepository
-  try {
-    await Get.putAsync<DailyCaloriesRepository>(() async {
-      final repo = DailyCaloriesRepository();
-      await repo.init();
-      return repo;
-    });
-    Logger.i('DailyCaloriesRepository инициализирован');
-  } catch (e) {
-    Logger.e('DailyCaloriesRepository error = $e');
-  }
-
   // Инициализируем PackageInfo
   await Get.putAsync(() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -65,6 +53,18 @@ Future<void> initMain() async {
     });
   } catch (e) {
     Logger.e('UserRepository error = $e');
+  }
+
+  // Инициализируем DailyCaloriesRepository
+  try {
+    await Get.putAsync<DailyCaloriesRepository>(() async {
+      final repo = DailyCaloriesRepository();
+      await repo.init();
+      return repo;
+    });
+    Logger.i('DailyCaloriesRepository инициализирован');
+  } catch (e) {
+    Logger.e('DailyCaloriesRepository error = $e');
   }
 
   // Регистрируем HealthRepository

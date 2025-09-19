@@ -131,7 +131,9 @@ class DailyCaloriesRecord extends Equatable {
           : DateTime.now(),
       consumedCalories: json['consumedCalories'] ?? 0,
       burnedCalories: json['burnedCalories'] ?? 0,
-      maxCalories: json['maxCalories'] ?? 2000, // Базовое значение по умолчанию
+      maxCalories:
+          json['maxCalories'] ??
+          5000, // Фиксированная максимальная емкость сосудов
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -140,22 +142,34 @@ class DailyCaloriesRecord extends Equatable {
           : DateTime.now(),
       breakfast:
           (json['breakfast'] as List<dynamic>?)
-              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) =>
+                    FoodProduct.fromJson(Map<String, dynamic>.from(e as Map)),
+              )
               .toList() ??
           [],
       lunch:
           (json['lunch'] as List<dynamic>?)
-              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) =>
+                    FoodProduct.fromJson(Map<String, dynamic>.from(e as Map)),
+              )
               .toList() ??
           [],
       dinner:
           (json['dinner'] as List<dynamic>?)
-              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) =>
+                    FoodProduct.fromJson(Map<String, dynamic>.from(e as Map)),
+              )
               .toList() ??
           [],
       snacks:
           (json['snacks'] as List<dynamic>?)
-              ?.map((e) => FoodProduct.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) =>
+                    FoodProduct.fromJson(Map<String, dynamic>.from(e as Map)),
+              )
               .toList() ??
           [],
     );
