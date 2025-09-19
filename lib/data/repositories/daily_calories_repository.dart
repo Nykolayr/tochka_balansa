@@ -46,16 +46,16 @@ class DailyCaloriesRepository {
 
     switch (type) {
       case EatType.breakfast:
-        breakfast.add(product);
+        breakfast.insert(0, product); // Добавляем в начало списка
         break;
       case EatType.lunch:
-        lunch.add(product);
+        lunch.insert(0, product); // Добавляем в начало списка
         break;
       case EatType.dinner:
-        dinner.add(product);
+        dinner.insert(0, product); // Добавляем в начало списка
         break;
       case EatType.snack:
-        snacks.add(product);
+        snacks.insert(0, product); // Добавляем в начало списка
         break;
     }
 
@@ -79,8 +79,8 @@ class DailyCaloriesRepository {
     updateDailyCalories();
   }
 
-  /// Удалить продукт
-  Future<void> removeFoodProduct(FoodProduct product, EatType type) async {
+  /// Удалить продукт по индексу
+  Future<void> removeFoodProductByIndex(int productIndex, EatType type) async {
     var record = getTodayRecord(currentDate);
 
     // Создаем копию списков для обновления
@@ -91,16 +91,24 @@ class DailyCaloriesRepository {
 
     switch (type) {
       case EatType.breakfast:
-        breakfast.removeWhere((item) => item.id == product.id);
+        if (productIndex >= 0 && productIndex < breakfast.length) {
+          breakfast.removeAt(productIndex);
+        }
         break;
       case EatType.lunch:
-        lunch.removeWhere((item) => item.id == product.id);
+        if (productIndex >= 0 && productIndex < lunch.length) {
+          lunch.removeAt(productIndex);
+        }
         break;
       case EatType.dinner:
-        dinner.removeWhere((item) => item.id == product.id);
+        if (productIndex >= 0 && productIndex < dinner.length) {
+          dinner.removeAt(productIndex);
+        }
         break;
       case EatType.snack:
-        snacks.removeWhere((item) => item.id == product.id);
+        if (productIndex >= 0 && productIndex < snacks.length) {
+          snacks.removeAt(productIndex);
+        }
         break;
     }
 

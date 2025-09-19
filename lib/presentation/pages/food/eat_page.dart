@@ -134,7 +134,14 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
       bottomNavigationBar: BlocBuilder<MainBloc, MainState>(
         bloc: Get.find<MainBloc>(),
         builder: (context, mainState) {
-          return _buildBreakfastBlock();
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight:
+                  MediaQuery.of(context).size.height *
+                  0.33, // Максимум 1/3 экрана
+            ),
+            child: _buildBreakfastBlock(),
+          );
         },
       ),
     );
@@ -356,17 +363,22 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
               textAlign: TextAlign.center,
             )
           else
-            Column(
-              children: mealProducts
-                  .map((product) => _buildMealProductItem(product))
-                  .toList(),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: mealProducts.length,
+                itemBuilder: (context, index) {
+                  final product = mealProducts[index];
+                  return _buildMealProductItem(product, index);
+                },
+              ),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildMealProductItem(FoodProduct product) {
+  Widget _buildMealProductItem(FoodProduct product, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -417,11 +429,11 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                     });
 
                     try {
-                      // Удаляем продукт из соответствующего приема пищи
+                      // Удаляем продукт из соответствующего приема пищи по индексу
                       final dailyCaloriesRepo =
                           Get.find<DailyCaloriesRepository>();
-                      await dailyCaloriesRepo.removeFoodProduct(
-                        product,
+                      await dailyCaloriesRepo.removeFoodProductByIndex(
+                        index,
                         widget.eatType,
                       );
 
