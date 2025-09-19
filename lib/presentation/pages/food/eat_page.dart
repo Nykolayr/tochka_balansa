@@ -14,8 +14,8 @@ import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/widgets/app_bar.dart';
 
 class EatPage extends StatefulWidget {
-  final EatType eatType;
-  const EatPage({super.key, required this.eatType});
+  final EatType? initialEatType; // Опциональный начальный тип
+  const EatPage({super.key, this.initialEatType});
 
   @override
   State<EatPage> createState() => _EatPageState();
@@ -28,6 +28,9 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
 
   // Текущий выбранный таб
   int currentTabIndex = 0;
+
+  // Текущий тип приема пищи
+  late EatType currentEatType;
 
   // Защита от повторных нажатий
   bool _isAddingProduct = false;
@@ -42,6 +45,9 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
         currentTabIndex = _tabController.index;
       });
     });
+
+    // Инициализируем текущий тип приема пищи
+    currentEatType = widget.initialEatType ?? EatType.breakfast;
   }
 
   @override
@@ -55,12 +61,12 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarWidget(
-        title: textLang(widget.eatType.title),
+        title: textLang(currentEatType.title),
         isBack: true,
         actions: [
           IconButton(
             onPressed: () {
-              context.push('/main/home/add-product', extra: widget.eatType);
+              context.push('/main/home/add-product', extra: currentEatType);
             },
             icon: Container(
               width: 40,
@@ -134,13 +140,21 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
       bottomNavigationBar: BlocBuilder<MainBloc, MainState>(
         bloc: Get.find<MainBloc>(),
         builder: (context, mainState) {
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight:
-                  MediaQuery.of(context).size.height *
-                  0.33, // Максимум 1/3 экрана
-            ),
-            child: _buildBreakfastBlock(),
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Блок с продуктами
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight:
+                      MediaQuery.of(context).size.height *
+                      0.33, // Максимум 1/3 экрана
+                ),
+                child: _buildBreakfastBlock(),
+              ),
+              // Переключатель типов приема пищи (сплошная полоса) - в самом низу
+              _buildEatTypeSelector(),
+            ],
           );
         },
       ),
@@ -171,15 +185,23 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
+            dense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 0,
+            ),
             // НОВОЕ: звездочка избранного в начале
-            leading: IconButton(
-              onPressed: () {
+            leading: GestureDetector(
+              onTap: () {
                 Get.find<FoodBloc>().add(AddProductToFavorite(product));
               },
-              icon: Icon(
-                product.isFavorite ? Icons.star : Icons.star_border,
-                color: product.isFavorite ? Colors.amber : Colors.grey,
-                size: 24,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Icon(
+                  product.isFavorite ? Icons.star : Icons.star_border,
+                  color: product.isFavorite ? Colors.amber : Colors.grey,
+                  size: 18,
+                ),
               ),
             ),
             title: Text(
@@ -213,7 +235,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
 
                           try {
                             // Добавляем продукт в соответствующий прием пищи
-                            switch (widget.eatType) {
+                            switch (currentEatType) {
                               case EatType.breakfast:
                                 Get.find<FoodBloc>().add(
                                   AddProductToBreakfast(product),
@@ -263,7 +285,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Продукт "${product.name}" добавлен в ${widget.eatType.title}',
+                                  'Продукт "${product.name}" добавлен в ${currentEatType.title}',
                                 ),
                                 backgroundColor: Colors.green,
                                 duration: const Duration(seconds: 2),
@@ -293,13 +315,47 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
     );
   }
 
+  /// Виджет переключения типов приема пищи
+  Widget _buildEatTypeSelector() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: Colors.grey[200]),
+      child: Row(
+        children: EatType.values.map((eatType) {
+          final isSelected = currentEatType == eatType;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  currentEatType = eatType;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColor.darkBlue : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  eatType.icon,
+                  color: isSelected ? Colors.white : Colors.grey[600],
+                  size: 24,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildBreakfastBlock() {
     // Получаем продукты из репозитория
     final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
     final currentRecord = dailyCaloriesRepo.getCurrentRecord();
 
     List<FoodProduct> mealProducts = [];
-    switch (widget.eatType) {
+    switch (currentEatType) {
       case EatType.breakfast:
         mealProducts = currentRecord.breakfast;
         break;
@@ -331,10 +387,10 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
         children: [
           Row(
             children: [
-              Icon(widget.eatType.icon, color: Colors.orange),
+              Icon(currentEatType.icon, color: Colors.orange),
               const SizedBox(width: 8),
               Text(
-                widget.eatType.title,
+                currentEatType.title,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -381,7 +437,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
   Widget _buildMealProductItem(FoodProduct product, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -434,7 +490,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                           Get.find<DailyCaloriesRepository>();
                       await dailyCaloriesRepo.removeFoodProductByIndex(
                         index,
-                        widget.eatType,
+                        currentEatType,
                       );
 
                       // Принудительно обновляем UI
@@ -456,7 +512,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Продукт "${product.name}" удален из ${widget.eatType.title}',
+                            'Продукт "${product.name}" удален из ${currentEatType.title}',
                           ),
                           backgroundColor: Colors.red,
                           duration: const Duration(seconds: 2),
@@ -468,7 +524,15 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                       });
                     }
                   },
-            icon: const Icon(Icons.remove_circle, color: Colors.red),
+            icon: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.remove, color: Colors.white, size: 20),
+            ),
           ),
         ],
       ),

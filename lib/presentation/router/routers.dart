@@ -135,12 +135,12 @@ final GoRouter router = GoRouter(
               name: 'eat',
               path: 'eat',
               pageBuilder: (context, state) {
-                final eatType = state.extra as EatType;
+                final eatType = state.extra as EatType?;
                 return buildPageWithDefaultTransition(
                   type: PageTransitionType.rightToLeft,
                   context: context,
                   state: state,
-                  child: EatPage(eatType: eatType),
+                  child: EatPage(initialEatType: eatType),
                 );
               },
             ),
