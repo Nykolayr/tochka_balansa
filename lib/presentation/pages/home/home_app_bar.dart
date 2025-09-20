@@ -78,14 +78,32 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
+    final dayBeforeYesterday = today.subtract(const Duration(days: 2));
     final targetDate = DateTime(date.year, date.month, date.day);
 
     if (targetDate.isAtSameMomentAs(today)) {
       return 'Сегодня';
     } else if (targetDate.isAtSameMomentAs(yesterday)) {
       return 'Вчера';
+    } else if (targetDate.isAtSameMomentAs(dayBeforeYesterday)) {
+      return 'Позавчера';
     } else {
-      return '${date.day}.${date.month}.${date.year}';
+      // Для дат дальше - формат "1 сентября"
+      const months = [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря',
+      ];
+      return '${date.day} ${months[date.month - 1]}';
     }
   }
 
@@ -102,13 +120,38 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dayBeforeYesterday = today.subtract(const Duration(days: 2));
     final targetDate = DateTime(date.year, date.month, date.day);
 
     if (targetDate.isAtSameMomentAs(today)) {
-      return 'Сегодня (${weekdays[date.weekday - 1]})';
+      return '${date.day} ${_getMonthName(date.month)} - ${weekdays[date.weekday - 1]}';
+    } else if (targetDate.isAtSameMomentAs(yesterday)) {
+      return '${date.day} ${_getMonthName(date.month)} - ${weekdays[date.weekday - 1]}';
+    } else if (targetDate.isAtSameMomentAs(dayBeforeYesterday)) {
+      return '${date.day} ${_getMonthName(date.month)} - ${weekdays[date.weekday - 1]}';
     } else {
+      // Для дат дальше - только день недели
       return weekdays[date.weekday - 1];
     }
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'января',
+      'февраля',
+      'марта',
+      'апреля',
+      'мая',
+      'июня',
+      'июля',
+      'августа',
+      'сентября',
+      'октября',
+      'ноября',
+      'декабря',
+    ];
+    return months[month - 1];
   }
 
   @override
