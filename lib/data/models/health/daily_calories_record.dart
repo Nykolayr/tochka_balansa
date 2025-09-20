@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/data/models/health/daily_event.dart';
 
 /// Модель дневной записи калорий
 class DailyCaloriesRecord extends Equatable {
@@ -14,6 +15,7 @@ class DailyCaloriesRecord extends Equatable {
   final List<FoodProduct> lunch;
   final List<FoodProduct> dinner;
   final List<FoodProduct> snacks;
+  final List<DailyEvent> events; // События дня
 
   const DailyCaloriesRecord({
     required this.id,
@@ -27,6 +29,7 @@ class DailyCaloriesRecord extends Equatable {
     required this.lunch,
     required this.dinner,
     required this.snacks,
+    this.events = const [],
   });
 
   factory DailyCaloriesRecord.create({

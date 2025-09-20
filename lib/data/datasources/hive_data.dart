@@ -151,4 +151,5 @@ enum HiveDataKey {
   healthData, // Добавляем ключ для данных о здоровье
   foodProducts, // Ключ для продуктов местной базы
   dailyCaloriesRecords, // Ключ для записей о калориях
+  dailyEvents, // Ключ для событий дня
 }

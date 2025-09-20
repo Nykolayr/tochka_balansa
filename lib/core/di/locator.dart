@@ -11,6 +11,7 @@ import 'package:tochka_balansa/data/repositories/main_repository.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:tochka_balansa/data/repositories/health_repository.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_events_repository.dart';
 import 'package:tochka_balansa/presentation/pages/auth/bloc/auth_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
@@ -66,6 +67,18 @@ Future<void> initMain() async {
     Logger.i('DailyCaloriesRepository инициализирован');
   } catch (e) {
     Logger.e('DailyCaloriesRepository error = $e');
+  }
+
+  // Инициализируем DailyEventsRepository
+  try {
+    await Get.putAsync<DailyEventsRepository>(() async {
+      final repo = DailyEventsRepository();
+      await repo.init();
+      return repo;
+    });
+    Logger.i('DailyEventsRepository инициализирован');
+  } catch (e) {
+    Logger.e('DailyEventsRepository error = $e');
   }
 
   // Регистрируем HealthRepository
