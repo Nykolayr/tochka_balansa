@@ -8,7 +8,8 @@ import 'package:tochka_balansa/data/models/gender.dart';
 import 'package:tochka_balansa/data/models/health/activity_level.dart';
 import 'package:tochka_balansa/data/models/user.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
-import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_events_repository.dart';
+import 'package:tochka_balansa/data/models/health/daily_event.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -39,16 +40,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       event.activityLevel, // НОВОЕ поле
     );
 
-    // После сохранения данных пользователя перезаписываем запись на сегодня
+    // После сохранения данных пользователя обновляем BMR событие
     try {
-      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-      final todayRecord = dailyCaloriesRepo.recreateTodayRecord();
-      Logger.i(
-        'Запись на сегодня перезаписана после ввода данных пользователя: consumedCalories=${todayRecord.consumedCalories}, burnedCalories=${todayRecord.burnedCalories}',
-      );
+      final eventsRepo = Get.find<DailyEventsRepository>();
+      final today = DateTime.now();
+      final todayDate = DateTime(today.year, today.month, today.day);
+
+      // Удаляем старое BMR событие если есть
+      final existingEvents = eventsRepo.getEventsForDate(todayDate);
+      final oldBMREvents = existingEvents
+          .where((event) => event is BurnedEvent && event.type == EventType.bmr)
+          .toList();
+
+      for (final oldEvent in oldBMREvents) {
+        await eventsRepo.removeEvent(oldEvent.id);
+        Logger.i('Удалено старое BMR событие: ${oldEvent.id}');
+      }
+
+      // Добавляем новое BMR событие с правильными данными пользователя
+      await eventsRepo.addBMRForNewDay(todayDate);
+
+      Logger.i('BMR событие обновлено после ввода данных пользователя');
     } catch (e) {
       Logger.e(
-        'Ошибка перезаписи записи на сегодня после ввода данных пользователя: $e',
+        'Ошибка обновления BMR события после ввода данных пользователя: $e',
       );
     }
   }

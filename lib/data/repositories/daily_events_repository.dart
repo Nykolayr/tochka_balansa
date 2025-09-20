@@ -70,6 +70,7 @@ class DailyEventsRepository {
     await _saveToLocal();
     await _updateMainBloc();
     _updateDiary();
+    _refreshUI();
 
     print(
       '✅ Добавлено событие съедено: ${type.displayName} - $calories калорий',
@@ -113,6 +114,7 @@ class DailyEventsRepository {
     await _saveToLocal();
     await _updateMainBloc();
     _updateDiary();
+    _refreshUI();
 
     print(
       '✅ Добавлено событие сожжено: ${type.displayName} - $calories калорий',
@@ -149,6 +151,28 @@ class DailyEventsRepository {
     return getBurnedEventsForDate(
       date,
     ).fold(0, (sum, event) => sum + event.calories);
+  }
+
+  /// Удалить событие по ID
+  Future<void> removeEvent(String eventId) async {
+    try {
+      // Ищем событие во всех датах
+      for (final dateKey in eventsByDate.keys) {
+        final events = eventsByDate[dateKey]!;
+        final eventIndex = events.indexWhere((event) => event.id == eventId);
+
+        if (eventIndex != -1) {
+          events.removeAt(eventIndex);
+          await _saveToLocal();
+          print('✅ Событие удалено: $eventId');
+          return;
+        }
+      }
+
+      print('❌ Событие не найдено: $eventId');
+    } catch (e) {
+      print('Ошибка удаления события: $e');
+    }
   }
 
   /// Инициализация - загрузка из локального хранилища
@@ -287,6 +311,16 @@ class DailyEventsRepository {
       print('✅ Добавлен BMR для дня: $dateKey - $bmr калорий');
     } catch (e) {
       print('Ошибка добавления BMR: $e');
+    }
+  }
+
+  /// Обновить UI через DateNavigationController
+  void _refreshUI() {
+    try {
+      final dateController = Get.find<DateNavigationController>();
+      dateController.refreshUI();
+    } catch (e) {
+      print('DateNavigationController еще не готов: $e');
     }
   }
 }

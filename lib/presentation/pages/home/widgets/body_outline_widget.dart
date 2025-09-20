@@ -16,6 +16,7 @@ import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/add_burned_dialog.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/daily_diary_widget.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_events_repository.dart';
 import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
 
 class BodyOutlineWidget extends StatelessWidget {
@@ -58,16 +59,30 @@ class BodyOutlineWidget extends StatelessWidget {
                     children: [
                       // Виджет 1: Сосуд "Съедено"
                       Expanded(
-                        child: ConsumedVesselWidget(
-                          isVessel: true,
-                          value: mainState.consumedCalories,
-                          maxValue: mainState.maxCalories,
-                          onTap: (value) {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (context) => const AddFoodDialog(),
+                        child: GetBuilder<DateNavigationController>(
+                          builder: (controller) {
+                            final isToday = _isToday(controller.selectedDate);
+                            final eventsRepo =
+                                Get.find<DailyEventsRepository>();
+                            final consumedCalories = eventsRepo
+                                .getTotalConsumedCalories(
+                                  controller.selectedDate,
+                                );
+                            return ConsumedVesselWidget(
+                              isVessel: true,
+                              value: consumedCalories,
+                              maxValue: mainState.maxCalories,
+                              onTap: isToday
+                                  ? (value) {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (context) =>
+                                            const AddFoodDialog(),
+                                      );
+                                    }
+                                  : (value) {},
                             );
                           },
                         ),
@@ -79,32 +94,59 @@ class BodyOutlineWidget extends StatelessWidget {
                             MediaQuery.of(context).size.width *
                             0.6 *
                             (bmiCategory?.widthCoefficient ?? 0.6),
-                        child: _buildCenterWidget(
-                          context: context,
-                          mainState: mainState,
-                          healthState: healthState,
-                          bodyOutlineAsset: bodyOutlineAsset,
-                          currentWeight: currentWeight,
-                          bmi: bmi,
-                          bmiCategory: bmiCategory,
-                          balance:
-                              mainState.consumedCalories -
-                              mainState
-                                  .burnedCalories, // НОВОЕ: баланс из MainBloc
+                        child: GetBuilder<DateNavigationController>(
+                          builder: (controller) {
+                            final eventsRepo =
+                                Get.find<DailyEventsRepository>();
+                            final consumedCalories = eventsRepo
+                                .getTotalConsumedCalories(
+                                  controller.selectedDate,
+                                );
+                            final burnedCalories = eventsRepo
+                                .getTotalBurnedCalories(
+                                  controller.selectedDate,
+                                );
+                            final balance = consumedCalories - burnedCalories;
+
+                            return _buildCenterWidget(
+                              context: context,
+                              mainState: mainState,
+                              healthState: healthState,
+                              bodyOutlineAsset: bodyOutlineAsset,
+                              currentWeight: currentWeight,
+                              bmi: bmi,
+                              bmiCategory: bmiCategory,
+                              balance: balance,
+                            );
+                          },
                         ),
                       ),
                       // Виджет 3: Сосуд "Сожжено"
                       Expanded(
-                        child: ConsumedVesselWidget(
-                          isVessel: false,
-                          value: mainState.burnedCalories,
-                          maxValue: mainState.maxCalories,
-                          onTap: (value) {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (context) => const AddBurnedDialog(),
+                        child: GetBuilder<DateNavigationController>(
+                          builder: (controller) {
+                            final isToday = _isToday(controller.selectedDate);
+                            final eventsRepo =
+                                Get.find<DailyEventsRepository>();
+                            final burnedCalories = eventsRepo
+                                .getTotalBurnedCalories(
+                                  controller.selectedDate,
+                                );
+                            return ConsumedVesselWidget(
+                              isVessel: false,
+                              value: burnedCalories,
+                              maxValue: mainState.maxCalories,
+                              onTap: isToday
+                                  ? (value) {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (context) =>
+                                            const AddBurnedDialog(),
+                                      );
+                                    }
+                                  : (value) {},
                             );
                           },
                         ),
@@ -112,16 +154,18 @@ class BodyOutlineWidget extends StatelessWidget {
                     ],
                   ),
                   const Gap(16),
-                  // Дневник дня
-                  GetBuilder<DateNavigationController>(
-                    builder: (controller) {
-                      final dailyCaloriesRepo =
-                          Get.find<DailyCaloriesRepository>();
-                      final record = dailyCaloriesRepo.getTodayRecord(
-                        controller.selectedDate,
-                      );
-                      return DailyDiaryWidget(record: record);
-                    },
+                  // Дневник дня - занимает всю оставшуюся область
+                  Expanded(
+                    child: GetBuilder<DateNavigationController>(
+                      builder: (controller) {
+                        final dailyCaloriesRepo =
+                            Get.find<DailyCaloriesRepository>();
+                        final record = dailyCaloriesRepo.getTodayRecord(
+                          controller.selectedDate,
+                        );
+                        return DailyDiaryWidget(record: record);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -231,5 +275,13 @@ class BodyOutlineWidget extends StatelessWidget {
     if (weightMetrics.isEmpty) return null;
     weightMetrics.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return weightMetrics.first;
+  }
+
+  /// Проверить, является ли дата сегодняшней
+  bool _isToday(DateTime date) {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final checkDate = DateTime(date.year, date.month, date.day);
+    return checkDate.isAtSameMomentAs(todayDate);
   }
 }

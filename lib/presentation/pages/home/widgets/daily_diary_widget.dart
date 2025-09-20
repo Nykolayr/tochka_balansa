@@ -51,9 +51,8 @@ class DailyDiaryWidget extends StatelessWidget {
             ],
           ),
         ),
-        // Список событий
-        SizedBox(
-          height: 120, // Компактная высота
+        // Список событий - занимает всю доступную высоту
+        Expanded(
           child: events.isEmpty
               ? const Center(
                   child: Text(
@@ -62,6 +61,9 @@ class DailyDiaryWidget extends StatelessWidget {
                   ),
                 )
               : ListView.builder(
+                  padding: const EdgeInsets.only(
+                    bottom: 40,
+                  ), // Отступ снизу для табов
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     return Padding(

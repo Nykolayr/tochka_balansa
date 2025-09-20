@@ -8,6 +8,8 @@ import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
 import 'package:tochka_balansa/data/repositories/food_product_repository.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_events_repository.dart';
+import 'package:tochka_balansa/data/models/health/daily_event.dart';
 import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
@@ -48,6 +50,9 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
 
     // Инициализируем текущий тип приема пищи
     currentEatType = widget.initialEatType ?? EatType.breakfast;
+
+    // Очищаем все категории при входе на страницу
+    _clearAllMealCategories();
   }
 
   @override
@@ -137,6 +142,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
           );
         },
       ),
+      floatingActionButton: _buildFloatingActionButton(),
       bottomNavigationBar: BlocBuilder<MainBloc, MainState>(
         bloc: Get.find<MainBloc>(),
         builder: (context, mainState) {
@@ -551,6 +557,160 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  /// Плавающая кнопка для создания записи
+  Widget _buildFloatingActionButton() {
+    return BlocBuilder<MainBloc, MainState>(
+      bloc: Get.find<MainBloc>(),
+      builder: (context, mainState) {
+        // Получаем продукты для текущего типа приема пищи
+        final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+        final currentRecord = dailyCaloriesRepo.getCurrentRecord();
+
+        List<FoodProduct> mealProducts = [];
+        switch (currentEatType) {
+          case EatType.breakfast:
+            mealProducts = currentRecord.breakfast;
+            break;
+          case EatType.lunch:
+            mealProducts = currentRecord.lunch;
+            break;
+          case EatType.dinner:
+            mealProducts = currentRecord.dinner;
+            break;
+          case EatType.snack:
+            mealProducts = currentRecord.snacks;
+            break;
+        }
+
+        // Показываем кнопку только если есть продукты
+        if (mealProducts.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return FloatingActionButton.extended(
+          onPressed: _createMealRecord,
+          backgroundColor: AppColor.darkBlue,
+          foregroundColor: Colors.white,
+          icon: Icon(currentEatType.icon),
+          label: Text('Добавить ${currentEatType.title}'),
+        );
+      },
+    );
+  }
+
+  /// Создать запись приема пищи
+  Future<void> _createMealRecord() async {
+    try {
+      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+      final eventsRepo = Get.find<DailyEventsRepository>();
+      final currentRecord = dailyCaloriesRepo.getCurrentRecord();
+
+      // Получаем продукты для текущего типа приема пищи
+      List<FoodProduct> mealProducts = [];
+      switch (currentEatType) {
+        case EatType.breakfast:
+          mealProducts = currentRecord.breakfast;
+          break;
+        case EatType.lunch:
+          mealProducts = currentRecord.lunch;
+          break;
+        case EatType.dinner:
+          mealProducts = currentRecord.dinner;
+          break;
+        case EatType.snack:
+          mealProducts = currentRecord.snacks;
+          break;
+      }
+
+      if (mealProducts.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Нет продуктов для добавления'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Преобразуем EatType в EventType
+      EventType eventType;
+      switch (currentEatType) {
+        case EatType.breakfast:
+          eventType = EventType.breakfast;
+          break;
+        case EatType.lunch:
+          eventType = EventType.lunch;
+          break;
+        case EatType.dinner:
+          eventType = EventType.dinner;
+          break;
+        case EatType.snack:
+          eventType = EventType.snacks;
+          break;
+      }
+
+      // Рассчитываем общие калории и вес
+      final totalCalories = mealProducts.fold<int>(
+        0,
+        (sum, p) => sum + p.totalCalories,
+      );
+      final totalWeight = mealProducts.fold<int>(
+        0,
+        (sum, p) => sum + p.amount.toInt(),
+      );
+      final productNames = mealProducts.map((p) => p.name).toList();
+
+      // Создаем событие потребления
+      await eventsRepo.addConsumedEvent(
+        type: eventType,
+        products: productNames,
+        totalWeight: totalWeight,
+        calories: totalCalories,
+        note: '${mealProducts.length} продуктов',
+      );
+
+      // Очищаем все категории приемов пищи
+      await _clearAllMealCategories();
+
+      // Показываем уведомление об успехе
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${currentEatType.title} добавлен! ${totalCalories} ккал',
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Возвращаемся назад
+      Navigator.of(context).pop();
+    } catch (e) {
+      print('Ошибка создания записи приема пищи: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  /// Очистить все категории приемов пищи
+  Future<void> _clearAllMealCategories() async {
+    try {
+      final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
+
+      // Очищаем все категории
+      await dailyCaloriesRepo.clearBreakfast();
+      await dailyCaloriesRepo.clearLunch();
+      await dailyCaloriesRepo.clearDinner();
+      await dailyCaloriesRepo.clearSnacks();
+
+      // Обновляем UI
+      setState(() {});
+    } catch (e) {
+      print('Ошибка очистки категорий: $e');
+    }
   }
 }
 

@@ -3,14 +3,14 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/data/models/health/health_data.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 import 'package:tochka_balansa/data/services/steps_calories_calculator_service.dart';
-import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/data/repositories/daily_events_repository.dart';
+import 'package:tochka_balansa/data/models/health/daily_event.dart';
 
 class AddStepsDialog {
   static void show(BuildContext context) {
@@ -200,7 +200,7 @@ class AddStepsDialog {
                     Get.find<HealthBloc>().add(AddHealthMetricEvent(metric));
                   }
 
-                  // НОВОЕ: Добавляем калории от шагов в "Сожжено"
+                  // Добавляем событие сожжено для шагов
                   try {
                     final userRepository = Get.find<UserRepository>();
                     final user = userRepository.user;
@@ -212,25 +212,20 @@ class AddStepsDialog {
                         );
 
                     if (calories > 0) {
-                      final dailyCaloriesRepo =
-                          Get.find<DailyCaloriesRepository>();
+                      final eventsRepo = Get.find<DailyEventsRepository>();
 
-                      // ИСПРАВЛЕНО: получаем обновленную запись
-                      final updatedRecord = dailyCaloriesRepo
-                          .addBurnedCalories(calories);
-
-                      // Обновляем MainBloc с обновленными данными
-                      final mainBloc = Get.find<MainBloc>();
-                      mainBloc.add(
-                        UpdateCaloriesEvent(
-                          consumedCalories: updatedRecord.consumedCalories,
-                          burnedCalories: updatedRecord.burnedCalories,
-                          maxCalories: updatedRecord.maxCalories,
-                        ),
+                      await eventsRepo.addBurnedEvent(
+                        type: EventType.steps,
+                        calories: calories,
+                        quantity: value,
+                        unit: 'шагов',
+                        note: noteController.text.trim().isEmpty
+                            ? null
+                            : noteController.text.trim(),
                       );
                     }
                   } catch (e) {
-                    Logger.e('Ошибка добавления калорий от шагов: $e');
+                    Logger.e('Ошибка добавления события шагов: $e');
                   }
 
                   // ignore: use_build_context_synchronously

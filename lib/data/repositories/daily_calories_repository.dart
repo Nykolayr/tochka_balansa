@@ -503,4 +503,52 @@ class DailyCaloriesRepository {
       print('DateNavigationController не найден: $e');
     }
   }
+
+  /// Очистить завтрак
+  Future<void> clearBreakfast() async {
+    final targetRecord = getTodayRecord(currentDate);
+    final updatedRecord = targetRecord.copyWith(breakfast: []);
+
+    final index = records.indexWhere((r) => r.id == targetRecord.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+      await saveToLocal();
+    }
+  }
+
+  /// Очистить обед
+  Future<void> clearLunch() async {
+    final targetRecord = getTodayRecord(currentDate);
+    final updatedRecord = targetRecord.copyWith(lunch: []);
+
+    final index = records.indexWhere((r) => r.id == targetRecord.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+      await saveToLocal();
+    }
+  }
+
+  /// Очистить ужин
+  Future<void> clearDinner() async {
+    final targetRecord = getTodayRecord(currentDate);
+    final updatedRecord = targetRecord.copyWith(dinner: []);
+
+    final index = records.indexWhere((r) => r.id == targetRecord.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+      await saveToLocal();
+    }
+  }
+
+  /// Очистить перекусы
+  Future<void> clearSnacks() async {
+    final targetRecord = getTodayRecord(currentDate);
+    final updatedRecord = targetRecord.copyWith(snacks: []);
+
+    final index = records.indexWhere((r) => r.id == targetRecord.id);
+    if (index != -1) {
+      records[index] = updatedRecord;
+      await saveToLocal();
+    }
+  }
 }

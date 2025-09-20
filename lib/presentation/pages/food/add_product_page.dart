@@ -117,7 +117,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       final product = _searchResults[index];
                       return ProductListItem(
                         product: product,
-                        onAdd: () => _addProductToMeal(product),
+                        onAdd: () async => await _addProductToMeal(product),
                       );
                     },
                   ),
@@ -236,41 +236,52 @@ class _AddProductPageState extends State<AddProductPage> {
     }
   }
 
-  void _addProductToMeal(FoodProduct product) {
-    Logger.i('Добавляем продукт: ${product.toJson()}');
+  Future<void> _addProductToMeal(FoodProduct product) async {
+    Logger.i('Добавляем продукт в список: ${product.toJson()}');
 
-    // Добавляем продукт в соответствующий прием пищи
-    switch (widget.eatType) {
-      case EatType.breakfast:
-        Get.find<FoodBloc>().add(AddProductToBreakfast(product));
-        break;
-      case EatType.lunch:
-        Get.find<FoodBloc>().add(AddProductToLunch(product));
-        break;
-      case EatType.dinner:
-        Get.find<FoodBloc>().add(AddProductToDinner(product));
-        break;
-      case EatType.snack:
-        Get.find<FoodBloc>().add(AddProductToSnack(product));
-        break;
-    }
+    try {
+      // Добавляем продукт в соответствующий прием пищи через FoodBloc
+      switch (widget.eatType) {
+        case EatType.breakfast:
+          Get.find<FoodBloc>().add(AddProductToBreakfast(product));
+          break;
+        case EatType.lunch:
+          Get.find<FoodBloc>().add(AddProductToLunch(product));
+          break;
+        case EatType.dinner:
+          Get.find<FoodBloc>().add(AddProductToDinner(product));
+          break;
+        case EatType.snack:
+          Get.find<FoodBloc>().add(AddProductToSnack(product));
+          break;
+      }
 
-    // Также добавляем в недавние для истории
-    Get.find<FoodBloc>().add(AddProductToRecent(product));
+      // Также добавляем в недавние для истории
+      Get.find<FoodBloc>().add(AddProductToRecent(product));
 
-    // Показываем уведомление об успехе
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Продукт "${product.name}" добавлен в ${widget.eatType.title}',
+      // Показываем уведомление об успехе
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Продукт "${product.name}" добавлен в ${widget.eatType.title}',
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
         ),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      );
 
-    // Закрываем страницу
-    Navigator.of(context).pop();
+      // Закрываем страницу
+      Navigator.of(context).pop();
+    } catch (e) {
+      Logger.e('Ошибка добавления продукта: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка добавления: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   void _showAddProductModal(String barcode) {
@@ -573,7 +584,7 @@ class _AddProductPageState extends State<AddProductPage> {
                                   });
 
                                   // Автоматически добавляем продукт в прием пищи
-                                  _addProductToMeal(manualProduct);
+                                  await _addProductToMeal(manualProduct);
 
                                   Navigator.of(context).pop();
                                 } else {
