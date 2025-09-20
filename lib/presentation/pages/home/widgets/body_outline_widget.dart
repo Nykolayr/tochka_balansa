@@ -14,6 +14,9 @@ import 'package:tochka_balansa/presentation/pages/food/widgets/add_food_dialog.d
 import 'package:tochka_balansa/presentation/pages/home/widgets/consumed_vessel_widget.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/add_burned_dialog.dart';
+import 'package:tochka_balansa/presentation/pages/home/widgets/daily_diary_widget.dart';
+import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
 
 class BodyOutlineWidget extends StatelessWidget {
   const BodyOutlineWidget({super.key});
@@ -107,6 +110,18 @@ class BodyOutlineWidget extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const Gap(16),
+                  // Дневник дня
+                  GetBuilder<DateNavigationController>(
+                    builder: (controller) {
+                      final dailyCaloriesRepo =
+                          Get.find<DailyCaloriesRepository>();
+                      final record = dailyCaloriesRepo.getTodayRecord(
+                        controller.selectedDate,
+                      );
+                      return DailyDiaryWidget(record: record);
+                    },
                   ),
                 ],
               ),

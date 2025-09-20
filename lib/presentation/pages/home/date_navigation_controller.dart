@@ -66,7 +66,7 @@ class DateNavigationController extends GetxController {
       // Обновляем текущую страницу и выбранную дату
       currentPage = page;
       selectedDate = availableDates[page];
-      update(); // Обновляем AppBar
+      update(); // Обновляем AppBar и дневник
 
       // Загружаем калории для выбранной даты
       _loadCaloriesForDate(selectedDate);
@@ -170,6 +170,11 @@ class DateNavigationController extends GetxController {
         '❌ Ошибка загрузки калорий для ${date.toString().split(' ')[0]}: $e',
       );
     }
+  }
+
+  /// Обновить дневник для текущей выбранной даты
+  void updateDiary() {
+    update(); // Обновляем дневник через GetBuilder
   }
 
   @override

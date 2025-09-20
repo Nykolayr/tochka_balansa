@@ -6,6 +6,7 @@ import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
 import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
+import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
 
 /// Репозиторий для управления дневными записями калорий
 class DailyCaloriesRepository {
@@ -83,6 +84,9 @@ class DailyCaloriesRepository {
 
     // Сохраняем изменения в локальное хранилище
     saveToLocal();
+
+    // Обновляем дневник
+    _updateDiary();
   }
 
   /// Удалить продукт по индексу
@@ -142,6 +146,9 @@ class DailyCaloriesRepository {
 
     // Сохраняем изменения в локальное хранилище
     saveToLocal();
+
+    // Обновляем дневник
+    _updateDiary();
   }
 
   /// Обновить калории в дневной записи
@@ -464,5 +471,17 @@ class DailyCaloriesRepository {
     records.clear();
     currentDate = DateTime.now();
     Logger.i('DailyCaloriesRepository: данные сброшены');
+  }
+
+  /// Обновить дневник
+  void _updateDiary() {
+    try {
+      // Получаем DateNavigationController и обновляем дневник
+      final dateController = Get.find<DateNavigationController>();
+      dateController.updateDiary();
+    } catch (e) {
+      // Игнорируем ошибку, если контроллер не найден
+      print('DateNavigationController не найден: $e');
+    }
   }
 }
