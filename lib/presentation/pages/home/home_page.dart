@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:tochka_balansa/core/theme/theme.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/widgets/set_first_goal_widget.dart';
 import 'package:tochka_balansa/presentation/pages/home/widgets/body_outline_widget.dart';
-import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
-import 'package:tochka_balansa/data/repositories/user_repository.dart';
-import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
 
 class HomePage extends StatefulWidget {

@@ -7,6 +7,7 @@ import 'package:tochka_balansa/data/repositories/user_repository.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/presentation/pages/food/enum_eat.dart';
 import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 /// Репозиторий для управления дневными записями калорий
 class DailyCaloriesRepository {
@@ -37,10 +38,8 @@ class DailyCaloriesRepository {
 
   /// Добавить продукт
   Future<void> addFoodProduct(FoodProduct product, EatType type) async {
-    // Всегда используем реальную сегодняшнюю дату для добавления продуктов
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-    var record = getTodayRecord(todayDate);
+    // Используем currentDate для добавления продуктов
+    var record = getTodayRecord(currentDate);
 
     // Создаем копию списков для обновления
     List<FoodProduct> breakfast = List.from(record.breakfast);
@@ -91,10 +90,8 @@ class DailyCaloriesRepository {
 
   /// Удалить продукт по индексу
   Future<void> removeFoodProductByIndex(int productIndex, EatType type) async {
-    // Всегда используем реальную сегодняшнюю дату для удаления продуктов
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-    var record = getTodayRecord(todayDate);
+    // Используем currentDate для удаления продуктов
+    var record = getTodayRecord(currentDate);
 
     // Создаем копию списков для обновления
     List<FoodProduct> breakfast = List.from(record.breakfast);
@@ -402,15 +399,37 @@ class DailyCaloriesRepository {
 
   /// Добавить калории к сожженным (например, от шагов)
   DailyCaloriesRecord addBurnedCalories(int calories) {
-    final todayRecord = getOrCreateTodayRecord();
-    final updatedRecord = todayRecord.addBurnedCalories(calories);
+    // Используем currentDate вместо сегодняшней даты
+    final targetRecord = getTodayRecord(currentDate);
+    final updatedRecord = targetRecord.addBurnedCalories(calories);
 
     // Обновляем запись в списке
-    final index = records.indexWhere((r) => r.id == todayRecord.id);
+    final index = records.indexWhere((r) => r.id == targetRecord.id);
     if (index != -1) {
       records[index] = updatedRecord;
       saveToLocal();
+    } else {
+      // Если запись не найдена, добавляем её
+      records.add(updatedRecord);
+      saveToLocal();
     }
+
+    // Обновляем MainBloc с новыми данными
+    try {
+      final mainBloc = Get.find<MainBloc>();
+      mainBloc.add(
+        UpdateCaloriesEvent(
+          consumedCalories: updatedRecord.consumedCalories,
+          burnedCalories: updatedRecord.burnedCalories,
+          maxCalories: updatedRecord.maxCalories,
+        ),
+      );
+    } catch (e) {
+      print('Ошибка обновления MainBloc: $e');
+    }
+
+    // Обновляем дневник
+    _updateDiary();
 
     return updatedRecord;
   }

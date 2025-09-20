@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/health/daily_calories_record.dart';
 import 'package:tochka_balansa/data/models/food/food_product.dart';
+import 'package:tochka_balansa/data/models/health/health_data.dart';
+import 'package:tochka_balansa/data/repositories/user_repository.dart';
+import 'package:tochka_balansa/data/services/calories_calculator_service.dart';
+import 'package:tochka_balansa/data/services/steps_calories_calculator_service.dart';
+import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
 
 class DailyDiaryWidget extends StatelessWidget {
   final DailyCaloriesRecord record;
@@ -76,33 +82,28 @@ class DailyDiaryWidget extends StatelessWidget {
   List<Widget> _buildEventsList() {
     final events = <Widget>[];
 
-    // 1. BMR событие (если есть сожженные калории)
-    if (record.burnedCalories > 0) {
-      events.add(
-        _buildEventItem(
-          'Расходы организма',
-          record.burnedCalories,
-          AppColor.green,
-          Icons.local_fire_department,
-        ),
-      );
-    }
-
-    // 2. События по приемам пищи
+    // 1. События по приемам пищи
     _addMealEvents(events, record.breakfast, 'Завтрак', Icons.breakfast_dining);
     _addMealEvents(events, record.lunch, 'Обед', Icons.lunch_dining);
     _addMealEvents(events, record.dinner, 'Ужин', Icons.dinner_dining);
     _addMealEvents(events, record.snacks, 'Перекус', Icons.cookie);
 
-    // Сортируем по времени (последние сверху)
-    events.sort((a, b) {
-      // BMR всегда первый
-      if (a.key == const ValueKey('bmr')) return -1;
-      if (b.key == const ValueKey('bmr')) return 1;
+    // 2. События активности (шаги, упражнения)
+    _addActivityEvents(events, record);
 
-      // Остальные по времени добавления (последние сверху)
-      return 0; // Пока без сортировки по времени
-    });
+    // 3. BMR событие (всегда в конце списка)
+    final bmr = _calculateBMR();
+    if (record.burnedCalories >= bmr) {
+      events.add(
+        _buildEventItem(
+          'Расходы организма',
+          bmr, // Показываем рассчитанный BMR
+          AppColor.green,
+          Icons.local_fire_department,
+          isBMR: true, // Флаг для BMR
+        ),
+      );
+    }
 
     return events;
   }
@@ -136,30 +137,128 @@ class DailyDiaryWidget extends StatelessWidget {
     }
   }
 
+  void _addActivityEvents(List<Widget> events, DailyCaloriesRecord record) {
+    // Получаем отдельные записи о шагах за выбранную дату
+    final stepsMetrics = _getStepsForDate(record.date);
+
+    // Добавляем каждую запись о шагах отдельно
+    for (final metric in stepsMetrics) {
+      final steps = int.tryParse(metric.value) ?? 0;
+      if (steps > 0) {
+        // Рассчитываем калории для этого количества шагов
+        final calories = _calculateCaloriesFromSteps(steps);
+
+        events.add(
+          _buildEventItem(
+            'Шаги',
+            calories,
+            AppColor.green,
+            Icons.directions_walk,
+            timeText: _formatTime(metric.timestamp),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Получить записи о шагах за конкретную дату
+  List<HealthMetric> _getStepsForDate(DateTime date) {
+    try {
+      final healthBloc = Get.find<HealthBloc>();
+      final targetDate = DateTime(date.year, date.month, date.day);
+      final nextDay = targetDate.add(const Duration(days: 1));
+
+      return healthBloc.state.healthData.metrics
+          .where(
+            (metric) =>
+                metric.type == HealthMetricType.steps &&
+                metric.timestamp.isAfter(targetDate) &&
+                metric.timestamp.isBefore(nextDay),
+          )
+          .toList()
+        ..sort(
+          (a, b) => b.timestamp.compareTo(a.timestamp),
+        ); // Сортируем по времени (новые сверху)
+    } catch (e) {
+      print('Ошибка получения шагов: $e');
+      return [];
+    }
+  }
+
+  /// Рассчитать калории от шагов
+  int _calculateCaloriesFromSteps(int steps) {
+    try {
+      final userRepository = Get.find<UserRepository>();
+      final user = userRepository.user;
+
+      if (!user.isReg) {
+        return 0;
+      }
+
+      return StepsCaloriesCalculatorService.calculateCaloriesFromSteps(
+        weight: user.initialWeight,
+        steps: steps,
+      );
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Форматировать время в HH:MM
+  String _formatTime(DateTime timestamp) {
+    return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Рассчитать BMR для текущего пользователя
+  int _calculateBMR() {
+    try {
+      final userRepository = Get.find<UserRepository>();
+      final user = userRepository.user;
+
+      if (!user.isReg) {
+        return 1500; // Значение по умолчанию
+      }
+
+      return CaloriesCalculatorService.calculateBMR(
+        age: user.age,
+        gender: user.gender.name,
+        weight: user.initialWeight,
+        height: user.height,
+      );
+    } catch (e) {
+      return 1500; // Значение по умолчанию при ошибке
+    }
+  }
+
   Widget _buildEventItem(
     String title,
     int calories,
     Color color,
     IconData icon, {
     List<FoodProduct>? products,
+    bool isBMR = false,
+    String? timeText,
   }) {
     // Получаем время для события
-    String? timeText;
-    if (products != null && products.isNotEmpty) {
+    String? eventTimeText;
+    if (timeText != null) {
+      // Время передано явно
+      eventTimeText = timeText;
+    } else if (products != null && products.isNotEmpty) {
       // Берем время последнего добавленного продукта
       final latestProduct = products.first;
       final time = latestProduct.timestamp;
-      timeText =
+      eventTimeText =
           '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    } else if (title == 'Расходы организма') {
-      timeText = '00:00'; // BMR считается на весь день
+    } else if (isBMR) {
+      eventTimeText = '00:00'; // BMR считается на весь день
     }
 
     // Формируем текст в формате "Завтрак (12:34) +119"
-    final timePart = timeText != null ? ' ($timeText)' : '';
-    final caloriesText = title == 'Расходы организма'
-        ? '-$calories'
-        : '+$calories';
+    final timePart = eventTimeText != null ? ' ($eventTimeText)' : '';
+    final caloriesText = isBMR
+        ? '+$calories' // BMR с плюсом
+        : '+$calories'; // Все остальные тоже с плюсом
 
     return Container(
       key: title == 'Расходы организма' ? const ValueKey('bmr') : null,

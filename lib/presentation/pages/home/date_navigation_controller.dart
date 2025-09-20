@@ -16,7 +16,11 @@ class DateNavigationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Устанавливаем текущий день в репозитории при инициализации
+    _dailyCaloriesRepo.setCurrentDate(DateTime.now());
     _loadAvailableDates();
+    // Загружаем калории для текущей даты
+    _loadCaloriesForDate(DateTime.now());
   }
 
   void _loadAvailableDates() {
@@ -150,17 +154,39 @@ class DateNavigationController extends GetxController {
 
   Future<void> _loadCaloriesForDate(DateTime date) async {
     try {
+      // Устанавливаем текущий день в репозитории
+      _dailyCaloriesRepo.setCurrentDate(date);
+
       final record = _dailyCaloriesRepo.getTodayRecord(date);
 
       // Обновляем MainBloc с данными для выбранной даты
-      final mainBloc = Get.find<MainBloc>();
-      mainBloc.add(
-        UpdateCaloriesEvent(
-          consumedCalories: record.consumedCalories,
-          burnedCalories: record.burnedCalories,
-          maxCalories: record.maxCalories,
-        ),
-      );
+      try {
+        final mainBloc = Get.find<MainBloc>();
+        mainBloc.add(
+          UpdateCaloriesEvent(
+            consumedCalories: record.consumedCalories,
+            burnedCalories: record.burnedCalories,
+            maxCalories: record.maxCalories,
+          ),
+        );
+      } catch (e) {
+        print('MainBloc еще не готов: $e');
+        // Повторяем попытку через небольшую задержку
+        Future.delayed(const Duration(milliseconds: 100), () {
+          try {
+            final mainBloc = Get.find<MainBloc>();
+            mainBloc.add(
+              UpdateCaloriesEvent(
+                consumedCalories: record.consumedCalories,
+                burnedCalories: record.burnedCalories,
+                maxCalories: record.maxCalories,
+              ),
+            );
+          } catch (e2) {
+            print('Ошибка повторной попытки обновления MainBloc: $e2');
+          }
+        });
+      }
 
       print(
         '📊 Загружены калории для ${date.toString().split(' ')[0]}: consumed=${record.consumedCalories}, burned=${record.burnedCalories}',
