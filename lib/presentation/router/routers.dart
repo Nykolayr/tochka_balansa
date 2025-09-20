@@ -31,6 +31,7 @@ import 'package:tochka_balansa/presentation/pages/goal/goal_setup_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/eat_page.dart';
 import 'package:tochka_balansa/presentation/pages/exercise/exercise_page.dart';
 import 'package:tochka_balansa/presentation/pages/food/add_product_page.dart';
+import 'package:tochka_balansa/presentation/pages/diary/detailed_diary_page.dart';
 
 final GoRouter router = GoRouter(
   debugLogDiagnostics: true,
@@ -168,6 +169,18 @@ final GoRouter router = GoRouter(
                   context: context,
                   state: state,
                   child: AddProductPage(eatType: eatType),
+                );
+              },
+            ),
+            GoRoute(
+              name: 'detailed-diary',
+              path: 'detailed-diary',
+              pageBuilder: (context, state) {
+                return buildPageWithDefaultTransition(
+                  type: PageTransitionType.rightToLeft,
+                  context: context,
+                  state: state,
+                  child: const DetailedDiaryPage(),
                 );
               },
             ),

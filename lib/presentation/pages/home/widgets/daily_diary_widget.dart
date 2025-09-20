@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tochka_balansa/core/theme/colors.dart';
 import 'package:tochka_balansa/data/models/health/daily_calories_record.dart';
 import 'package:tochka_balansa/data/models/health/daily_event.dart';
@@ -35,8 +36,7 @@ class DailyDiaryWidget extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // TODO: Переход на страницу подробного дневника
-                      print('Переход на подробный дневник');
+                      context.push('/main/home/detailed-diary');
                     },
                     child: Text(
                       'Подробнее',

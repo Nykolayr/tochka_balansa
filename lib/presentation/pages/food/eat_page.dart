@@ -668,7 +668,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
         products: productNames,
         totalWeight: totalWeight,
         calories: totalCalories,
-        note: '${mealProducts.length} продуктов',
+        note: null,
       );
 
       // Очищаем все категории приемов пищи
