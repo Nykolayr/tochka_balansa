@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:tochka_balansa/data/repositories/daily_calories_repository.dart';
+import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 
 class DateNavigationController extends GetxController {
   final DailyCaloriesRepository _dailyCaloriesRepo =
@@ -42,24 +43,44 @@ class DateNavigationController extends GetxController {
       }
     }
 
-    // Сортируем по убыванию (сегодня первым)
-    availableDates.sort((a, b) => b.compareTo(a));
+    // Сортируем по возрастанию (самая старая дата первая, сегодня последняя)
+    availableDates.sort((a, b) => a.compareTo(b));
 
     // Инициализируем PageController с правильным количеством страниц
-    pageController = PageController(initialPage: 0);
-    currentPage = 0;
+    // Начинаем с последнего индекса (сегодня)
+    currentPage = availableDates.isNotEmpty ? availableDates.length - 1 : 0;
+    pageController = PageController(initialPage: currentPage);
 
     if (availableDates.isNotEmpty) {
-      selectedDate = availableDates[0];
+      selectedDate = availableDates[currentPage];
+      print(
+        '🎯 Установлена начальная дата: ${selectedDate.toString().split(' ')[0]} (индекс $currentPage)',
+      );
     }
   }
 
   void onPageChanged(int page) {
+    print('🔄 onPageChanged: page=$page, currentPage=$currentPage');
     // СТРОГАЯ проверка - только существующие страницы
     if (page >= 0 && page < availableDates.length) {
+      // Обновляем текущую страницу и выбранную дату
       currentPage = page;
       selectedDate = availableDates[page];
-      update(); // Обновляем UI
+      update(); // Обновляем AppBar
+
+      // Загружаем калории для выбранной даты
+      _loadCaloriesForDate(selectedDate);
+
+      // Определяем направление свайпа
+      if (page > currentPage) {
+        // Свайп вправо → завтра (больший индекс)
+        print('👉 Свайп вправо → завтра');
+        swipeRight();
+      } else if (page < currentPage) {
+        // Свайп влево → вчера (меньший индекс)
+        print('👈 Свайп влево → вчера');
+        swipeLeft();
+      }
     } else {
       Logger.e(
         '❌ ОШИБКА: Попытка перехода к несуществующей странице $page! Возвращаемся к $currentPage',
@@ -72,6 +93,7 @@ class DateNavigationController extends GetxController {
   }
 
   void goToPreviousDay() {
+    // Левая кнопка = вчера = меньший индекс = previousPage
     if (pageController.hasClients && canGoToPrevious()) {
       pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -81,6 +103,7 @@ class DateNavigationController extends GetxController {
   }
 
   void goToNextDay() {
+    // Правая кнопка = завтра = больший индекс = nextPage
     if (pageController.hasClients && canGoToNext()) {
       pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -89,12 +112,64 @@ class DateNavigationController extends GetxController {
     }
   }
 
+  // Универсальная функция для свайпа влево (к вчера)
+  void swipeLeft() {
+    print(
+      '👈 swipeLeft: currentPage=$currentPage, canGoToPrevious=${canGoToPrevious()}',
+    );
+    if (canGoToPrevious()) {
+      print('✅ Свайп влево → вчера');
+      goToPreviousDay();
+    } else {
+      print('❌ Не можем свайпнуть влево');
+    }
+  }
+
+  // Универсальная функция для свайпа вправо (к завтра)
+  void swipeRight() {
+    print(
+      '👉 swipeRight: currentPage=$currentPage, canGoToNext=${canGoToNext()}',
+    );
+    if (canGoToNext()) {
+      print('✅ Свайп вправо → завтра');
+      goToNextDay();
+    } else {
+      print('❌ Не можем свайпнуть вправо');
+    }
+  }
+
   bool canGoToPrevious() {
+    // Левая кнопка = вчера = меньший индекс
     return currentPage > 0;
   }
 
   bool canGoToNext() {
+    // Правая кнопка = завтра = больший индекс
     return currentPage < availableDates.length - 1;
+  }
+
+  Future<void> _loadCaloriesForDate(DateTime date) async {
+    try {
+      final record = _dailyCaloriesRepo.getTodayRecord(date);
+
+      // Обновляем MainBloc с данными для выбранной даты
+      final mainBloc = Get.find<MainBloc>();
+      mainBloc.add(
+        UpdateCaloriesEvent(
+          consumedCalories: record.consumedCalories,
+          burnedCalories: record.burnedCalories,
+          maxCalories: record.maxCalories,
+        ),
+      );
+
+      print(
+        '📊 Загружены калории для ${date.toString().split(' ')[0]}: consumed=${record.consumedCalories}, burned=${record.burnedCalories}',
+      );
+    } catch (e) {
+      print(
+        '❌ Ошибка загрузки калорий для ${date.toString().split(' ')[0]}: $e',
+      );
+    }
   }
 
   @override

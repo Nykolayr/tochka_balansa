@@ -34,34 +34,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeDailyCalories() async {
-    // Загружаем калории для выбранной даты
-    if (dateController.availableDates.isNotEmpty) {
-      await _loadCaloriesForDate(dateController.selectedDate);
-    }
-  }
-
-  Future<void> _loadCaloriesForDate(DateTime date) async {
-    final dailyCaloriesRepo = Get.find<DailyCaloriesRepository>();
-    final userRepository = Get.find<UserRepository>();
-    final user = userRepository.user;
-
-    // Проверяем, зарегистрирован ли пользователь
-    if (!user.isReg) {
-      Logger.i('Пользователь не зарегистрирован, не создаем запись на сегодня');
-      return;
-    }
-
-    final record = dailyCaloriesRepo.getTodayRecord(date);
-
-    // Обновляем MainBloc
-    final mainBloc = Get.find<MainBloc>();
-    mainBloc.add(
-      UpdateCaloriesEvent(
-        consumedCalories: record.consumedCalories,
-        burnedCalories: record.burnedCalories,
-        maxCalories: record.maxCalories,
-      ),
-    );
+    // Данные загружаются в DateNavigationController
   }
 
   @override
@@ -109,8 +82,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPageForDate(DateTime date) {
-    // Загружаем данные для конкретной даты
-    _loadCaloriesForDate(date);
+    // Данные загружаются в DateNavigationController
     return const Center(child: BodyOutlineWidget());
   }
 
