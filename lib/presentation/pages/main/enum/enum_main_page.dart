@@ -6,6 +6,7 @@ import 'package:tochka_balansa/presentation/pages/health/health_page.dart';
 import 'package:tochka_balansa/presentation/pages/goal/goal_page.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_page.dart';
 import 'package:tochka_balansa/presentation/pages/home/home_app_bar.dart';
+import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
 import 'package:tochka_balansa/presentation/pages/health/health_app_bar.dart';
 import 'package:tochka_balansa/presentation/pages/profile/profile_app_bar.dart';
 import 'package:tochka_balansa/core/l10n/language_manager.dart';
@@ -45,7 +46,15 @@ enum MainPages {
       bloc: Get.find<LanguageBloc>(),
       builder: (context, languageState) {
         return switch (this) {
-          home => HomeAppBar(),
+          home => GetBuilder<DateNavigationController>(
+            builder: (controller) => HomeAppBar(
+              selectedDate: controller.selectedDate,
+              canGoToPrevious: controller.canGoToPrevious(),
+              canGoToNext: controller.canGoToNext(),
+              onPreviousDay: controller.goToPreviousDay,
+              onNextDay: controller.goToNextDay,
+            ),
+          ),
           health => HealthAppBar(),
           training => AppBarWidget(
             title: textLang('Цели'),

@@ -522,6 +522,7 @@ class _EatPageState extends State<EatPage> with SingleTickerProviderStateMixin {
                       );
 
                       // Показываем уведомление
+                      // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(

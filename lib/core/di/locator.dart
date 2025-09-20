@@ -16,6 +16,7 @@ import 'package:tochka_balansa/presentation/pages/food/bloc/food_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/goal/bloc/goal_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/main/bloc/main_bloc.dart';
 import 'package:tochka_balansa/presentation/pages/health/bloc/health_bloc.dart';
+import 'package:tochka_balansa/presentation/pages/home/date_navigation_controller.dart';
 
 /// внедряем зависимости
 Future<void> initMain() async {
@@ -118,6 +119,14 @@ Future<void> initMain() async {
     await Get.putAsync<HealthBloc>(() async => HealthBloc());
   } catch (e) {
     Logger.e('HealthBloc error = $e');
+  }
+
+  // Инициализируем контроллер навигации по датам
+  try {
+    Get.put(DateNavigationController());
+    Logger.i('DateNavigationController инициализирован');
+  } catch (e) {
+    Logger.e('DateNavigationController error = $e');
   }
 
   Logger.i('Все блоки инициализированы и готовы к работе');
